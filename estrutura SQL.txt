@@ -1,0 +1,15 @@
+JOHN-MOTOS/
+├── banco-de-dados/
+│   ├── 01_estrutura_inicial.sql
+│   ├── 02_seguranca_rls.sql
+│   ├── 03_funcoes_estoque.sql
+│   ├── 04_funcoes_vendas.sql
+│   └── 05_atualizacoes.sql
+├── paginas/
+│   ├── index.html
+│   ├── estoque.html
+│   ├── estantes.html
+│   ├── compras.html
+│   ├── vendas.html
+│   └── oficina.html
+└── README.md
