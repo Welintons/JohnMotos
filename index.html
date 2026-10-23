@@ -16,9 +16,12 @@
 <body>
     <div class="app">
 
+        <!-- CABEÇALHO -->
+
         <header class="header">
             <a href="index.html" class="brand">
                 <div class="brand-icon">🏍️</div>
+
                 <div>
                     <h1>JOHN MOTOS</h1>
                     <p>PEÇAS E ACESSÓRIOS</p>
@@ -38,18 +41,51 @@
         </header>
 
         <main>
+
+            <!-- BOAS-VINDAS -->
+
             <section class="welcome">
                 <h2>Painel principal</h2>
+
                 <p>
-                    Bem-vindo ao sistema de gestão da John Motos Peças.
+                    Central de operações da John Motos Peças.
+                    Consulte as atividades e acesse os módulos da loja.
                 </p>
             </section>
 
-            <!-- ALERTAS DO SISTEMA -->
+            <!-- ACESSO RÁPIDO AO PDV -->
 
-            <section class="section" aria-labelledby="alertsTitle">
+            <section class="section" aria-labelledby="pdvTitle">
                 <div class="section-heading">
-                    <h3 id="alertsTitle">Alertas do sistema</h3>
+                    <h3 id="pdvTitle">Frente de caixa</h3>
+                    <span>Atendimento e vendas</span>
+                </div>
+
+                <article class="pdv-card">
+                    <div class="pdv-info">
+                        <div class="pdv-icon">🛒</div>
+
+                        <div>
+                            <h3>PDV — Ponto de Venda</h3>
+
+                            <p>
+                                Registre vendas, localize peças e finalize
+                                atendimentos em um único lugar.
+                            </p>
+                        </div>
+                    </div>
+
+                    <a href="pdv.html" class="pdv-action">
+                        Abrir caixa <span>→</span>
+                    </a>
+                </article>
+            </section>
+
+            <!-- RESUMO OPERACIONAL -->
+
+            <section class="section" aria-labelledby="summaryTitle">
+                <div class="section-heading">
+                    <h3 id="summaryTitle">Resumo da loja</h3>
                     <span id="lastUpdate">Aguardando atualização</span>
                 </div>
 
@@ -57,59 +93,95 @@
 
                     <article class="alert-card">
                         <div class="alert-top">
-                            <div class="alert-icon icon-yellow">📦</div>
-                            <span class="counter" id="stockCounter">
-                                0 produtos
+                            <div class="alert-icon icon-yellow">🛍️</div>
+
+                            <span class="counter" id="salesCounter">
+                                Hoje
                             </span>
                         </div>
 
                         <div class="alert-label">
-                            Produtos com estoque baixo
+                            Vendas realizadas
                         </div>
 
-                        <div class="alert-value" id="stockTotal">—</div>
+                        <div class="alert-value" id="salesTotal">—</div>
 
                         <p class="alert-description">
-                            Produtos que precisam de reposição.
+                            Quantidade de vendas registradas hoje.
                         </p>
 
-                        <a class="alert-action" href="estoque.html">
-                            Consultar estoque <span>→</span>
+                        <a class="alert-action" href="vendas.html">
+                            Consultar vendas <span>→</span>
                         </a>
                     </article>
 
                     <article class="alert-card">
                         <div class="alert-top">
-                            <div class="alert-icon icon-red">💳</div>
-                            <span class="counter" id="paymentsCounter">
-                                0 pendências
+                            <div class="alert-icon icon-yellow">📦</div>
+
+                            <span class="counter" id="productsCounter">
+                                Cadastrados
                             </span>
                         </div>
 
                         <div class="alert-label">
-                            Pagamentos pendentes
+                            Produtos cadastrados
                         </div>
 
-                        <div class="alert-value" id="paymentsTotal">—</div>
+                        <div class="alert-value" id="productsTotal">—</div>
 
                         <p class="alert-description">
-                            Contas a pagar e valores em atraso.
+                            Total de produtos registrados no sistema.
                         </p>
 
-                        <a class="alert-action" href="fornecedores.html">
-                            Consultar pagamentos <span>→</span>
+                        <a class="alert-action" href="estoque.html">
+                            Consultar produtos <span>→</span>
+                        </a>
+                    </article>
+
+                    <article class="alert-card">
+                        <div class="alert-top">
+                            <div class="alert-icon icon-red">⚠️</div>
+
+                            <span class="counter" id="outOfStockCounter">
+                                0 itens
+                            </span>
+                        </div>
+
+                        <div class="alert-label">
+                            Produtos sem estoque
+                        </div>
+
+                        <div class="alert-value" id="outOfStockTotal">—</div>
+
+                        <p class="alert-description">
+                            Peças que precisam de reposição.
+                        </p>
+
+                        <a class="alert-action" href="estoque.html">
+                            Ver estoque <span>→</span>
                         </a>
                     </article>
 
                 </div>
+            </section>
 
-                <!-- DETALHES DOS ALERTAS -->
+            <!-- ALERTAS DO SISTEMA -->
+
+            <section class="section" aria-labelledby="alertsTitle">
+                <div class="section-heading">
+                    <h3 id="alertsTitle">Alertas do sistema</h3>
+                    <span>Itens que precisam de atenção</span>
+                </div>
 
                 <div class="details-grid">
+
+                    <!-- ESTOQUE BAIXO -->
 
                     <article class="details-card">
                         <div class="details-header">
                             <h4>Estoque baixo</h4>
+
                             <span class="counter" id="stockListCounter">
                                 0 produtos
                             </span>
@@ -118,14 +190,22 @@
                         <div class="details-body" id="stockList">
                             <div class="empty">
                                 <span class="empty-icon">📦</span>
+
                                 Os alertas de estoque aparecerão aqui.
                             </div>
                         </div>
+
+                        <a class="alert-action" href="estoque.html">
+                            Gerenciar estoque <span>→</span>
+                        </a>
                     </article>
+
+                    <!-- PAGAMENTOS PENDENTES -->
 
                     <article class="details-card">
                         <div class="details-header">
                             <h4>Pendências de pagamentos</h4>
+
                             <span class="counter" id="paymentsListCounter">
                                 0 contas
                             </span>
@@ -134,15 +214,43 @@
                         <div class="details-body" id="paymentsList">
                             <div class="empty">
                                 <span class="empty-icon">💳</span>
-                                As contas pendentes aparecerão aqui.
+
+                                As pendências aparecerão aqui.
                             </div>
                         </div>
+
+                        <a class="alert-action" href="fornecedores.html">
+                            Consultar pendências <span>→</span>
+                        </a>
                     </article>
 
                 </div>
             </section>
 
-            <!-- MENU DOS MÓDULOS -->
+            <!-- ÚLTIMAS VENDAS -->
+
+            <section class="section" aria-labelledby="recentSalesTitle">
+                <div class="section-heading">
+                    <h3 id="recentSalesTitle">Últimas vendas</h3>
+
+                    <a href="vendas.html" class="alert-action">
+                        Ver histórico <span>→</span>
+                    </a>
+                </div>
+
+                <article class="details-card">
+                    <div class="details-body" id="recentSalesList">
+                        <div class="empty">
+                            <span class="empty-icon">🧾</span>
+
+                            As vendas recentes aparecerão aqui
+                            após a integração com o banco de dados.
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- MÓDULOS DO SISTEMA -->
 
             <section class="section" aria-labelledby="modulesTitle">
                 <div class="section-heading">
@@ -154,61 +262,76 @@
 
                     <a class="module" href="estoque.html">
                         <div class="module-icon">📦</div>
+
                         <div class="module-info">
                             <h4>Estoque</h4>
                             <p>Cadastro e controle de produtos</p>
                         </div>
+
                         <span class="module-arrow">›</span>
                     </a>
 
                     <a class="module" href="estantes.html">
                         <div class="module-icon">🗄️</div>
+
                         <div class="module-info">
                             <h4>Mapa das estantes</h4>
                             <p>Localização das peças nas prateleiras</p>
                         </div>
+
                         <span class="module-arrow">›</span>
                     </a>
 
                     <a class="module" href="vendas.html">
                         <div class="module-icon">🛒</div>
+
                         <div class="module-info">
                             <h4>Vendas</h4>
                             <p>Registro e consulta de vendas</p>
                         </div>
+
                         <span class="module-arrow">›</span>
                     </a>
 
                     <a class="module" href="fornecedores.html">
                         <div class="module-icon">🚚</div>
+
                         <div class="module-info">
                             <h4>Fornecedores</h4>
                             <p>Cadastro e compras de peças</p>
                         </div>
+
                         <span class="module-arrow">›</span>
                     </a>
 
                     <a class="module" href="movimentacoes.html">
                         <div class="module-icon">🔄</div>
+
                         <div class="module-info">
                             <h4>Movimentações</h4>
                             <p>Histórico de entradas e saídas</p>
                         </div>
+
                         <span class="module-arrow">›</span>
                     </a>
 
                     <a class="module" href="configuracoes.html">
                         <div class="module-icon">⚙️</div>
+
                         <div class="module-info">
                             <h4>Configurações</h4>
                             <p>Preferências do sistema</p>
                         </div>
+
                         <span class="module-arrow">›</span>
                     </a>
 
                 </nav>
             </section>
+
         </main>
+
+        <!-- RODAPÉ -->
 
         <footer class="footer">
             <span>
