@@ -1,348 +1,167 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b0f17">
-    <meta name="description" content="Painel administrativo John Motos Peças">
-    <title>John Motos Peças | Painel</title>
-
-    <link rel="stylesheet" href="css/style.css">
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/app.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d1117">
+  <title>John Motos Peças | Painel</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/app.js" defer></script>
 </head>
-
 <body>
-    <div class="app">
+  <div class="dashboard-container">
+    
+    <!-- CABEÇALHO -->
+    <header class="header">
+      <div class="brand">
+        <span class="brand-icon">🏍️</span>
+        <div>
+          <h1>JOHN MOTOS</h1>
+          <p>Gestão & Peças</p>
+        </div>
+      </div>
+      
+      <div class="header-status">
+        <div class="connection-badge" id="connectionStatus">
+          <span class="dot"></span>
+          <span id="connectionText">Conectado</span>
+        </div>
+        <span class="date-badge" id="currentDate">--/--/----</span>
+      </div>
+    </header>
 
-        <!-- CABEÇALHO -->
+    <!-- BANNER PDV (DESTAQUE PRINCIPAL) -->
+    <section class="pdv-banner">
+      <div class="pdv-text">
+        <h2>Frente de Caixa (PDV)</h2>
+        <p>Realize vendas rápidas, busque peças e emita comprovantes.</p>
+      </div>
+      <a href="pdv.html" class="btn-pdv">
+        <span>🛒</span> Abrir Caixa
+      </a>
+    </section>
 
-        <header class="header">
-            <a href="index.html" class="brand">
-                <div class="brand-icon">🏍️</div>
+    <!-- METRICAS / RESUMO -->
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>🛍️ Vendas Hoje</span>
+          <span class="badge blue">Hoje</span>
+        </div>
+        <div class="metric-value" id="salesTotal">R$ 0,00</div>
+        <a href="vendas.html" class="metric-link">Ver histórico →</a>
+      </div>
 
-                <div>
-                    <h1>JOHN MOTOS</h1>
-                    <p>PEÇAS E ACESSÓRIOS</p>
-                </div>
-            </a>
+      <div class="metric-card">
+        <div class="metric-header">
+          <span>📦 Produtos</span>
+          <span class="badge gray" id="productsCounter">Total</span>
+        </div>
+        <div class="metric-value" id="productsTotal">0</div>
+        <a href="estoque.html" class="metric-link">Ver catálogo →</a>
+      </div>
 
-            <div class="header-right">
-                <div class="connection" id="connectionStatus">
-                    <span class="connection-dot"></span>
-                    <span id="connectionText">Verificando conexão</span>
-                </div>
+      <div class="metric-card warning">
+        <div class="metric-header">
+          <span>⚠️ Sem Estoque</span>
+          <span class="badge red" id="outOfStockCounter">Atenção</span>
+        </div>
+        <div class="metric-value" id="outOfStockTotal">0</div>
+        <a href="estoque.html" class="metric-link">Repor itens →</a>
+      </div>
+    </section>
 
-                <div class="date-box" id="currentDate">
-                    --/--/----
-                </div>
+    <!-- NAVEGAÇÃO RÁPIDA (MÓDULOS) -->
+    <section class="section">
+      <h3 class="section-title">Módulos</h3>
+      <nav class="modules-grid">
+        <a href="estoque.html" class="module-card">
+          <span class="icon">📦</span>
+          <div>
+            <h4>Estoque</h4>
+            <p>Peças e saldos</p>
+          </div>
+        </a>
+        <a href="estantes.html" class="module-card">
+          <span class="icon">🗄️</span>
+          <div>
+            <h4>Estantes</h4>
+            <p>Localização nas prateleiras</p>
+          </div>
+        </a>
+        <a href="vendas.html" class="module-card">
+          <span class="icon">🛒</span>
+          <div>
+            <h4>Vendas</h4>
+            <p>Histórico e relatórios</p>
+          </div>
+        </a>
+        <a href="fornecedores.html" class="module-card">
+          <span class="icon">🚚</span>
+          <div>
+            <h4>Fornecedores</h4>
+            <p>Contas e compras</p>
+          </div>
+        </a>
+        <a href="movimentacoes.html" class="module-card">
+          <span class="icon">🔄</span>
+          <div>
+            <h4>Movimentações</h4>
+            <p>Entradas e saídas</p>
+          </div>
+        </a>
+        <a href="configuracoes.html" class="module-card">
+          <span class="icon">⚙️</span>
+          <div>
+            <h4>Ajustes</h4>
+            <p>Configurações do sistema</p>
+          </div>
+        </a>
+      </nav>
+    </section>
+
+    <!-- ALERTAS E ÚLTIMAS VENDAS (LADO A LADO) -->
+    <div class="two-columns">
+      <!-- ALERTAS DA LOJA -->
+      <section class="section">
+        <h3 class="section-title">Alertas do Sistema</h3>
+        <div class="card-list">
+          <div class="list-item">
+            <div class="list-title">
+              <span>📦</span> <strong>Estoque Baixo</strong>
             </div>
-        </header>
-
-        <main>
-
-            <!-- BOAS-VINDAS -->
-
-            <section class="welcome">
-                <h2>Painel principal</h2>
-
-                <p>
-                    Central de operações da John Motos Peças.
-                    Consulte as atividades e acesse os módulos da loja.
-                </p>
-            </section>
-
-            <!-- ACESSO RÁPIDO AO PDV -->
-
-            <section class="section" aria-labelledby="pdvTitle">
-                <div class="section-heading">
-                    <h3 id="pdvTitle">Frente de caixa</h3>
-                    <span>Atendimento e vendas</span>
-                </div>
-
-                <article class="pdv-card">
-                    <div class="pdv-info">
-                        <div class="pdv-icon">🛒</div>
-
-                        <div>
-                            <h3>PDV — Ponto de Venda</h3>
-
-                            <p>
-                                Registre vendas, localize peças e finalize
-                                atendimentos em um único lugar.
-                            </p>
-                        </div>
-                    </div>
-
-                    <a href="pdv.html" class="pdv-action">
-                        Abrir caixa <span>→</span>
-                    </a>
-                </article>
-            </section>
-
-            <!-- RESUMO OPERACIONAL -->
-
-            <section class="section" aria-labelledby="summaryTitle">
-                <div class="section-heading">
-                    <h3 id="summaryTitle">Resumo da loja</h3>
-                    <span id="lastUpdate">Aguardando atualização</span>
-                </div>
-
-                <div class="alert-grid">
-
-                    <article class="alert-card">
-                        <div class="alert-top">
-                            <div class="alert-icon icon-yellow">🛍️</div>
-
-                            <span class="counter" id="salesCounter">
-                                Hoje
-                            </span>
-                        </div>
-
-                        <div class="alert-label">
-                            Vendas realizadas
-                        </div>
-
-                        <div class="alert-value" id="salesTotal">—</div>
-
-                        <p class="alert-description">
-                            Quantidade de vendas registradas hoje.
-                        </p>
-
-                        <a class="alert-action" href="vendas.html">
-                            Consultar vendas <span>→</span>
-                        </a>
-                    </article>
-
-                    <article class="alert-card">
-                        <div class="alert-top">
-                            <div class="alert-icon icon-yellow">📦</div>
-
-                            <span class="counter" id="productsCounter">
-                                Cadastrados
-                            </span>
-                        </div>
-
-                        <div class="alert-label">
-                            Produtos cadastrados
-                        </div>
-
-                        <div class="alert-value" id="productsTotal">—</div>
-
-                        <p class="alert-description">
-                            Total de produtos registrados no sistema.
-                        </p>
-
-                        <a class="alert-action" href="estoque.html">
-                            Consultar produtos <span>→</span>
-                        </a>
-                    </article>
-
-                    <article class="alert-card">
-                        <div class="alert-top">
-                            <div class="alert-icon icon-red">⚠️</div>
-
-                            <span class="counter" id="outOfStockCounter">
-                                0 itens
-                            </span>
-                        </div>
-
-                        <div class="alert-label">
-                            Produtos sem estoque
-                        </div>
-
-                        <div class="alert-value" id="outOfStockTotal">—</div>
-
-                        <p class="alert-description">
-                            Peças que precisam de reposição.
-                        </p>
-
-                        <a class="alert-action" href="estoque.html">
-                            Ver estoque <span>→</span>
-                        </a>
-                    </article>
-
-                </div>
-            </section>
-
-            <!-- ALERTAS DO SISTEMA -->
-
-            <section class="section" aria-labelledby="alertsTitle">
-                <div class="section-heading">
-                    <h3 id="alertsTitle">Alertas do sistema</h3>
-                    <span>Itens que precisam de atenção</span>
-                </div>
-
-                <div class="details-grid">
-
-                    <!-- ESTOQUE BAIXO -->
-
-                    <article class="details-card">
-                        <div class="details-header">
-                            <h4>Estoque baixo</h4>
-
-                            <span class="counter" id="stockListCounter">
-                                0 produtos
-                            </span>
-                        </div>
-
-                        <div class="details-body" id="stockList">
-                            <div class="empty">
-                                <span class="empty-icon">📦</span>
-
-                                Os alertas de estoque aparecerão aqui.
-                            </div>
-                        </div>
-
-                        <a class="alert-action" href="estoque.html">
-                            Gerenciar estoque <span>→</span>
-                        </a>
-                    </article>
-
-                    <!-- PAGAMENTOS PENDENTES -->
-
-                    <article class="details-card">
-                        <div class="details-header">
-                            <h4>Pendências de pagamentos</h4>
-
-                            <span class="counter" id="paymentsListCounter">
-                                0 contas
-                            </span>
-                        </div>
-
-                        <div class="details-body" id="paymentsList">
-                            <div class="empty">
-                                <span class="empty-icon">💳</span>
-
-                                As pendências aparecerão aqui.
-                            </div>
-                        </div>
-
-                        <a class="alert-action" href="fornecedores.html">
-                            Consultar pendências <span>→</span>
-                        </a>
-                    </article>
-
-                </div>
-            </section>
-
-            <!-- ÚLTIMAS VENDAS -->
-
-            <section class="section" aria-labelledby="recentSalesTitle">
-                <div class="section-heading">
-                    <h3 id="recentSalesTitle">Últimas vendas</h3>
-
-                    <a href="vendas.html" class="alert-action">
-                        Ver histórico <span>→</span>
-                    </a>
-                </div>
-
-                <article class="details-card">
-                    <div class="details-body" id="recentSalesList">
-                        <div class="empty">
-                            <span class="empty-icon">🧾</span>
-
-                            As vendas recentes aparecerão aqui
-                            após a integração com o banco de dados.
-                        </div>
-                    </div>
-                </article>
-            </section>
-
-            <!-- MÓDULOS DO SISTEMA -->
-
-            <section class="section" aria-labelledby="modulesTitle">
-                <div class="section-heading">
-                    <h3 id="modulesTitle">Módulos do sistema</h3>
-                    <span>Acesso rápido</span>
-                </div>
-
-                <nav class="modules-grid" aria-label="Módulos do sistema">
-
-                    <a class="module" href="estoque.html">
-                        <div class="module-icon">📦</div>
-
-                        <div class="module-info">
-                            <h4>Estoque</h4>
-                            <p>Cadastro e controle de produtos</p>
-                        </div>
-
-                        <span class="module-arrow">›</span>
-                    </a>
-
-                    <a class="module" href="estantes.html">
-                        <div class="module-icon">🗄️</div>
-
-                        <div class="module-info">
-                            <h4>Mapa das estantes</h4>
-                            <p>Localização das peças nas prateleiras</p>
-                        </div>
-
-                        <span class="module-arrow">›</span>
-                    </a>
-
-                    <a class="module" href="vendas.html">
-                        <div class="module-icon">🛒</div>
-
-                        <div class="module-info">
-                            <h4>Vendas</h4>
-                            <p>Registro e consulta de vendas</p>
-                        </div>
-
-                        <span class="module-arrow">›</span>
-                    </a>
-
-                    <a class="module" href="fornecedores.html">
-                        <div class="module-icon">🚚</div>
-
-                        <div class="module-info">
-                            <h4>Fornecedores</h4>
-                            <p>Cadastro e compras de peças</p>
-                        </div>
-
-                        <span class="module-arrow">›</span>
-                    </a>
-
-                    <a class="module" href="movimentacoes.html">
-                        <div class="module-icon">🔄</div>
-
-                        <div class="module-info">
-                            <h4>Movimentações</h4>
-                            <p>Histórico de entradas e saídas</p>
-                        </div>
-
-                        <span class="module-arrow">›</span>
-                    </a>
-
-                    <a class="module" href="configuracoes.html">
-                        <div class="module-icon">⚙️</div>
-
-                        <div class="module-info">
-                            <h4>Configurações</h4>
-                            <p>Preferências do sistema</p>
-                        </div>
-
-                        <span class="module-arrow">›</span>
-                    </a>
-
-                </nav>
-            </section>
-
-        </main>
-
-        <!-- RODAPÉ -->
-
-        <footer class="footer">
-            <span>
-                <strong>John Motos Peças</strong>
-                <span class="footer-separator">·</span>
-                Sistema de gestão
-            </span>
-
-            <span>Versão 1.0</span>
-        </footer>
-
+            <div id="stockList" class="list-content">
+              <span class="empty-text">Nenhum alerta de estoque.</span>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="list-title">
+              <span>💳</span> <strong>Contas a Pagar</strong>
+            </div>
+            <div id="paymentsList" class="list-content">
+              <span class="empty-text">Nenhuma pendência financeira.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ÚLTIMAS VENDAS -->
+      <section class="section">
+        <h3 class="section-title">Últimas Vendas</h3>
+        <div class="card-list">
+          <div id="recentSalesList" class="list-content full-padding">
+            <span class="empty-text">Aguardando registro de vendas.</span>
+          </div>
+        </div>
+      </section>
     </div>
+
+    <!-- RODAPÉ -->
+    <footer class="footer">
+      <p><strong>John Motos Peças</strong> • v1.0</p>
+    </footer>
+
+  </div>
 </body>
 </html>
