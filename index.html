@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0b0f17">
-    <meta name="description" content="Sistema de gerenciamento John Motos Peças">
+
     <title>John Motos Peças</title>
 
+    <!-- Aproveita o CSS existente -->
     <link rel="stylesheet" href="css/style.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -30,10 +27,10 @@
                 </div>
 
                 <button
+                    type="button"
                     class="close-sidebar"
                     id="closeSidebar"
-                    aria-label="Fechar menu"
-                    type="button">
+                    aria-label="Fechar menu">
                     &times;
                 </button>
             </div>
@@ -111,24 +108,26 @@
 
         </aside>
 
-        <!-- FUNDO PARA FECHAR O MENU NO CELULAR -->
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        <!-- SOBREPOSIÇÃO DO MENU -->
+        <div
+            class="sidebar-overlay"
+            id="sidebarOverlay">
+        </div>
 
         <!-- CONTEÚDO PRINCIPAL -->
         <main class="main-content">
 
-            <!-- CABEÇALHO -->
             <header class="topbar">
 
                 <div class="topbar-left">
 
                     <button
+                        type="button"
                         class="menu-toggle"
                         id="menuToggle"
                         aria-label="Abrir menu"
                         aria-expanded="false"
-                        aria-controls="sidebar"
-                        type="button">
+                        aria-controls="sidebar">
                         ☰
                     </button>
 
@@ -142,26 +141,28 @@
                 <div class="topbar-right">
                     <div class="system-status">
                         <span class="status-dot"></span>
-                        <span>Sistema ativo</span>
+                        <span>Sistema</span>
                     </div>
 
-                    <div class="user-avatar" title="John Motos">JM</div>
+                    <div class="user-avatar">JM</div>
                 </div>
 
             </header>
 
             <!-- BOAS-VINDAS -->
             <section class="welcome-section">
+
                 <div>
                     <span class="welcome-label">PAINEL DE CONTROLE</span>
                     <h2>Bem-vindo à John Motos!</h2>
-                    <p>Acompanhe as atividades da oficina e da loja.</p>
+                    <p>Acompanhe as atividades da oficina e das vendas.</p>
                 </div>
 
                 <div class="welcome-icon">🏍️</div>
+
             </section>
 
-            <!-- INDICADORES -->
+            <!-- RESUMO OPERACIONAL -->
             <section class="section-block">
 
                 <div class="section-heading">
@@ -217,22 +218,23 @@
 
             </section>
 
-            <!-- ALERTAS E PENDÊNCIAS -->
+            <!-- ALERTAS -->
             <section class="section-block">
 
                 <div class="section-heading">
                     <div>
                         <h2>Central de alertas</h2>
-                        <p>Itens que precisam de atenção</p>
+                        <p>Informações que precisam de atenção</p>
                     </div>
                 </div>
 
                 <div class="alerts-grid">
 
-                    <!-- ALERTA DE ESTOQUE -->
+                    <!-- ESTOQUE BAIXO -->
                     <article class="panel-card">
 
                         <div class="panel-header">
+
                             <div class="panel-title-group">
                                 <div class="panel-icon">📦</div>
 
@@ -245,15 +247,13 @@
                             <a href="pages/estoque.html" class="text-link">
                                 Ver estoque →
                             </a>
+
                         </div>
 
                         <div class="alert-list" id="listaEstoqueBaixo">
-
                             <div class="empty-state">
-                                <span>◌</span>
-                                <p>Carregando informações do estoque...</p>
+                                <p>Carregando estoque...</p>
                             </div>
-
                         </div>
 
                     </article>
@@ -262,27 +262,26 @@
                     <article class="panel-card">
 
                         <div class="panel-header">
+
                             <div class="panel-title-group">
                                 <div class="panel-icon payment-panel-icon">◷</div>
 
                                 <div>
                                     <h3>Pagamentos pendentes</h3>
-                                    <p>Contas de clientes a receber</p>
+                                    <p>Valores a receber dos clientes</p>
                                 </div>
                             </div>
 
                             <a href="pages/pendencias.html" class="text-link">
                                 Ver pendências →
                             </a>
+
                         </div>
 
                         <div class="alert-list" id="listaPagamentosPendentes">
-
                             <div class="empty-state">
-                                <span>◌</span>
-                                <p>Carregando informações de pagamentos...</p>
+                                <p>Carregando pagamentos...</p>
                             </div>
-
                         </div>
 
                     </article>
@@ -297,7 +296,7 @@
                 <div class="section-heading">
                     <div>
                         <h2>Acesso rápido</h2>
-                        <p>Atalhos para as principais operações</p>
+                        <p>Atalhos para as operações principais</p>
                     </div>
                 </div>
 
@@ -305,28 +304,34 @@
 
                     <a href="pages/pdv.html" class="quick-action">
                         <div class="quick-action-icon">▣</div>
+
                         <div>
                             <strong>Nova venda</strong>
-                            <span>Abrir o caixa de vendas</span>
+                            <span>Abrir o PDV</span>
                         </div>
+
                         <span class="quick-arrow">→</span>
                     </a>
 
                     <a href="pages/ordens-servico.html" class="quick-action">
                         <div class="quick-action-icon">🔧</div>
+
                         <div>
                             <strong>Ordens de serviço</strong>
                             <span>Acompanhar serviços</span>
                         </div>
+
                         <span class="quick-arrow">→</span>
                     </a>
 
                     <a href="pages/clientes.html" class="quick-action">
                         <div class="quick-action-icon">♙</div>
+
                         <div>
                             <strong>Clientes</strong>
-                            <span>Consultar cadastro</span>
+                            <span>Consultar clientes</span>
                         </div>
+
                         <span class="quick-arrow">→</span>
                     </a>
 
@@ -334,7 +339,6 @@
 
             </section>
 
-            <!-- RODAPÉ -->
             <footer class="main-footer">
                 <span>John Motos Peças</span>
                 <span>Painel de gerenciamento</span>
@@ -344,7 +348,7 @@
 
     </div>
 
-    <!-- JAVASCRIPT DO PROJETO -->
+    <!-- APROVEITA O JAVASCRIPT EXISTENTE -->
     <script src="js/config.js"></script>
     <script src="js/script.js"></script>
 
