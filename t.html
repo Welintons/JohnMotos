@@ -5,43 +5,82 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>JOHN MOTOS - Sistema Completo</title>
 <style>
-:root{--l: #ff6b00; --l2:#e65f00; --d:#111827; --bg:#f8fafc; --c:#fff; --b:#e5e7eb; --g:#6b7280; --s:0 8px 25px rgba(0,0,0,.08); --ok:#16a34a; --bad:#dc2626; --warn:#f59e0b;}
+:root{
+  --l: #dc2626;         /* Vermelho Principal */
+  --l2: #b91c1c;        /* Vermelho Escuro / Hover */
+  --d: #09090b;         /* Preto Fundo/Dark */
+  --bg: #121214;        /* Fundo Geral da Página */
+  --card-bg: #1a1a1e;   /* Fundo dos Cards e Painéis */
+  --c: #ffffff;         /* Texto Branco */
+  --b: #27272a;         /* Bordas */
+  --g: #a1a1aa;         /* Cinza Texto Secundário */
+  --s: 0 8px 25px rgba(0,0,0,.4);
+  --ok: #16a34a; 
+  --bad: #dc2626; 
+  --warn: #f59e0b;
+}
 *{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif}
-body{background:var(--bg);color:var(--d)}
-header{background:linear-gradient(135deg,#000,var(--d));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+body{background:var(--bg);color:var(--c)}
+
+header{background:linear-gradient(135deg,#000,var(--d));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;border-bottom:2px solid var(--l)}
 .logo{font-weight:900;font-size:22px;letter-spacing:.5px}.logo span{color:var(--l)}.logo small{display:block;font-size:10px;opacity:.7;letter-spacing:2px}
-nav{background:#fff;display:flex;gap:6px;padding:10px 14px;overflow-x:auto;border-bottom:1px solid var(--b);position:sticky;top:62px;z-index:90}
-nav button{border:0;padding:10px 14px;border-radius:10px;background:#f1f5f9;font-weight:700;cursor:pointer;white-space:nowrap;font-size:13px}
+
+nav{background:#18181b;display:flex;gap:6px;padding:10px 14px;overflow-x:auto;border-bottom:1px solid var(--b);position:sticky;top:62px;z-index:90}
+nav button{border:0;padding:10px 14px;border-radius:10px;background:#27272a;color:var(--c);font-weight:700;cursor:pointer;white-space:nowrap;font-size:13px;transition:0.2s}
+nav button:hover{background:#3f3f46}
 nav button.active{background:var(--l);color:#fff}
+
 main{max-width:1400px;margin:auto;padding:18px}
 .tela{display:none}.tela.ativa{display:block}
+
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
-.card{background:#fff;padding:16px;border-radius:14px;box-shadow:var(--s);border-left:4px solid var(--l)}
-.card h3{font-size:11px;color:var(--g);text-transform:uppercase}.card strong{font-size:22px;display:block;margin-top:6px}
-.card.warn{border-color:var(--bad);background:#fff1f2}
-.painel{background:#fff;border-radius:14px;padding:16px;box-shadow:var(--s);margin-bottom:16px}
+.card{background:var(--card-bg);padding:16px;border-radius:14px;box-shadow:var(--s);border-left:4px solid var(--l);border:1px solid var(--b);border-left-width:4px}
+.card h3{font-size:11px;color:var(--g);text-transform:uppercase}.card strong{font-size:22px;display:block;margin-top:6px;color:var(--c)}
+.card.warn{border-color:var(--bad);background:#1f1315}
+
+.painel{background:var(--card-bg);border-radius:14px;padding:16px;box-shadow:var(--s);margin-bottom:16px;border:1px solid var(--b)}
 .painel-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-.painel-topo h2{font-size:17px}
+.painel-topo h2{font-size:17px;color:var(--c)}
+
 .tabela-container{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
-th,td{padding:10px 8px;border-bottom:1px solid #f1f5f9;text-align:left;font-size:13px;white-space:nowrap}
-th{color:var(--g);font-size:11px;text-transform:uppercase}
-.btn{border:0;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px}
-.btn-l{background:var(--l);color:#fff}.btn-d{background:#111827;color:#fff}.btn-bad{background:var(--bad);color:#fff}.btn-ed{background:#fff7ed;color:var(--l2);border:1px solid #ffedd5}
+th,td{padding:12px 10px;border-bottom:1px solid var(--b);text-align:left;font-size:13px;white-space:nowrap}
+th{color:var(--g);font-size:11px;text-transform:uppercase;background:#18181b}
+tr:hover {background: rgba(255,255,255,0.02)}
+
+.btn{border:0;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px;transition:0.2s}
+.btn-l{background:var(--l);color:#fff}.btn-l:hover{background:var(--l2)}
+.btn-d{background:#27272a;color:#fff}.btn-d:hover{background:#3f3f46}
+.btn-bad{background:var(--bad);color:#fff}
+.btn-ed{background:#27272a;color:var(--l);border:1px solid var(--b)}
+
 .acoes{display:flex;gap:6px}
 .status{padding:4px 8px;border-radius:20px;font-size:10px;font-weight:800}
-.aberto{background:#fef3c7;color:#92400e}.fechado,.concluida,.entregue,.pago{background:#dcfce7;color:#166534}.andamento{background:#dbeafe;color:#1d4ed8}.atrasado,.cancelada{background:#fee2e2;color:#991b1b}
-.busca{flex:1;min-width:200px;padding:10px;border:1px solid var(--b);border-radius:8px}
+.aberto{background:#451a03;color:#fcd34d}
+.fechado,.concluida,.entregue,.pago{background:#064e3b;color:#6ee7b7}
+.andamento{background:#1e3a8a;color:#93c5fd}
+.atrasado,.cancelada{background:#7f1d1d;color:#fca5a5}
+
+.busca{flex:1;min-width:200px;padding:10px;border:1px solid var(--b);border-radius:8px;background:#09090b;color:var(--c)}
+.busca:focus{outline:1px solid var(--l)}
+
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-.campo{display:flex;flex-direction:column;gap:5px}.campo label{font-size:11px;font-weight:800;color:var(--g);text-transform:uppercase}
-.campo input,.campo select,.campo textarea{padding:10px;border:1px solid var(--b);border-radius:8px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:12px;z-index:300}
-.modal.aberto{display:flex}.modal-box{background:#fff;width:100%;max-width:650px;max-height:90vh;display:flex;flex-direction:column;border-radius:16px;padding:18px}
+.campo{display:flex;flex-direction:column;gap:5px}
+.campo label{font-size:11px;font-weight:800;color:var(--g);text-transform:uppercase}
+.campo input,.campo select,.campo textarea{padding:10px;border:1px solid var(--b);border-radius:8px;background:#09090b;color:var(--c)}
+.campo input:focus, .campo select:focus, .campo textarea:focus{outline:1px solid var(--l)}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:12px;z-index:300}
+.modal.aberto{display:flex}
+.modal-box{background:var(--card-bg);border:1px solid var(--b);width:100%;max-width:650px;max-height:90vh;display:flex;flex-direction:column;border-radius:16px;padding:18px}
 .modal-topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b);padding-bottom:10px}
 .modal-corpo{overflow-y:auto;flex:1;padding-right:4px}
-.form-acoes{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--b);position:sticky;bottom:0;background:#fff}
-.fechar{border:0;background:none;font-size:26px;cursor:pointer}
-.toast{position:fixed;right:14px;bottom:14px;background:#111827;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:500}.toast.mostrar{display:block}
+
+.form-acoes{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--b);position:sticky;bottom:0;background:var(--card-bg)}
+.fechar{border:0;background:none;font-size:26px;cursor:pointer;color:var(--g)}
+.fechar:hover{color:var(--c)}
+
+.toast{position:fixed;right:14px;bottom:14px;background:#27272a;border:1px solid var(--b);color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:500;box-shadow:var(--s)}.toast.mostrar{display:block}
 </style>
 </head>
 <body>
@@ -242,8 +281,8 @@ function render(){
   let tbP=document.getElementById('tabProdutos'); tbP.innerHTML='';
   db.produtos.filter(p=>(p.nome||'').toLowerCase().includes(bP)||(p.codigo_interno||'').toLowerCase().includes(bP)||(p.categoria||'').toLowerCase().includes(bP)).forEach(p=>{
     let baixo=p.quantidade<=p.estoque_minimo;
-    let tr=document.createElement('tr'); tr.style.background=baixo?'#fff1f2':'';
-    tr.innerHTML=`<td>${p.codigo_interno}</td><td>${p.nome}</td><td>${p.categoria||'-'}</td><td style="color:${baixo?'red':'green'};font-weight:800">${p.quantidade}</td><td>R$ ${parseFloat(p.preco_custo||0).toFixed(2)}</td><td><strong>R$ ${parseFloat(p.preco_venda||0).toFixed(2)}</strong></td><td>${p.garantia_dias}d</td><td><div class="acoes"><button class="btn btn-ed" onclick='abrirProduto(${JSON.stringify(p).replace(/'/g,"&#39;")})'>✏️</button><button class="btn btn-bad" onclick="excluir('produtos','${p.id}')">🗑️</button></div></td>`;
+    let tr=document.createElement('tr'); tr.style.background=baixo?'#3b1114':'';
+    tr.innerHTML=`<td>${p.codigo_interno}</td><td>${p.nome}</td><td>${p.categoria||'-'}</td><td style="color:${baixo?'#fca5a5':'#6ee7b7'};font-weight:800">${p.quantidade}</td><td>R$ ${parseFloat(p.preco_custo||0).toFixed(2)}</td><td><strong>R$ ${parseFloat(p.preco_venda||0).toFixed(2)}</strong></td><td>${p.garantia_dias}d</td><td><div class="acoes"><button class="btn btn-ed" onclick='abrirProduto(${JSON.stringify(p).replace(/'/g,"&#39;")})'>✏️</button><button class="btn btn-bad" onclick="excluir('produtos','${p.id}')">🗑️</button></div></td>`;
     tbP.appendChild(tr);
   });
   // FORNECEDORES
@@ -304,7 +343,7 @@ function render(){
   let receber=db.financeiro.filter(f=>f.tipo==='Receber'&&f.status!=='Pago').reduce((a,f)=>a+parseFloat(f.valor||0),0);
   document.getElementById('dReceber').innerText='R$ '+receber.toFixed(2);
   let tabB=document.getElementById('tabBaixo'); tabB.innerHTML='';
-  baixo.forEach(p=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${p.codigo_interno}</td><td>${p.nome}</td><td style="color:red;font-weight:800">${p.quantidade}</td><td>${p.estoque_minimo}</td><td><button class="btn btn-ed" onclick='abrirProduto(${JSON.stringify(p).replace(/'/g,"&#39;")})'>Repor</button></td>`;tabB.appendChild(tr)});
+  baixo.forEach(p=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${p.codigo_interno}</td><td>${p.nome}</td><td style="color:#fca5a5;font-weight:800">${p.quantidade}</td><td>${p.estoque_minimo}</td><td><button class="btn btn-ed" onclick='abrirProduto(${JSON.stringify(p).replace(/'/g,"&#39;")})'>Repor</button></td>`;tabB.appendChild(tr)});
   let tabDash=document.getElementById('tabOsDash'); tabDash.innerHTML='';
   db.os.slice(0,5).forEach(o=>{let cli=db.clientes.find(c=>c.id==o.cliente_id)?.nome||'-';let tr=document.createElement('tr');tr.innerHTML=`<td>#${o.id}</td><td>${cli}</td><td>${o.placa||'-'}</td><td>${(o.descricao_servico||'').substring(0,30)}</td><td>${o.status}</td><td><button class="btn btn-ed" onclick='abrirOs(${JSON.stringify(o).replace(/'/g,"&#39;")})'>Ver</button></td>`;tabDash.appendChild(tr)});
 }
