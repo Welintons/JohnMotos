@@ -1,679 +1,331 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>John Motos — Gestão de Oficina & Peças</title>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
-          colors: {
-            primary: '#ff5500',
-            darkbg: '#0c0f17',
-            cardbg: '#141824',
-            bordercol: '#212838'
-          }
-        }
-      }
-    }
-  </script>
-
-  <style>
-    body { background-color: #0c0f17; color: #f1f5f9; font-family: 'Inter', sans-serif; }
-    .card { background: #141824; border: 1px solid #212838; }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #0c0f17; }
-    ::-webkit-scrollbar-thumb { background: #212838; border-radius: 99px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JOHN MOTOS - Sistema Completo</title>
+<style>
+:root{--l: #ff6b00; --l2:#e65f00; --d:#111827; --bg:#f8fafc; --c:#fff; --b:#e5e7eb; --g:#6b7280; --s:0 8px 25px rgba(0,0,0,.08); --ok:#16a34a; --bad:#dc2626; --warn:#f59e0b;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif}
+body{background:var(--bg);color:var(--d)}
+header{background:linear-gradient(135deg,#000,var(--d));color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.logo{font-weight:900;font-size:22px;letter-spacing:.5px}.logo span{color:var(--l)}.logo small{display:block;font-size:10px;opacity:.7;letter-spacing:2px}
+nav{background:#fff;display:flex;gap:6px;padding:10px 14px;overflow-x:auto;border-bottom:1px solid var(--b);position:sticky;top:62px;z-index:90}
+nav button{border:0;padding:10px 14px;border-radius:10px;background:#f1f5f9;font-weight:700;cursor:pointer;white-space:nowrap;font-size:13px}
+nav button.active{background:var(--l);color:#fff}
+main{max-width:1400px;margin:auto;padding:18px}
+.tela{display:none}.tela.ativa{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.card{background:#fff;padding:16px;border-radius:14px;box-shadow:var(--s);border-left:4px solid var(--l)}
+.card h3{font-size:11px;color:var(--g);text-transform:uppercase}.card strong{font-size:22px;display:block;margin-top:6px}
+.card.warn{border-color:var(--bad);background:#fff1f2}
+.painel{background:#fff;border-radius:14px;padding:16px;box-shadow:var(--s);margin-bottom:16px}
+.painel-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.painel-topo h2{font-size:17px}
+.tabela-container{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 8px;border-bottom:1px solid #f1f5f9;text-align:left;font-size:13px;white-space:nowrap}
+th{color:var(--g);font-size:11px;text-transform:uppercase}
+.btn{border:0;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px}
+.btn-l{background:var(--l);color:#fff}.btn-d{background:#111827;color:#fff}.btn-bad{background:var(--bad);color:#fff}.btn-ed{background:#fff7ed;color:var(--l2);border:1px solid #ffedd5}
+.acoes{display:flex;gap:6px}
+.status{padding:4px 8px;border-radius:20px;font-size:10px;font-weight:800}
+.aberto{background:#fef3c7;color:#92400e}.fechado,.concluida,.entregue,.pago{background:#dcfce7;color:#166534}.andamento{background:#dbeafe;color:#1d4ed8}.atrasado,.cancelada{background:#fee2e2;color:#991b1b}
+.busca{flex:1;min-width:200px;padding:10px;border:1px solid var(--b);border-radius:8px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.campo{display:flex;flex-direction:column;gap:5px}.campo label{font-size:11px;font-weight:800;color:var(--g);text-transform:uppercase}
+.campo input,.campo select,.campo textarea{padding:10px;border:1px solid var(--b);border-radius:8px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:12px;z-index:300}
+.modal.aberto{display:flex}.modal-box{background:#fff;width:100%;max-width:650px;max-height:90vh;display:flex;flex-direction:column;border-radius:16px;padding:18px}
+.modal-topo{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid var(--b);padding-bottom:10px}
+.modal-corpo{overflow-y:auto;flex:1;padding-right:4px}
+.form-acoes{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--b);position:sticky;bottom:0;background:#fff}
+.fechar{border:0;background:none;font-size:26px;cursor:pointer}
+.toast{position:fixed;right:14px;bottom:14px;background:#111827;color:#fff;padding:12px 16px;border-radius:10px;display:none;z-index:500}.toast.mostrar{display:block}
+</style>
 </head>
-<body class="min-h-screen flex flex-col md:flex-row antialiased pb-20 md:pb-0">
+<body>
+<header>
+<div class="logo">JOHN <span>MOTOS</span><small>SISTEMA OFICINA</small></div>
+<div style="display:flex;gap:8px;align-items:center"><div style="text-align:right"><strong id="relogio">--:--</strong><small style="display:block;opacity:.7;font-size:11px">Oficina Aberta</small></div><div style="width:38px;height:38px;border-radius:50%;background:var(--l);display:flex;align-items:center;justify-content:center;font-weight:900">J</div></div>
+</header>
+<nav>
+<button class="active" onclick="tela('dash',this)">📊 Dashboard</button>
+<button onclick="tela('clientes',this)">👥 Clientes</button>
+<button onclick="tela('produtos',this)">📦 Produtos</button>
+<button onclick="tela('fornecedores',this)">🏭 Fornecedores</button>
+<button onclick="tela('os',this)">🛠️ OS</button>
+<button onclick="tela('caixa',this)">💰 Caixa</button>
+<button onclick="tela('vendas',this)">🧾 Vendas</button>
+<button onclick="tela('financeiro',this)">💳 Financeiro</button>
+<button onclick="tela('garantias',this)">🛡️ Garantias</button>
+</nav>
+<main>
+<section id="dash" class="tela ativa">
+<div class="cards">
+<div class="card"><h3>Clientes</h3><strong id="dClientes">0</strong></div>
+<div class="card"><h3>Produtos em Estoque</h3><strong id="dProdutos">0</strong></div>
+<div class="card warn"><h3>⚠️ Estoque Baixo</h3><strong id="dBaixo">0</strong></div>
+<div class="card"><h3>OS Abertas</h3><strong id="dOs">0</strong></div>
+<div class="card"><h3>Vendas Hoje</h3><strong id="dVendas">R$ 0,00</strong></div>
+<div class="card"><h3>A Receber</h3><strong id="dReceber">R$ 0,00</strong></div>
+</div>
+<div class="painel"><div class="painel-topo"><h2>📦 Produtos com estoque baixo</h2></div><div class="tabela-container"><table><thead><tr><th>Código</th><th>Produto</th><th>Qtd</th><th>Mínimo</th><th>Ação</th></tr></thead><tbody id="tabBaixo"></tbody></table></div></div>
+<div class="painel"><div class="painel-topo"><h2>🛠️ Últimas OS</h2></div><div class="tabela-container"><table><thead><tr><th>ID</th><th>Cliente</th><th>Placa</th><th>Serviço</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tabOsDash"></tbody></table></div></div>
+</section>
 
-  <!-- SIDEBAR DESKTOP -->
-  <aside class="w-full md:w-64 card md:min-h-screen p-5 flex flex-col justify-between hidden md:flex border-r">
-    <div>
-      <div class="flex items-center gap-3 mb-8 px-1">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center font-extrabold text-white text-lg shadow-lg shadow-orange-500/20">
-          JM
-        </div>
-        <div>
-          <h1 class="font-bold text-sm tracking-wide text-white">JOHN MOTOS</h1>
-          <p class="text-[11px] text-slate-400 font-medium">Sistema Integrado</p>
-        </div>
-      </div>
+<section id="clientes" class="tela"><div class="painel"><div class="painel-topo"><h2>👥 Clientes</h2><div style="display:flex;gap:8px;flex:1;justify-content:flex-end"><input id="bCliente" class="busca" placeholder="Buscar por nome, placa, telefone" oninput="render()"><button class="btn btn-l" onclick="abrirCliente()">+ Novo</button></div></div><div class="tabela-container"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Documento</th><th>Moto</th><th>Placa</th><th>Ação</th></tr></thead><tbody id="tabClientes"></tbody></table></div></div></section>
 
-      <nav class="space-y-1.5">
-        <button onclick="mudarAba('dashboard')" id="btn-dashboard" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-white bg-orange-500 shadow-md shadow-orange-500/20">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Visão Geral
-        </button>
-        <button onclick="mudarAba('pdv')" id="btn-pdv" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/50">
-          <i data-lucide="shopping-cart" class="w-4 h-4"></i> Frente de Caixa (PDV)
-        </button>
-        <button onclick="mudarAba('produtos')" id="btn-produtos" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/50">
-          <i data-lucide="package" class="w-4 h-4"></i> Estoque de Peças
-        </button>
-        <button onclick="mudarAba('os')" id="btn-os" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/50">
-          <i data-lucide="wrench" class="w-4 h-4"></i> Ordens de Serviço
-        </button>
-        <button onclick="mudarAba('painel')" id="btn-painel" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-amber-400 hover:bg-amber-500/10">
-          <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Painel do Proprietário
-        </button>
-      </nav>
-    </div>
+<section id="produtos" class="tela"><div class="painel"><div class="painel-topo"><h2>📦 Produtos e Peças</h2><div style="display:flex;gap:8px;flex:1;justify-content:flex-end"><input id="bProduto" class="busca" placeholder="Buscar código, nome, categoria" oninput="render()"><button class="btn btn-l" onclick="abrirProduto()">+ Novo</button></div></div><div class="tabela-container"><table><thead><tr><th>SKU</th><th>Nome</th><th>Categoria</th><th>Qtd</th><th>Custo</th><th>Venda</th><th>Garantia</th><th>Ação</th></tr></thead><tbody id="tabProdutos"></tbody></table></div></div></section>
 
-    <div class="card p-3 rounded-xl flex items-center justify-between text-[11px]">
-      <span class="flex items-center gap-2 text-slate-300 font-medium">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Banco Conectado
-      </span>
-    </div>
-  </aside>
+<section id="fornecedores" class="tela"><div class="painel"><div class="painel-topo"><h2>🏭 Fornecedores</h2><button class="btn btn-l" onclick="abrirFornecedor()">+ Novo</button></div><div class="tabela-container"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Documento</th><th>Ação</th></tr></thead><tbody id="tabFornecedores"></tbody></table></div></div></section>
 
-  <!-- MOBILE BOTTOM NAV -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 card z-50 px-2 py-2 border-t flex justify-around items-center">
-    <button onclick="mudarAba('dashboard')" class="flex flex-col items-center gap-1 p-2 text-orange-500 text-[10px]">
-      <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Início
-    </button>
-    <button onclick="mudarAba('pdv')" class="flex flex-col items-center gap-1 p-2 text-slate-400 text-[10px]">
-      <i data-lucide="shopping-cart" class="w-5 h-5"></i> PDV
-    </button>
-    <button onclick="mudarAba('os')" class="flex flex-col items-center gap-1 p-2 text-slate-400 text-[10px]">
-      <i data-lucide="wrench" class="w-5 h-5"></i> O.S.
-    </button>
-    <button onclick="mudarAba('painel')" class="flex flex-col items-center gap-1 p-2 text-amber-400 text-[10px]">
-      <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Painel
-    </button>
-  </nav>
+<section id="os" class="tela"><div class="painel"><div class="painel-topo"><h2>🛠️ Ordens de Serviço</h2><div style="display:flex;gap:8px"><input id="bOs" class="busca" placeholder="Buscar cliente, placa" oninput="render()"><button class="btn btn-l" onclick="abrirOs()">+ Nova OS</button></div></div><div class="tabela-container"><table><thead><tr><th>ID</th><th>Cliente</th><th>Placa</th><th>Serviço</th><th>Valor</th><th>Status</th><th>Data</th><th>Ação</th></tr></thead><tbody id="tabOs"></tbody></table></div></div></section>
 
-  <!-- MAIN CONTAINER -->
-  <main class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
+<section id="caixa" class="tela"><div class="painel"><div class="painel-topo"><h2>💰 Caixa</h2><button class="btn btn-l" onclick="abrirCaixa()">+ Abrir Caixa</button></div><div class="tabela-container"><table><thead><tr><th>ID</th><th>Abertura</th><th>Fechamento</th><th>Status</th><th>Data Abertura</th><th>Ação</th></tr></thead><tbody id="tabCaixa"></tbody></table></div></div></section>
 
-    <!-- HEADER TOP -->
-    <header class="flex items-center justify-between mb-8 pb-4 border-b border-bordercol">
-      <div>
-        <h2 id="titulo-pagina" class="text-xl md:text-2xl font-extrabold text-white">Visão Geral</h2>
-        <p id="subtitulo-pagina" class="text-xs text-slate-400 mt-0.5">Indicadores e resumo operacional</p>
-      </div>
-      <button onclick="carregarDados()" class="px-3 py-2 rounded-xl card hover:bg-slate-800 text-slate-300 transition flex items-center gap-2 text-xs font-semibold">
-        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
-      </button>
-    </header>
+<section id="vendas" class="tela"><div class="painel"><div class="painel-topo"><h2>🧾 Vendas PDV</h2><button class="btn btn-l" onclick="abrirVenda()">+ Nova Venda</button></div><div class="tabela-container"><table><thead><tr><th>ID</th><th>Cliente</th><th>Total</th><th>Pagamento</th><th>Status</th><th>Data</th><th>Ação</th></tr></thead><tbody id="tabVendas"></tbody></table></div></div></section>
 
-    <!-- ABA: DASHBOARD -->
-    <section id="aba-dashboard" class="space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vendas Hoje</span>
-          <div id="dash-vendas" class="text-2xl font-extrabold text-white mt-2">R$ 0,00</div>
-          <span id="dash-qtd-vendas" class="text-[11px] text-slate-400 mt-1 block">0 operações</span>
-        </div>
-        <div class="card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Peças no Estoque</span>
-          <div id="dash-produtos" class="text-2xl font-extrabold text-sky-400 mt-2">0</div>
-          <span class="text-[11px] text-slate-400 mt-1 block">Itens cadastrados</span>
-        </div>
-        <div class="card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Estoque Baixo</span>
-          <div id="dash-baixo" class="text-2xl font-extrabold text-amber-400 mt-2">0</div>
-          <span class="text-[11px] text-slate-400 mt-1 block">Reposição necessária</span>
-        </div>
-        <div class="card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">O.S. em Andamento</span>
-          <div id="dash-os" class="text-2xl font-extrabold text-purple-400 mt-2">0</div>
-          <span class="text-[11px] text-slate-400 mt-1 block">Motos na oficina</span>
-        </div>
-      </div>
+<section id="financeiro" class="tela"><div class="painel"><div class="painel-topo"><h2>💳 Financeiro - Pagar / Receber / Fiado</h2><button class="btn btn-l" onclick="abrirFinanceiro()">+ Novo</button></div><div class="tabela-container"><table><thead><tr><th>Descrição</th><th>Tipo</th><th>Valor</th><th>Vencimento</th><th>Status</th><th>Ação</th></tr></thead><tbody id="tabFinanceiro"></tbody></table></div></div></section>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="card p-5 rounded-2xl">
-          <h3 class="font-bold text-sm text-white mb-4 flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-orange-500"></i> Últimas Vendas</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="text-slate-400 border-b border-bordercol uppercase text-[10px]">
-                <tr><th class="pb-2 font-semibold">ID</th><th class="pb-2 font-semibold">Pagamento</th><th class="pb-2 font-semibold">Status</th><th class="pb-2 font-semibold text-right">Valor</th></tr>
-              </thead>
-              <tbody id="tbl-dash-vendas" class="divide-y divide-bordercol/50"><tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma venda.</td></tr></tbody>
-            </table>
-          </div>
-        </div>
+<section id="garantias" class="tela"><div class="painel"><div class="painel-topo"><h2>🛡️ Garantias Acionadas</h2><button class="btn btn-l" onclick="abrirGarantia()">+ Acionar Garantia</button></div><div class="tabela-container"><table><thead><tr><th>Cliente</th><th>Produto</th><th>Motivo</th><th>Status</th><th>Data</th><th>Ação</th></tr></thead><tbody id="tabGarantias"></tbody></table></div></div></section>
+</main>
 
-        <div class="card p-5 rounded-2xl">
-          <h3 class="font-bold text-sm text-white mb-4 flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4 text-orange-500"></i> O.S. Recentes</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="text-slate-400 border-b border-bordercol uppercase text-[10px]">
-                <tr><th class="pb-2 font-semibold">Placa</th><th class="pb-2 font-semibold">Serviço</th><th class="pb-2 font-semibold">Status</th><th class="pb-2 font-semibold text-right">Valor</th></tr>
-              </thead>
-              <tbody id="tbl-dash-os" class="divide-y divide-bordercol/50"><tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma O.S.</td></tr></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
+<!-- MODAIS -->
+<div id="mCliente" class="modal"><div class="modal-box"><div class="modal-topo"><h2 id="tCliente">Novo Cliente</h2><button class="fechar" onclick="fechar()">×</button></div><div class="modal-corpo"><div class="form-grid"><div class="campo"><label>Nome *</label><input id="cNome"></div><div class="campo"><label>Telefone</label><input id="cTel"></div><div class="campo"><label>CPF/CNPJ</label><input id="cDoc"></div><div class="campo"><label>Endereço</label><input id="cEnd"></div><div class="campo"><label>Moto Modelo</label><input id="cMoto" placeholder="Ex: Honda Fan 160"></div><div class="campo"><label>Placa</label><input id="cPlaca" placeholder="ABC-1D23"></div></div></div><div class="form-acoes"><button class="btn btn-l" onclick="salvarCliente()">Salvar</button><button class="btn btn-d" onclick="fechar()">Cancelar</button></div></div></div>
 
-    <!-- ABA: PDV -->
-    <section id="aba-pdv" class="space-y-6 hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-7 space-y-4">
-          <div class="flex p-1 bg-darkbg rounded-xl border border-bordercol">
-            <button id="tab-peca" onclick="mudarAbaPdv('peca')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-orange-500 text-white">📦 Peças do Estoque</button>
-            <button id="tab-servico" onclick="mudarAbaPdv('servico')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white">🛠️ Mão de Obra Livre</button>
-          </div>
+<div id="mProduto" class="modal"><div class="modal-box"><div class="modal-topo"><h2 id="tProduto">Novo Produto</h2><button class="fechar" onclick="fechar()">×</button></div><div class="modal-corpo"><div class="form-grid"><div class="campo"><label>SKU Interno *</label><input id="pSku" placeholder="JM-1001"></div><div class="campo"><label>Código Barras</label><input id="pBarras"></div><div class="campo"><label>Nome *</label><input id="pNome"></div><div class="campo"><label>Categoria</label><input id="pCat" placeholder="Freios, Óleo..."></div><div class="campo"><label>Quantidade</label><input id="pQtd" type="number"></div><div class="campo"><label>Estoque Mínimo</label><input id="pMin" type="number" value="2"></div><div class="campo"><label>Preço Custo</label><input id="pCusto" type="number" step="0.01"></div><div class="campo"><label>Preço Venda</label><input id="pVenda" type="number" step="0.01"></div><div class="campo"><label>Garantia Dias</label><input id="pGar" type="number" value="90"></div><div class="campo"><label>Fornecedor</label><select id="pForn"></select></div></div></div><div class="form-acoes"><button class="btn btn-l" onclick="salvarProduto()">Salvar</button><button class="btn btn-d" onclick="fechar()">Cancelar</button></div></div></div>
 
-          <div id="panel-peca" class="card p-5 rounded-2xl space-y-3">
-            <input type="text" id="pdv-busca" onkeyup="renderPdvProdutos()" placeholder="Pesquisar peça por nome ou SKU (ex: JM-1001)..." class="w-full bg-darkbg border border-bordercol rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
-            <div id="pdv-lista" class="max-h-80 overflow-y-auto space-y-2 pr-1"></div>
-          </div>
+<div id="mForn" class="modal"><div class="modal-box"><div class="modal-topo"><h2 id="tForn">Novo Fornecedor</h2><button class="fechar" onclick="fechar()">×</button></div><div class="modal-corpo"><div class="form-grid"><div class="campo"><label>Nome *</label><input id="fNome"></div><div class="campo"><label>Telefone</label><input id="fTel"></div><div class="campo"><label>Documento</label><input id="fDoc"></div></div></div><div class="form-acoes"><button class="btn btn-l" onclick="salvarFornecedor()">Salvar</button><button class="btn btn-d" onclick="fechar()">Cancelar</button></div></div></div>
 
-          <div id="panel-servico" class="card p-5 rounded-2xl space-y-3 hidden">
-            <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-1">Descrição do Serviço *</label>
-              <input type="text" id="mo-desc" placeholder="Ex: Troca de pneu + alinhamento" class="w-full bg-darkbg border border-bordercol rounded-xl px-3.5 py-2 text-xs text-white">
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-[11px] font-medium text-slate-400 mb-1">Valor (R$) *</label>
-                <input type="number" step="0.01" id="mo-valor" placeholder="0.00" class="w-full bg-darkbg border border-bordercol rounded-xl px-3.5 py-2 text-xs text-emerald-400 font-bold">
-              </div>
-              <div>
-                <label class="block text-[11px] font-medium text-slate-400 mb-1">Garantia (Dias)</label>
-                <input type="number" id="mo-garantia" value="30" class="w-full bg-darkbg border border-bordercol rounded-xl px-3.5 py-2 text-xs text-white">
-              </div>
-            </div>
-            <button onclick="adicionarMaoDeObra()" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition">Adicionar Serviço</button>
-          </div>
-        </div>
+<div id="mOs" class="modal"><div class="modal-box"><div class="modal-topo"><h2 id="tOs">Nova OS</h2><button class="fechar" onclick="fechar()">×</button></div><div class="modal-corpo"><div class="form-grid"><div class="campo"><label>Cliente</label><select id="oCliente"></select></div><div class="campo"><label>Placa</label><input id="oPlaca"></div><div class="campo"><label>Valor Total</label><input id="oValor" type="number" step="0.01"></div><div class="campo"><label>Status</label><select id="oStatus"><option>Aberta</option><option>Em Andamento</option><option>Concluída</option><option>Entregue</option></select></div></div><div class="campo" style="margin-top:12px"><label>Descrição do Serviço *</label><textarea id="oDesc"></textarea></div></div><div class="form-acoes"><button class="btn btn-l" onclick="salvarOs()">Salvar OS</button><button class="btn btn-d" onclick="fechar()">Cancelar</button></div></div></div>
 
-        <div class="lg:col-span-5 space-y-4">
-          <div class="card p-5 rounded-2xl flex flex-col justify-between h-full min-h-[440px]">
-            <div>
-              <div class="flex items-center justify-between pb-3 border-b border-bordercol mb-3">
-                <h3 class="font-bold text-xs text-white flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-orange-500"></i> Carrinho</h3>
-                <button onclick="carrinho=[]; renderCarrinho();" class="text-[11px] text-red-400 hover:underline">Limpar</button>
-              </div>
-              <div id="carrinho-itens" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <p class="text-center text-xs text-slate-500 py-10">Carrinho vazio.</p>
-              </div>
-            </div>
+<div id="mCaixa" class="modal"><div class="modal-box"><div class="modal-topo"><h2>Abrir Caixa</h2><button class="fechar" onclick="fechar()">×</button></div><div class="modal-corpo"><div class="campo"><label>Valor Abertura *</label><input id="cxAbertura" type="number" step="0.01"></div></div><div class="form-acoes"><button class="btn btn-l" onclick="salvarCaixa()">Abrir</button><button class="btn btn-d" onclick="fechar()">Cancelar</button></div></div></div>
 
-            <div class="pt-3 border-t border-bordercol space-y-3 mt-3">
-              <div>
-                <label class="block text-[11px] font-medium text-slate-400 mb-1">Forma de Pagamento</label>
-                <select id="pagamento-forma" class="w-full bg-darkbg border border-bordercol rounded-xl px-3 py-2 text-xs text-white">
-                  <option value="Dinheiro">Dinheiro</option>
-                  <option value="Pix">PIX</option>
-                  <option value="Cartão de débito">Cartão de Débito</option>
-                  <option value="Cartão de crédito">Cartão de Crédito</option>
-                  <option value="A prazo">A Prazo / Fiado</option>
-                </select>
-              </div>
+<div id="mVenda" class="modal"><div class="modal-box"><div class="modal-topo"><h2>Nova Venda</h2><button class="fechar" onclick="fechar()">×</button></div><div class="modal-corpo"><div class="form-grid"><div class="campo"><label>Cliente</label><select id="vCliente"></select></div><div class="campo"><label>Caixa</label><select id="vCaixa"></select></div><div class="campo"><label>Valor Total *</label><input id="vTotal" type="number" step="0.01"></div><div class="campo"><label>Pagamento</label><select id="vPag"><option>Dinheiro</option><option>Pix</option><option>Cartão de débito</option><option>Cartão de crédito</option><option>A prazo</option></select></div><div class="campo"><label>Status Pagamento</label><select id="vStatus"><option>Pago</option><option>Pendente</option></select></div></div></div><div class="form-acoes"><button class="btn btn-l" onclick="salvarVenda()">Salvar Venda</button><button class="btn btn-d" onclick="fechar()">Cancelar</button></div></div></div>
 
-              <div class="flex justify-between items-center bg-darkbg px-3 py-2.5 rounded-xl border border-bordercol">
-                <span class="text-[11px] font-semibold text-slate-400 uppercase">Total</span>
-                <span id="carrinho-total" class="text-xl font-extrabold text-emerald-400">R$ 0,00</span>
-              </div>
+<div id="mFin" class="modal"><div class="modal-box"><div class="modal-topo"><h2 id="tFin">Novo Financeiro</h2><button class="fechar" onclick="fechar()">×</button></div><div class="modal-corpo"><div class="form-grid"><div class="campo"><label>Descrição *</label><input id="finDesc"></div><div class="campo"><label>Tipo</label><select id="finTipo"><option value="Pagar">Pagar</option><option value="Receber">Receber</option></select></div><div class="campo"><label>Valor</label><input id="finValor" type="number" step="0.01"></div><div class="campo"><label>Vencimento</label><input id="finVenc" type="date"></div><div class="campo"><label>Status</label><select id="finStatus"><option>Pendente</option><option>Pago</option><option>Atrasado</option></select></div></div></div><div class="form-acoes"><button class="btn btn-l" onclick="salvarFin()">Salvar</button><button class="btn btn-d" onclick="fechar()">Cancelar</button></div></div></div>
 
-              <button onclick="finalizarVenda()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
-                <i data-lucide="check-circle" class="w-4 h-4"></i> Finalizar Venda & Baixar Estoque
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+<div id="mGar" class="modal"><div class="modal-box"><div class="modal-topo"><h2>Nova Garantia</h2><button class="fechar" onclick="fechar()">×</button></div><div class="modal-corpo"><div class="form-grid"><div class="campo"><label>Cliente</label><select id="gCliente"></select></div><div class="campo"><label>Produto</label><select id="gProduto"></select></div><div class="campo"><label>Status</label><select id="gStatus"><option>Em Análise</option><option>Trocado/Aprovado</option><option>Recusado</option></select></div></div><div class="campo" style="margin-top:12px"><label>Motivo Defeito *</label><textarea id="gMotivo"></textarea></div><div class="campo"><label>Observações</label><textarea id="gObs"></textarea></div></div><div class="form-acoes"><button class="btn btn-l" onclick="salvarGar()">Salvar</button><button class="btn btn-d" onclick="fechar()">Cancelar</button></div></div></div>
 
-    <!-- ABA: PRODUTOS -->
-    <section id="aba-produtos" class="space-y-6 hidden">
-      <div class="flex justify-between items-center gap-4">
-        <input type="text" id="produtos-busca" onkeyup="renderProdutosTabela()" placeholder="Buscar peças..." class="w-full sm:w-72 bg-darkbg border border-bordercol rounded-xl px-3.5 py-2 text-xs text-white">
-        <button onclick="abrirModal('modal-produto')" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2">
-          <i data-lucide="plus" class="w-4 h-4"></i> Nova Peça
-        </button>
-      </div>
+<div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const URL = "https://xcncqpjxghujwbyklhel.supabase.co";
+const KEY = "sb_publishable_xJqknenrg3H20jeGum1bkg_Ir-GLZsl";
+const supa = window.supabase.createClient(URL,KEY);
+let db={clientes:[],produtos:[],fornecedores:[],os:[],caixa:[],vendas:[],financeiro:[],garantias:[]};
+let edit={tipo:null,id:null};
+function toast(m){let t=document.getElementById('toast');t.innerText=m;t.classList.add('mostrar');setTimeout(()=>t.classList.remove('mostrar'),3000)}
+function tela(id,btn){document.querySelectorAll('.tela').forEach(s=>s.classList.remove('ativa'));document.getElementById(id).classList.add('ativa');document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}
+function fechar(){document.querySelectorAll('.modal').forEach(m=>m.classList.remove('aberto'));edit={tipo:null,id:null}}
+function abrirCliente(c=null){
+  document.getElementById('mCliente').classList.add('aberto');
+  document.getElementById('tCliente').innerText=c?'Editar Cliente':'Novo Cliente';
+  edit=c?{tipo:'clientes',id:c.id}:{tipo:null,id:null};
+  document.getElementById('cNome').value=c?.nome||'';document.getElementById('cTel').value=c?.telefone||'';document.getElementById('cDoc').value=c?.documento||'';document.getElementById('cEnd').value=c?.endereco||'';document.getElementById('cMoto').value=c?.moto_modelo||'';document.getElementById('cPlaca').value=c?.placa||'';
+}
+function abrirFornecedor(f=null){
+  document.getElementById('mForn').classList.add('aberto');
+  document.getElementById('tForn').innerText=f?'Editar Fornecedor':'Novo Fornecedor';
+  edit=f?{tipo:'fornecedores',id:f.id}:{tipo:null,id:null};
+  document.getElementById('fNome').value=f?.nome||'';document.getElementById('fTel').value=f?.telefone||'';document.getElementById('fDoc').value=f?.documento||'';
+}
+function abrirProduto(p=null){
+  preencherFornecedores();
+  document.getElementById('mProduto').classList.add('aberto');
+  document.getElementById('tProduto').innerText=p?'Editar Produto':'Novo Produto';
+  edit=p?{tipo:'produtos',id:p.id}:{tipo:null,id:null};
+  document.getElementById('pSku').value=p?.codigo_interno||'';document.getElementById('pBarras').value=p?.codigo_barras||'';document.getElementById('pNome').value=p?.nome||'';document.getElementById('pCat').value=p?.categoria||'';document.getElementById('pQtd').value=p?.quantidade??0;document.getElementById('pMin').value=p?.estoque_minimo??2;document.getElementById('pCusto').value=p?.preco_custo||0;document.getElementById('pVenda').value=p?.preco_venda||0;document.getElementById('pGar').value=p?.garantia_dias||90;document.getElementById('pForn').value=p?.fornecedor_id||'';
+}
+function abrirOs(o=null){
+  preencherClientes();document.getElementById('mOs').classList.add('aberto');
+  document.getElementById('tOs').innerText=o?'Editar OS':'Nova OS';
+  edit=o?{tipo:'os',id:o.id}:{tipo:null,id:null};
+  document.getElementById('oCliente').value=o?.cliente_id||'';document.getElementById('oPlaca').value=o?.placa||'';document.getElementById('oValor').value=o?.valor_total||0;document.getElementById('oStatus').value=o?.status||'Aberta';document.getElementById('oDesc').value=o?.descricao_servico||'';
+}
+function abrirCaixa(){document.getElementById('mCaixa').classList.add('aberto')}
+function abrirVenda(){preencherClientes();preencherCaixa();document.getElementById('mVenda').classList.add('aberto')}
+function abrirFinanceiro(f=null){
+  document.getElementById('mFin').classList.add('aberto');
+  document.getElementById('tFin').innerText=f?'Editar Financeiro':'Novo Financeiro';
+  edit=f?{tipo:'financeiro',id:f.id}:{tipo:null,id:null};
+  document.getElementById('finDesc').value=f?.descricao||'';document.getElementById('finTipo').value=f?.tipo||'Receber';document.getElementById('finValor').value=f?.valor||0;document.getElementById('finVenc').value=f?.vencimento||'';document.getElementById('finStatus').value=f?.status||'Pendente';
+}
+function abrirGarantia(){preencherClientes();preencherProdutos();document.getElementById('mGar').classList.add('aberto')}
 
-      <div class="card rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-darkbg text-slate-400 border-b border-bordercol uppercase text-[10px]">
-              <tr><th class="p-3">SKU</th><th class="p-3">Peça</th><th class="p-3">Categoria</th><th class="p-3">Estoque</th><th class="p-3">Custo</th><th class="p-3">Venda</th><th class="p-3">Garantia</th></tr>
-            </thead>
-            <tbody id="tbl-produtos" class="divide-y divide-bordercol/50"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+function preencherClientes(){
+  let opts='<option value="">Selecione</option>'+db.clientes.map(c=>`<option value="${c.id}">${c.nome} - ${c.placa||''}</option>`).join('');
+  ['oCliente','vCliente','gCliente'].forEach(id=>{let el=document.getElementById(id);if(el) el.innerHTML=opts});
+}
+function preencherFornecedores(){let el=document.getElementById('pForn');if(el) el.innerHTML='<option value="">Sem fornecedor</option>'+db.fornecedores.map(f=>`<option value="${f.id}">${f.nome}</option>`).join('')}
+function preencherProdutos(){let el=document.getElementById('gProduto');if(el) el.innerHTML='<option value="">Selecione</option>'+db.produtos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('')}
+function preencherCaixa(){let el=document.getElementById('vCaixa');if(el) el.innerHTML='<option value="">Sem caixa</option>'+db.caixa.filter(c=>c.status==='Aberto').map(c=>`<option value="${c.id}">Caixa #${c.id} - R$ ${c.valor_abertura}</option>`).join('')}
 
-    <!-- ABA: OS -->
-    <section id="aba-os" class="space-y-6 hidden">
-      <div class="flex justify-between items-center">
-        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Motos na Oficina</h3>
-        <button onclick="abrirModal('modal-os')" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2">
-          <i data-lucide="plus" class="w-4 h-4"></i> Nova O.S.
-        </button>
-      </div>
+async function salvarCliente(){
+  let nome=document.getElementById('cNome').value.trim();if(!nome) return toast('Nome obrigatório');
+  let dados={nome,telefone:document.getElementById('cTel').value,documento:document.getElementById('cDoc').value,endereco:document.getElementById('cEnd').value,moto_modelo:document.getElementById('cMoto').value,placa:document.getElementById('cPlaca').value.toUpperCase()};
+  let r=edit.id?await supa.from('clientes').update(dados).eq('id',edit.id):await supa.from('clientes').insert([dados]);
+  if(r.error) return toast('Erro: '+r.error.message); fechar(); toast(edit.id?'✅ Cliente atualizado':'✅ Cliente salvo'); carregar();
+}
+async function salvarFornecedor(){
+  let nome=document.getElementById('fNome').value.trim();if(!nome) return toast('Nome obrigatório');
+  let dados={nome,telefone:document.getElementById('fTel').value,documento:document.getElementById('fDoc').value};
+  let r=edit.id?await supa.from('fornecedores').update(dados).eq('id',edit.id):await supa.from('fornecedores').insert([dados]);
+  if(r.error) return toast('Erro: '+r.error.message); fechar(); toast('✅ Salvo'); carregar();
+}
+async function salvarProduto(){
+  let nome=document.getElementById('pNome').value.trim();let sku=document.getElementById('pSku').value.trim();if(!nome||!sku) return toast('SKU e Nome obrigatórios');
+  let dados={codigo_interno:sku,codigo_barras:document.getElementById('pBarras').value||null,nome,categoria:document.getElementById('pCat').value||null,quantidade:parseInt(document.getElementById('pQtd').value)||0,estoque_minimo:parseInt(document.getElementById('pMin').value)||2,preco_custo:parseFloat(document.getElementById('pCusto').value)||0,preco_venda:parseFloat(document.getElementById('pVenda').value)||0,garantia_dias:parseInt(document.getElementById('pGar').value)||90,fornecedor_id:document.getElementById('pForn').value||null};
+  let r=edit.id?await supa.from('produtos').update(dados).eq('id',edit.id):await supa.from('produtos').insert([dados]);
+  if(r.error) return toast('Erro: '+r.error.message); fechar(); toast('✅ Produto salvo'); carregar();
+}
+async function salvarOs(){
+  let desc=document.getElementById('oDesc').value.trim();if(!desc) return toast('Descrição obrigatória');
+  let dados={cliente_id:document.getElementById('oCliente').value||null,placa:document.getElementById('oPlaca').value.toUpperCase(),descricao_servico:desc,valor_total:parseFloat(document.getElementById('oValor').value)||0,status:document.getElementById('oStatus').value};
+  let r=edit.id?await supa.from('ordens_servico').update(dados).eq('id',edit.id):await supa.from('ordens_servico').insert([dados]);
+  if(r.error) return toast('Erro: '+r.error.message); fechar(); toast('✅ OS salva'); carregar();
+}
+async function salvarCaixa(){
+  let v=document.getElementById('cxAbertura').value;if(!v) return toast('Valor obrigatório');
+  let r=await supa.from('caixa_sessoes').insert([{valor_abertura:parseFloat(v),status:'Aberto'}]);
+  if(r.error) return toast('Erro: '+r.error.message); fechar(); toast('✅ Caixa aberto'); carregar();
+}
+async function salvarVenda(){
+  let total=document.getElementById('vTotal').value;if(!total) return toast('Valor obrigatório');
+  let dados={cliente_id:document.getElementById('vCliente').value||null,caixa_id:document.getElementById('vCaixa').value||null,valor_total:parseFloat(total),forma_pagamento:document.getElementById('vPag').value,status_pagamento:document.getElementById('vStatus').value};
+  let r=await supa.from('vendas').insert([dados]);
+  if(r.error) return toast('Erro: '+r.error.message);
+  if(dados.forma_pagamento==='A prazo' || dados.status_pagamento==='Pendente'){
+    await supa.from('financeiro').insert([{descricao:'Venda # Fiado - '+ (db.clientes.find(c=>c.id==dados.cliente_id)?.nome||'Cliente'),tipo:'Receber',valor:dados.valor_total,vencimento:new Date().toISOString().split('T')[0],status:'Pendente',venda_id:r.data?.[0]?.id||null}]);
+  }
+  fechar(); toast('✅ Venda salva'); carregar();
+}
+async function salvarFin(){
+  let desc=document.getElementById('finDesc').value.trim();if(!desc) return toast('Descrição obrigatória');
+  let dados={descricao:desc,tipo:document.getElementById('finTipo').value,valor:parseFloat(document.getElementById('finValor').value)||0,vencimento:document.getElementById('finVenc').value||new Date().toISOString().split('T')[0],status:document.getElementById('finStatus').value};
+  let r=edit.id?await supa.from('financeiro').update(dados).eq('id',edit.id):await supa.from('financeiro').insert([dados]);
+  if(r.error) return toast('Erro: '+r.error.message); fechar(); toast('✅ Salvo'); carregar();
+}
+async function salvarGar(){
+  let motivo=document.getElementById('gMotivo').value.trim();if(!motivo) return toast('Motivo obrigatório');
+  let dados={cliente_id:document.getElementById('gCliente').value||null,produto_id:document.getElementById('gProduto').value||null,motivo_defeito:motivo,status:document.getElementById('gStatus').value,observacoes:document.getElementById('gObs').value};
+  let r=await supa.from('garantias_acionadas').insert([dados]);
+  if(r.error) return toast('Erro: '+r.error.message); fechar(); toast('✅ Garantia registrada'); carregar();
+}
 
-      <div class="card rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-darkbg text-slate-400 border-b border-bordercol uppercase text-[10px]">
-              <tr><th class="p-3">Nº OS</th><th class="p-3">Placa</th><th class="p-3">Serviço</th><th class="p-3">Status</th><th class="p-3 text-right">Valor</th></tr>
-            </thead>
-            <tbody id="tbl-os" class="divide-y divide-bordercol/50"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+async function excluir(tabela,id){
+  if(!confirm('Tem certeza que deseja EXCLUIR?')) return;
+  let r=await supa.from(tabela).delete().eq('id',id);
+  if(r.error) return toast('Erro: '+r.error.message);
+  toast('🗑️ Excluído'); carregar();
+}
+async function fecharCaixa(id){
+  if(!confirm('Fechar este caixa?')) return;
+  let valor=prompt('Valor de fechamento?');
+  if(!valor) return;
+  await supa.from('caixa_sessoes').update({valor_fechamento:parseFloat(valor),status:'Fechado',data_fechamento:new Date().toISOString()}).eq('id',id);
+  toast('✅ Caixa fechado'); carregar();
+}
 
-    <!-- ABA: PAINEL DO PROPRIETÁRIO -->
-    <section id="aba-painel" class="space-y-6 hidden">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Entrada Total</span>
-          <div id="dono-entrada" class="text-xl font-extrabold text-emerald-400 mt-2">R$ 0,00</div>
-        </div>
-        <div class="card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Lucro Bruto</span>
-          <div id="dono-lucro" class="text-xl font-extrabold text-orange-500 mt-2">R$ 0,00</div>
-        </div>
-        <div class="card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Valor em Estoque</span>
-          <div id="dono-estoque" class="text-xl font-extrabold text-sky-400 mt-2">R$ 0,00</div>
-        </div>
-        <div class="card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fiado a Receber</span>
-          <div id="dono-fiado" class="text-xl font-extrabold text-amber-400 mt-2">R$ 0,00</div>
-        </div>
-      </div>
-    </section>
+function render(){
+  // CLIENTES
+  let bC=document.getElementById('bCliente').value.toLowerCase();
+  let tbC=document.getElementById('tabClientes'); tbC.innerHTML='';
+  db.clientes.filter(c=>(c.nome||'').toLowerCase().includes(bC)||(c.placa||'').toLowerCase().includes(bC)||(c.telefone||'').includes(bC)).forEach(c=>{
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td>${c.nome}</td><td>${c.telefone||'-'}</td><td>${c.documento||'-'}</td><td>${c.moto_modelo||'-'}</td><td><strong>${c.placa||'-'}</strong></td><td><div class="acoes"><button class="btn btn-ed" onclick='abrirCliente(${JSON.stringify(c).replace(/'/g,"&#39;")})'>✏️</button><button class="btn btn-bad" onclick="excluir('clientes','${c.id}')">🗑️</button></div></td>`;
+    tbC.appendChild(tr);
+  });
+  // PRODUTOS
+  let bP=document.getElementById('bProduto').value.toLowerCase();
+  let tbP=document.getElementById('tabProdutos'); tbP.innerHTML='';
+  db.produtos.filter(p=>(p.nome||'').toLowerCase().includes(bP)||(p.codigo_interno||'').toLowerCase().includes(bP)||(p.categoria||'').toLowerCase().includes(bP)).forEach(p=>{
+    let baixo=p.quantidade<=p.estoque_minimo;
+    let tr=document.createElement('tr'); tr.style.background=baixo?'#fff1f2':'';
+    tr.innerHTML=`<td>${p.codigo_interno}</td><td>${p.nome}</td><td>${p.categoria||'-'}</td><td style="color:${baixo?'red':'green'};font-weight:800">${p.quantidade}</td><td>R$ ${parseFloat(p.preco_custo||0).toFixed(2)}</td><td><strong>R$ ${parseFloat(p.preco_venda||0).toFixed(2)}</strong></td><td>${p.garantia_dias}d</td><td><div class="acoes"><button class="btn btn-ed" onclick='abrirProduto(${JSON.stringify(p).replace(/'/g,"&#39;")})'>✏️</button><button class="btn btn-bad" onclick="excluir('produtos','${p.id}')">🗑️</button></div></td>`;
+    tbP.appendChild(tr);
+  });
+  // FORNECEDORES
+  let tbF=document.getElementById('tabFornecedores'); tbF.innerHTML='';
+  db.fornecedores.forEach(f=>{
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td>${f.nome}</td><td>${f.telefone||'-'}</td><td>${f.documento||'-'}</td><td><div class="acoes"><button class="btn btn-ed" onclick='abrirFornecedor(${JSON.stringify(f).replace(/'/g,"&#39;")})'>✏️</button><button class="btn btn-bad" onclick="excluir('fornecedores','${f.id}')">🗑️</button></div></td>`;
+    tbF.appendChild(tr);
+  });
+  // OS
+  let bO=document.getElementById('bOs').value.toLowerCase();
+  let tbOs=document.getElementById('tabOs'); tbOs.innerHTML='';
+  db.os.filter(o=>(o.placa||'').toLowerCase().includes(bO)||(db.clientes.find(c=>c.id==o.cliente_id)?.nome||'').toLowerCase().includes(bO)).forEach(o=>{
+    let cli=db.clientes.find(c=>c.id==o.cliente_id)?.nome||'-';
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td>#${o.id}</td><td>${cli}</td><td>${o.placa||'-'}</td><td>${(o.descricao_servico||'').substring(0,40)}</td><td>R$ ${parseFloat(o.valor_total||0).toFixed(2)}</td><td><span class="status ${o.status==='Aberta'?'aberto':o.status==='Concluída'?'concluida':o.status==='Entregue'?'entregue':'andamento'}">${o.status}</span></td><td>${new Date(o.criado_em).toLocaleDateString()}</td><td><div class="acoes"><button class="btn btn-ed" onclick='abrirOs(${JSON.stringify(o).replace(/'/g,"&#39;")})'>✏️</button><button class="btn btn-bad" onclick="excluir('ordens_servico','${o.id}')">🗑️</button></div></td>`;
+    tbOs.appendChild(tr);
+  });
+  // CAIXA
+  let tbCx=document.getElementById('tabCaixa'); tbCx.innerHTML='';
+  db.caixa.forEach(c=>{
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td>#${c.id}</td><td>R$ ${parseFloat(c.valor_abertura||0).toFixed(2)}</td><td>${c.valor_fechamento?'R$ '+parseFloat(c.valor_fechamento).toFixed(2):'-'}</td><td><span class="status ${c.status==='Aberto'?'aberto':'fechado'}">${c.status}</span></td><td>${new Date(c.data_abertura).toLocaleString()}</td><td><div class="acoes">${c.status==='Aberto'?`<button class="btn btn-d" onclick="fecharCaixa('${c.id}')">Fechar</button>`:''}<button class="btn btn-bad" onclick="excluir('caixa_sessoes','${c.id}')">🗑️</button></div></td>`;
+    tbCx.appendChild(tr);
+  });
+  // VENDAS
+  let tbV=document.getElementById('tabVendas'); tbV.innerHTML='';
+  db.vendas.forEach(v=>{
+    let cli=db.clientes.find(c=>c.id==v.cliente_id)?.nome||'Avulso';
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td>#${v.id}</td><td>${cli}</td><td>R$ ${parseFloat(v.valor_total||0).toFixed(2)}</td><td>${v.forma_pagamento}</td><td><span class="status ${v.status_pagamento==='Pago'?'concluida':'aberto'}">${v.status_pagamento}</span></td><td>${new Date(v.criado_em).toLocaleDateString()}</td><td><div class="acoes"><button class="btn btn-bad" onclick="excluir('vendas','${v.id}')">🗑️</button></div></td>`;
+    tbV.appendChild(tr);
+  });
+  // FINANCEIRO
+  let tbFin=document.getElementById('tabFinanceiro'); tbFin.innerHTML='';
+  db.financeiro.forEach(f=>{
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td>${f.descricao}</td><td>${f.tipo}</td><td>R$ ${parseFloat(f.valor||0).toFixed(2)}</td><td>${f.vencimento||'-'}</td><td><span class="status ${f.status==='Pago'?'concluida':f.status==='Atrasado'?'cancelada':'aberto'}">${f.status}</span></td><td><div class="acoes"><button class="btn btn-ed" onclick='abrirFinanceiro(${JSON.stringify(f).replace(/'/g,"&#39;")})'>✏️</button><button class="btn btn-bad" onclick="excluir('financeiro','${f.id}')">🗑️</button></div></td>`;
+    tbFin.appendChild(tr);
+  });
+  // GARANTIAS
+  let tbG=document.getElementById('tabGarantias'); tbG.innerHTML='';
+  db.garantias.forEach(g=>{
+    let cli=db.clientes.find(c=>c.id==g.cliente_id)?.nome||'-'; let prod=db.produtos.find(p=>p.id==g.produto_id)?.nome||'-';
+    let tr=document.createElement('tr');
+    tr.innerHTML=`<td>${cli}</td><td>${prod}</td><td>${(g.motivo_defeito||'').substring(0,40)}</td><td>${g.status}</td><td>${new Date(g.data_solicitacao).toLocaleDateString()}</td><td><div class="acoes"><button class="btn btn-bad" onclick="excluir('garantias_acionadas','${g.id}')">🗑️</button></div></td>`;
+    tbG.appendChild(tr);
+  });
+  // DASH
+  document.getElementById('dClientes').innerText=db.clientes.length;
+  document.getElementById('dProdutos').innerText=db.produtos.length;
+  let baixo=db.produtos.filter(p=>p.quantidade<=p.estoque_minimo);
+  document.getElementById('dBaixo').innerText=baixo.length;
+  document.getElementById('dOs').innerText=db.os.filter(o=>o.status==='Aberta'||o.status==='Em Andamento').length;
+  let hoje=new Date().toISOString().split('T')[0];
+  let vendasHoje=db.vendas.filter(v=>v.criado_em?.startsWith(hoje)).reduce((a,v)=>a+parseFloat(v.valor_total||0),0);
+  document.getElementById('dVendas').innerText='R$ '+vendasHoje.toFixed(2);
+  let receber=db.financeiro.filter(f=>f.tipo==='Receber'&&f.status!=='Pago').reduce((a,f)=>a+parseFloat(f.valor||0),0);
+  document.getElementById('dReceber').innerText='R$ '+receber.toFixed(2);
+  let tabB=document.getElementById('tabBaixo'); tabB.innerHTML='';
+  baixo.forEach(p=>{let tr=document.createElement('tr');tr.innerHTML=`<td>${p.codigo_interno}</td><td>${p.nome}</td><td style="color:red;font-weight:800">${p.quantidade}</td><td>${p.estoque_minimo}</td><td><button class="btn btn-ed" onclick='abrirProduto(${JSON.stringify(p).replace(/'/g,"&#39;")})'>Repor</button></td>`;tabB.appendChild(tr)});
+  let tabDash=document.getElementById('tabOsDash'); tabDash.innerHTML='';
+  db.os.slice(0,5).forEach(o=>{let cli=db.clientes.find(c=>c.id==o.cliente_id)?.nome||'-';let tr=document.createElement('tr');tr.innerHTML=`<td>#${o.id}</td><td>${cli}</td><td>${o.placa||'-'}</td><td>${(o.descricao_servico||'').substring(0,30)}</td><td>${o.status}</td><td><button class="btn btn-ed" onclick='abrirOs(${JSON.stringify(o).replace(/'/g,"&#39;")})'>Ver</button></td>`;tabDash.appendChild(tr)});
+}
 
-  </main>
-
-  <!-- MODAL: PRODUTO -->
-  <div id="modal-produto" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="card p-6 rounded-2xl max-w-md w-full space-y-4">
-      <div class="flex justify-between items-center border-b border-bordercol pb-3">
-        <h3 class="font-bold text-white text-xs uppercase">Cadastrar Peça</h3>
-        <button onclick="fecharModal('modal-produto')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-      <div class="grid grid-cols-2 gap-3 text-xs">
-        <div>
-          <label class="block text-slate-400 mb-1">SKU</label>
-          <input type="text" id="p-sku" readonly class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-amber-400 font-bold font-mono">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Categoria</label>
-          <select id="p-cat" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
-            <option value="Lubrificantes">Lubrificantes</option>
-            <option value="Transmissão">Transmissão</option>
-            <option value="Freios">Freios</option>
-            <option value="Geral">Peças Gerais</option>
-          </select>
-        </div>
-        <div class="col-span-2">
-          <label class="block text-slate-400 mb-1">Nome da Peça *</label>
-          <input type="text" id="p-nome" placeholder="Ex: Óleo Mobil 20W50" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Quantidade *</label>
-          <input type="number" id="p-qtd" value="10" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Garantia (Dias)</label>
-          <input type="number" id="p-garantia" value="90" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Custo (R$)</label>
-          <input type="number" step="0.01" id="p-custo" placeholder="0.00" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Venda (R$) *</label>
-          <input type="number" step="0.01" id="p-venda" placeholder="0.00" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-emerald-400 font-bold">
-        </div>
-      </div>
-      <button onclick="salvarProduto()" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition">Salvar Peça</button>
-    </div>
-  </div>
-
-  <!-- MODAL: OS -->
-  <div id="modal-os" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="card p-6 rounded-2xl max-w-md w-full space-y-4">
-      <div class="flex justify-between items-center border-b border-bordercol pb-3">
-        <h3 class="font-bold text-white text-xs uppercase">Nova Ordem de Serviço</h3>
-        <button onclick="fecharModal('modal-os')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-      <div class="space-y-3 text-xs">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-slate-400 mb-1">Placa *</label>
-            <input type="text" id="os-placa" placeholder="ABC-1D23" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white uppercase font-bold">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">Status</label>
-            <select id="os-status" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
-              <option value="Aberta">Aberta</option>
-              <option value="Em Andamento">Em Andamento</option>
-              <option value="Concluída">Concluída</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Serviço Solicitado *</label>
-          <textarea id="os-desc" rows="3" placeholder="Descreva o serviço..." class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white"></textarea>
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Valor Estimado (R$)</label>
-          <input type="number" step="0.01" id="os-val" placeholder="0.00" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-emerald-400 font-bold">
-        </div>
-      </div>
-      <button onclick="salvarOs()" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition">Abrir O.S.</button>
-    </div>
-  </div>
-
-  <script>
-    const SUPABASE_URL = "https://nbwvncqobsvsrtzuhrxf.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_uXYDMzK_oNkbHeCY5Fzt2Q_ayUnHdR7";
-    let db = null;
-    let produtos = [];
-    let ordens = [];
-    let carrinho = [];
-
-    window.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      if (typeof supabase !== 'undefined') {
-        db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        carregarDados();
-      }
-    });
-
-    function mudarAba(aba) {
-      ['dashboard', 'pdv', 'produtos', 'os', 'painel'].forEach(a => {
-        document.getElementById(`aba-${a}`).classList.add('hidden');
-        const btn = document.getElementById(`btn-${a}`);
-        if (btn) {
-          btn.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/50";
-        }
-      });
-
-      document.getElementById(`aba-${aba}`).classList.remove('hidden');
-      const ativo = document.getElementById(`btn-${aba}`);
-      if (ativo) {
-        ativo.className = aba === 'painel' 
-          ? "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-amber-400 bg-amber-500/10"
-          : "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-white bg-orange-500 shadow-md shadow-orange-500/20";
-      }
-
-      const titulos = {
-        'dashboard': ['Visão Geral', 'Indicadores e resumo operacional'],
-        'pdv': ['Frente de Caixa (PDV)', 'Venda rápida e baixa automática'],
-        'produtos': ['Estoque de Peças', 'Gerenciamento de mercadorias'],
-        'os': ['Ordens de Serviço', 'Controle da oficina e pátio'],
-        'painel': ['Painel do Proprietário', 'Análise financeira e patrimônio']
-      };
-      document.getElementById('titulo-pagina').innerText = titulos[aba][0];
-      document.getElementById('subtitulo-pagina').innerText = titulos[aba][1];
-    }
-
-    async function carregarDados() {
-      if (!db) return;
-
-      // Produtos
-      const { data: prods } = await db.from('produtos').select('*');
-      if (prods) {
-        produtos = prods;
-        document.getElementById('dash-produtos').innerText = prods.length;
-        const baixos = prods.filter(p => p.quantidade <= (p.estoque_minimo || 2)).length;
-        document.getElementById('dash-baixo').innerText = baixos;
-
-        const valEstoque = prods.reduce((acc, p) => acc + (Number(p.quantidade || 0) * Number(p.preco_custo || 0)), 0);
-        document.getElementById('dono-estoque').innerText = `R$ ${valEstoque.toFixed(2)}`;
-
-        renderProdutosTabela();
-        renderPdvProdutos();
-      }
-
-      // Vendas
-      const { data: vendas } = await db.from('vendas').select('*').order('id', { ascending: false });
-      const { data: itensVenda } = await db.from('venda_itens').select('*, produtos(preco_custo)');
-      if (vendas) {
-        const totalHoje = vendas.reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
-        document.getElementById('dash-vendas').innerText = `R$ ${totalHoje.toFixed(2)}`;
-        document.getElementById('dono-entrada').innerText = `R$ ${totalHoje.toFixed(2)}`;
-        document.getElementById('dash-qtd-vendas').innerText = `${vendas.length} operações`;
-
-        const fiado = vendas.filter(v => v.status_pagamento === 'Pendente').reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
-        document.getElementById('dono-fiado').innerText = `R$ ${fiado.toFixed(2)}`;
-
-        let htmlVendas = '';
-        vendas.slice(0, 5).forEach(v => {
-          htmlVendas += `<tr>
-            <td class="p-3 font-mono text-amber-400">#${v.id}</td>
-            <td class="p-3">${v.forma_pagamento}</td>
-            <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${v.status_pagamento === 'Pago' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">${v.status_pagamento}</span></td>
-            <td class="p-3 text-right font-bold text-emerald-400">R$ ${Number(v.valor_total).toFixed(2)}</td>
-          </tr>`;
-        });
-        document.getElementById('tbl-dash-vendas').innerHTML = htmlVendas || '<tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma venda.</td></tr>';
-      }
-
-      // Lucro
-      if (itensVenda) {
-        let lucro = 0;
-        itensVenda.forEach(i => {
-          const rev = Number(i.subtotal || 0);
-          const custoUni = i.produtos ? Number(i.produtos.preco_custo || 0) : 0;
-          lucro += (rev - (custoUni * Number(i.quantidade || 1)));
-        });
-        document.getElementById('dono-lucro').innerText = `R$ ${lucro.toFixed(2)}`;
-      }
-
-      // O.S.
-      const { data: os } = await db.from('ordens_servico').select('*').order('id', { ascending: false });
-      if (os) {
-        ordens = os;
-        const andamento = os.filter(o => o.status === 'Em Andamento' || o.status === 'Aberta').length;
-        document.getElementById('dash-os').innerText = andamento;
-        renderOsTabela();
-      }
-    }
-
-    function mudarAbaPdv(tipo) {
-      if (tipo === 'peca') {
-        document.getElementById('tab-peca').className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-orange-500 text-white";
-        document.getElementById('tab-servico').className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
-        document.getElementById('panel-peca').classList.remove('hidden');
-        document.getElementById('panel-servico').classList.add('hidden');
-      } else {
-        document.getElementById('tab-servico').className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-orange-500 text-white";
-        document.getElementById('tab-peca').className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
-        document.getElementById('panel-servico').classList.remove('hidden');
-        document.getElementById('panel-peca').classList.add('hidden');
-      }
-    }
-
-    function renderPdvProdutos() {
-      const busca = document.getElementById('pdv-busca').value.toLowerCase();
-      const lista = document.getElementById('pdv-lista');
-      let html = '';
-
-      produtos.filter(p => p.nome.toLowerCase().includes(busca) || p.codigo_interno.toLowerCase().includes(busca)).forEach(p => {
-        html += `
-          <div onclick="adicionar Carrinho(${p.id})" class="p-3 bg-darkbg border border-bordercol rounded-xl hover:border-orange-500 cursor-pointer flex justify-between items-center text-xs transition">
-            <div>
-              <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">${p.codigo_interno}</span>
-              <span class="font-bold text-white ml-2">${p.nome}</span>
-              <span class="block text-[10px] text-slate-400 mt-0.5">Estoque: ${p.quantidade} un.</span>
-            </div>
-            <span class="font-bold text-emerald-400">R$ ${Number(p.preco_venda).toFixed(2)}</span>
-          </div>
-        `;
-      });
-      lista.innerHTML = html || '<p class="text-xs text-slate-500 text-center py-4">Nenhuma peça encontrada.</p>';
-    }
-
-    function adicionarCarrinho(id) {
-      const p = produtos.find(item => item.id === id);
-      if (!p) return;
-      const ex = carrinho.find(i => i.produto_id === id);
-      if (ex) {
-        ex.quantidade++;
-        ex.subtotal = ex.quantidade * ex.preco_unitario;
-      } else {
-        carrinho.push({ produto_id: p.id, tipo_item: 'produto', descricao_item: p.nome, quantidade: 1, preco_unitario: Number(p.preco_venda), subtotal: Number(p.preco_venda) });
-      }
-      renderCarrinho();
-    }
-
-    function adicionarMaoDeObra() {
-      const desc = document.getElementById('mo-desc').value;
-      const val = parseFloat(document.getElementById('mo-valor').value);
-      if (!desc || isNaN(val) || val <= 0) return alert("Preencha descrição e valor válidos.");
-
-      carrinho.push({ produto_id: null, tipo_item: 'servico_livre', descricao_item: desc, quantidade: 1, preco_unitario: val, subtotal: val });
-      document.getElementById('mo-desc').value = '';
-      document.getElementById('mo-valor').value = '';
-      renderCarrinho();
-    }
-
-    function renderCarrinho() {
-      const container = document.getElementById('carrinho-itens');
-      let html = '', total = 0;
-      carrinho.forEach((item, idx) => {
-        total += item.subtotal;
-        html += `
-          <div class="p-2.5 bg-darkbg border border-bordercol rounded-xl flex justify-between items-center text-xs">
-            <div>
-              <span class="font-bold text-white block">${item.descricao_item}</span>
-              <span class="text-[10px] text-slate-400">${item.quantidade}x R$ ${item.preco_unitario.toFixed(2)}</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="font-bold text-emerald-400">R$ ${item.subtotal.toFixed(2)}</span>
-              <button onclick="carrinho.splice(${idx},1); renderCarrinho();" class="text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-            </div>
-          </div>
-        `;
-      });
-      container.innerHTML = html || '<p class="text-center text-xs text-slate-500 py-10">Carrinho vazio.</p>';
-      document.getElementById('carrinho-total').innerText = `R$ ${total.toFixed(2)}`;
-      lucide.createIcons();
-    }
-
-    async function finalizarVenda() {
-      if (carrinho.length === 0) return alert("O carrinho está vazio.");
-      const total = carrinho.reduce((a, b) => a + b.subtotal, 0);
-      const pagamento = document.getElementById('pagamento-forma').value;
-
-      try {
-        const { data: v, error: errV } = await db.from('vendas').insert([{ valor_total: total, forma_pagamento: pagamento, status_pagamento: pagamento === 'A prazo' ? 'Pendente' : 'Pago' }]).select().single();
-        if (errV) throw errV;
-
-        const itensIns = carrinho.map(i => ({ venda_id: v.id, produto_id: i.produto_id, tipo_item: i.tipo_item, descricao_item: i.descricao_item, quantidade: i.quantidade, preco_unitario: i.preco_unitario, subtotal: i.subtotal }));
-        await db.from('venda_itens').insert(itensIns);
-
-        alert("Venda realizada com sucesso!");
-        carrinho = [];
-        renderCarrinho();
-        carregarDados();
-      } catch (e) {
-        console.error(e);
-        alert("Erro ao registrar venda.");
-      }
-    }
-
-    function renderProdutosTabela() {
-      const busca = document.getElementById('produtos-busca').value.toLowerCase();
-      const tbody = document.getElementById('tbl-produtos');
-      let html = '';
-
-      produtos.filter(p => p.nome.toLowerCase().includes(busca) || p.codigo_interno.toLowerCase().includes(busca)).forEach(p => {
-        html += `<tr>
-          <td class="p-3 font-mono font-bold text-amber-400">${p.codigo_interno}</td>
-          <td class="p-3 font-bold text-white">${p.nome}</td>
-          <td class="p-3 text-slate-400">${p.categoria || 'Geral'}</td>
-          <td class="p-3 font-bold text-white">${p.quantidade}</td>
-          <td class="p-3 text-slate-400">R$ ${Number(p.preco_custo).toFixed(2)}</td>
-          <td class="p-3 font-bold text-emerald-400">R$ ${Number(p.preco_venda).toFixed(2)}</td>
-          <td class="p-3 text-slate-400">${p.garantia_dias || 90} dias</td>
-        </tr>`;
-      });
-      tbody.innerHTML = html || '<tr><td colspan="7" class="text-center py-4 text-slate-500">Nenhum produto cadastrado.</td></tr>';
-    }
-
-    function renderOsTabela() {
-      const tbody = document.getElementById('tbl-os');
-      const dashTbody = document.getElementById('tbl-dash-os');
-      let html = '', dashHtml = '';
-
-      ordens.forEach(o => {
-        html += `<tr>
-          <td class="p-3 font-mono font-bold text-amber-400">#${o.id}</td>
-          <td class="p-3 font-bold uppercase text-white">${o.placa || 'N/I'}</td>
-          <td class="p-3 text-slate-300">${o.descricao_servico}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-400">${o.status}</span></td>
-          <td class="p-3 text-right font-bold text-emerald-400">R$ ${Number(o.valor_total).toFixed(2)}</td>
-        </tr>`;
-      });
-
-      ordens.slice(0, 5).forEach(o => {
-        dashHtml += `<tr>
-          <td class="py-2 font-bold uppercase text-white">${o.placa || 'N/I'}</td>
-          <td class="py-2 truncate max-w-[120px] text-slate-300">${o.descricao_servico}</td>
-          <td class="py-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-400">${o.status}</span></td>
-          <td class="py-2 text-right font-semibold text-emerald-400">R$ ${Number(o.valor_total).toFixed(2)}</td>
-        </tr>`;
-      });
-
-      tbody.innerHTML = html || '<tr><td colspan="5" class="text-center py-4 text-slate-500">Nenhuma O.S. registrada.</td></tr>';
-      if (dashHtml) dashTbody.innerHTML = dashHtml;
-    }
-
-    function abrirModal(id) {
-      if (id === 'modal-produto') {
-        document.getElementById('p-sku').value = `JM-${produtos.length + 1001}`;
-      }
-      document.getElementById(id).classList.remove('hidden');
-    }
-    function fecharModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-    async function salvarProduto() {
-      const sku = document.getElementById('p-sku').value;
-      const nome = document.getElementById('p-nome').value;
-      const cat = document.getElementById('p-cat').value;
-      const qtd = parseInt(document.getElementById('p-qtd').value) || 0;
-      const gar = parseInt(document.getElementById('p-garantia').value) || 90;
-      const custo = parseFloat(document.getElementById('p-custo').value) || 0;
-      const venda = parseFloat(document.getElementById('p-venda').value) || 0;
-
-      if (!nome || venda <= 0) return alert("Preencha o nome e o preço de venda.");
-
-      await db.from('produtos').insert([{ codigo_interno: sku, nome, categoria: cat, quantidade: qtd, garantia_dias: gar, preco_custo: custo, preco_venda: venda }]);
-      fecharModal('modal-produto');
-      carregarDados();
-    }
-
-    async function salvarOs() {
-      const placa = document.getElementById('os-placa').value.toUpperCase();
-      const status = document.getElementById('os-status').value;
-      const desc = document.getElementById('os-desc').value;
-      const val = parseFloat(document.getElementById('os-val').value) || 0;
-
-      if (!placa || !desc) return alert("Preencha a placa e os serviços.");
-
-      await db.from('ordens_servico').insert([{ placa, status, descricao_servico: desc, valor_total: val }]);
-      fecharModal('modal-os');
-      carregarDados();
-    }
-  </script>
+async function carregar(){
+  let res=await Promise.all([
+    supa.from('clientes').select('*').order('id',{ascending:false}),
+    supa.from('produtos').select('*').order('id',{ascending:false}),
+    supa.from('fornecedores').select('*').order('id',{ascending:false}),
+    supa.from('ordens_servico').select('*').order('id',{ascending:false}),
+    supa.from('caixa_sessoes').select('*').order('id',{ascending:false}),
+    supa.from('vendas').select('*').order('id',{ascending:false}),
+    supa.from('financeiro').select('*').order('id',{ascending:false}),
+    supa.from('garantias_acionadas').select('*').order('id',{ascending:false}),
+  ]);
+  db.clientes=res[0].data||[]; db.produtos=res[1].data||[]; db.fornecedores=res[2].data||[]; db.os=res[3].data||[]; db.caixa=res[4].data||[]; db.vendas=res[5].data||[]; db.financeiro=res[6].data||[]; db.garantias=res[7].data||[];
+  render();
+}
+carregar();
+setInterval(carregar,3000);
+setInterval(()=>{document.getElementById('relogio').innerText=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})},1000);
+</script>
 </body>
 </html>
