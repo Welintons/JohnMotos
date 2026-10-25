@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>John Motos — Painel do Dono</title>
+  <title>John Motos — Painel do Proprietário</title>
   
   <!-- PWA Setup -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -52,7 +52,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen pb-10 antialiased selection:bg-brand-500 selection:text-white">
+<body class="min-h-screen pb-12 antialiased selection:bg-brand-500 selection:text-white">
 
   <!-- TOP APP BAR MOBILE -->
   <header class="sticky top-0 z-40 card-glass px-4 py-3 border-b border-dark-border flex items-center justify-between">
@@ -64,7 +64,7 @@
         <h1 class="font-heading font-bold text-sm text-white leading-tight">PAINEL DO PROPRIETÁRIO</h1>
         <p class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          Ao vivo • John Motos
+          Financeiro & Operacional
         </p>
       </div>
     </div>
@@ -77,20 +77,49 @@
   <!-- CONTENT CONTAINER -->
   <main class="p-4 space-y-4 max-w-md mx-auto">
 
-    <!-- KPI CARDS - HOJE & FATURAMENTO -->
+    <!-- BLOCO 1: INDICADORES FINANCEIROS PRINCIPAIS -->
     <div class="grid grid-cols-2 gap-3">
-      <!-- VENDAS DO DIA -->
+      <!-- ENTRADA TOTAL -->
       <div class="card-glass p-4 rounded-2xl relative overflow-hidden">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vendas Hoje</span>
-        <div id="m-vendas-hoje" class="text-xl font-extrabold font-heading text-white mt-1">R$ 0,00</div>
-        <div id="m-qtd-vendas" class="text-[11px] text-slate-400 mt-0.5">0 operações</div>
+        <div class="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+          <span>Entrada Total</span>
+          <i data-lucide="arrow-down-left" class="w-4 h-4 text-emerald-400"></i>
+        </div>
+        <div id="m-entrada-total" class="text-xl font-extrabold font-heading text-emerald-400 mt-2">R$ 0,00</div>
+        <span id="m-qtd-vendas" class="text-[10px] text-slate-400 mt-0.5 block">0 vendas realizadas</span>
       </div>
 
-      <!-- FIADO / CONTAS A RECEBER -->
+      <!-- LUCRO BRUTO ESTIMADO -->
       <div class="card-glass p-4 rounded-2xl relative overflow-hidden">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fiado / A Receber</span>
-        <div id="m-fiado-total" class="text-xl font-extrabold font-heading text-amber-400 mt-1">R$ 0,00</div>
-        <div class="text-[11px] text-amber-400/80 mt-0.5">Cobranças pendentes</div>
+        <div class="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+          <span>Lucro Bruto</span>
+          <i data-lucide="trending-up" class="w-4 h-4 text-brand-500"></i>
+        </div>
+        <div id="m-lucro-total" class="text-xl font-extrabold font-heading text-white mt-2">R$ 0,00</div>
+        <span class="text-[10px] text-slate-400 mt-0.5 block">Margem s/ peças & serviços</span>
+      </div>
+    </div>
+
+    <!-- BLOCO 2: PATRIMÔNIO & SAÍDAS -->
+    <div class="grid grid-cols-2 gap-3">
+      <!-- VALOR EM ESTOQUE -->
+      <div class="card-glass p-4 rounded-2xl relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+          <span>Valor em Estoque</span>
+          <i data-lucide="package" class="w-4 h-4 text-blue-400"></i>
+        </div>
+        <div id="m-valor-estoque" class="text-lg font-extrabold font-heading text-blue-400 mt-2">R$ 0,00</div>
+        <span id="m-total-pecas" class="text-[10px] text-slate-400 mt-0.5 block">0 unidades cadastradas</span>
+      </div>
+
+      <!-- FIADO / A RECEBER -->
+      <div class="card-glass p-4 rounded-2xl relative overflow-hidden">
+        <div class="flex items-center justify-between text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+          <span>Fiado (A Receber)</span>
+          <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+        </div>
+        <div id="m-fiado-total" class="text-lg font-extrabold font-heading text-amber-400 mt-2">R$ 0,00</div>
+        <span class="text-[10px] text-amber-400/80 mt-0.5 block">Pendente de cobrança</span>
       </div>
     </div>
 
@@ -101,18 +130,18 @@
           <div class="p-1.5 rounded-lg bg-brand-500/10 text-brand-500">
             <i data-lucide="wrench" class="w-4 h-4"></i>
           </div>
-          <span class="font-heading font-bold text-xs text-white">Status da Oficina</span>
+          <span class="font-heading font-bold text-xs text-white">Status da Oficina (Pátio)</span>
         </div>
-        <span id="m-os-andamento" class="px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-500 font-extrabold text-[11px]">0 em andamento</span>
+        <span id="m-os-andamento" class="px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-500 font-extrabold text-[11px]">0 no pátio</span>
       </div>
 
       <div class="grid grid-cols-2 gap-2 text-xs">
         <div class="p-2.5 rounded-xl bg-slate-900/60 border border-dark-border">
-          <span class="text-[10px] text-slate-400 block">O.S. Abertas Hoje</span>
+          <span class="text-[10px] text-slate-400 block">Total O.S. Registradas</span>
           <strong id="m-os-hoje" class="text-sm font-bold text-white">0</strong>
         </div>
         <div class="p-2.5 rounded-xl bg-slate-900/60 border border-dark-border">
-          <span class="text-[10px] text-slate-400 block">Valor em O.S. Pátio</span>
+          <span class="text-[10px] text-slate-400 block">Valor em O.S. Abertas</span>
           <strong id="m-os-valor-patio" class="text-sm font-bold text-emerald-400">R$ 0,00</strong>
         </div>
       </div>
@@ -125,7 +154,7 @@
           <div class="p-1.5 rounded-lg bg-red-500/10 text-red-400">
             <i data-lucide="alert-circle" class="w-4 h-4"></i>
           </div>
-          <span class="font-heading font-bold text-xs text-white">Reposição Urgente</span>
+          <span class="font-heading font-bold text-xs text-white">Reposição Urgente (Estoque Baixo)</span>
         </div>
         <span id="m-qtd-baixo" class="text-[11px] font-bold text-red-400">0 itens</span>
       </div>
@@ -166,12 +195,16 @@
     async function carregarResumo() {
       if (!db) return;
 
-      // 1. Busca Vendas
+      // 1. Busca Vendas e Itens Vendidos (para cálculo de lucro)
       const { data: vendas } = await db.from('vendas').select('*').order('id', { ascending: false });
+      const { data: itensVenda } = await db.from('venda_itens').select('*, produtos(preco_custo)');
+      const { data: produtos } = await db.from('produtos').select('*');
+
+      // 2. Cálculos Financeiros
       if (vendas) {
-        const totalHoje = vendas.reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
-        document.getElementById('m-vendas-hoje').innerText = `R$ ${totalHoje.toFixed(2)}`;
-        document.getElementById('m-qtd-vendas').innerText = `${vendas.length} operações realizadas`;
+        const entradaTotal = vendas.reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
+        document.getElementById('m-entrada-total').innerText = `R$ ${entradaTotal.toFixed(2)}`;
+        document.getElementById('m-qtd-vendas').innerText = `${vendas.length} vendas realizadas`;
 
         const fiado = vendas.filter(v => v.status_pagamento === 'Pendente').reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
         document.getElementById('m-fiado-total').innerText = `R$ ${fiado.toFixed(2)}`;
@@ -192,20 +225,35 @@
         document.getElementById('m-lista-vendas').innerHTML = htmlVendas || '<p class="text-center text-xs text-slate-500 py-2">Sem movimentações.</p>';
       }
 
-      // 2. Busca OS
-      const { data: ordens } = await db.from('ordens_servico').select('*');
-      if (ordens) {
-        const emAndamento = ordens.filter(o => o.status === 'Em Andamento' || o.status === 'Aberta');
-        document.getElementById('m-os-andamento').innerText = `${emAndamento.length} no pátio`;
-        document.getElementById('m-os-hoje').innerText = ordens.length;
-
-        const valorPatio = emAndamento.reduce((acc, o) => acc + Number(o.valor_total || 0), 0);
-        document.getElementById('m-os-valor-patio').innerText = `R$ ${valorPatio.toFixed(2)}`;
+      // 3. Cálculo de Lucro Bruto
+      if (itensVenda) {
+        let lucroTotal = 0;
+        itensVenda.forEach(item => {
+          const precoVenda = Number(item.subtotal || 0);
+          const precoCustoUnit = item.produtos ? Number(item.produtos.preco_custo || 0) : 0;
+          const custoTotalItem = precoCustoUnit * Number(item.quantidade || 1);
+          
+          // Se for serviço livre, o custo de peça é 0, logo o lucro é o valor total do serviço
+          lucroTotal += (precoVenda - custoTotalItem);
+        });
+        document.getElementById('m-lucro-total').innerText = `R$ ${lucroTotal.toFixed(2)}`;
       }
 
-      // 3. Busca Estoque Baixo
-      const { data: produtos } = await db.from('produtos').select('*');
+      // 4. Patrimônio em Estoque & Produtos Baixos
       if (produtos) {
+        let valorTotalEstoque = 0;
+        let qtdPecasEstoque = 0;
+
+        produtos.forEach(p => {
+          const qtd = Number(p.quantidade || 0);
+          const custo = Number(p.preco_custo || 0);
+          valorTotalEstoque += (qtd * custo);
+          qtdPecasEstoque += qtd;
+        });
+
+        document.getElementById('m-valor-estoque').innerText = `R$ ${valorTotalEstoque.toFixed(2)}`;
+        document.getElementById('m-total-pecas').innerText = `${qtdPecasEstoque} un. no total`;
+
         const baixos = produtos.filter(p => p.quantidade <= (p.estoque_minimo || 2));
         document.getElementById('m-qtd-baixo').innerText = `${baixos.length} itens`;
 
@@ -222,6 +270,17 @@
           `;
         });
         document.getElementById('m-lista-estoque-baixo').innerHTML = htmlEstoque || '<p class="text-center text-xs text-slate-500 py-2">Estoque normalizado.</p>';
+      }
+
+      // 5. Busca OS
+      const { data: ordens } = await db.from('ordens_servico').select('*');
+      if (ordens) {
+        const emAndamento = ordens.filter(o => o.status === 'Em Andamento' || o.status === 'Aberta');
+        document.getElementById('m-os-andamento').innerText = `${emAndamento.length} no pátio`;
+        document.getElementById('m-os-hoje').innerText = ordens.length;
+
+        const valorPatio = emAndamento.reduce((acc, o) => acc + Number(o.valor_total || 0), 0);
+        document.getElementById('m-os-valor-patio').innerText = `R$ ${valorPatio.toFixed(2)}`;
       }
 
       lucide.createIcons();
