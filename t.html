@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JOHN MOTOS — Gestão & Oficina</title>
+  <title>John Motos — Gestão de Oficina & Peças</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -11,30 +11,21 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            heading: ['Plus Jakarta Sans', 'sans-serif'],
-          },
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
           colors: {
-            brand: {
-              500: '#f97316', // Laranja mecânico premium
-              600: '#ea580c',
-            },
-            app: {
-              bg: '#090d16',
-              card: '#111827',
-              border: '#1f293d',
-            }
+            primary: '#ff5500',
+            darkbg: '#0c0f17',
+            cardbg: '#141824',
+            bordercol: '#212838'
           }
         }
       }
@@ -42,89 +33,67 @@
   </script>
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #090d16;
-      color: #f3f4f6;
-    }
-    .glass-card {
-      background: rgba(17, 24, 39, 0.75);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-    }
-    .glass-card:hover {
-      border-color: rgba(249, 115, 22, 0.25);
-    }
-    /* Scrollbar personalizada */
+    body { background-color: #0c0f17; color: #f1f5f9; font-family: 'Inter', sans-serif; }
+    .card { background: #141824; border: 1px solid #212838; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #090d16; }
-    ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 9999px; }
+    ::-webkit-scrollbar-track { background: #0c0f17; }
+    ::-webkit-scrollbar-thumb { background: #212838; border-radius: 99px; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col md:flex-row antialiased pb-20 md:pb-0 selection:bg-brand-500 selection:text-white">
+<body class="min-h-screen flex flex-col md:flex-row antialiased pb-20 md:pb-0">
 
   <!-- SIDEBAR DESKTOP -->
-  <aside class="w-full md:w-64 glass-card md:min-h-screen flex flex-col justify-between p-4 z-30 hidden md:flex border-r border-app-border">
+  <aside class="w-full md:w-64 card md:min-h-screen p-5 flex flex-col justify-between hidden md:flex border-r">
     <div>
-      <div class="flex items-center gap-3 px-2 py-3 mb-6">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 font-heading font-extrabold text-xl">
+      <div class="flex items-center gap-3 mb-8 px-1">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center font-extrabold text-white text-lg shadow-lg shadow-orange-500/20">
           JM
         </div>
         <div>
-          <h1 class="font-heading font-bold text-base tracking-wide text-white leading-tight">JOHN MOTOS</h1>
-          <p class="text-[11px] text-slate-400 font-medium">Oficina & Peças</p>
+          <h1 class="font-bold text-sm tracking-wide text-white">JOHN MOTOS</h1>
+          <p class="text-[11px] text-slate-400 font-medium">Sistema Integrado</p>
         </div>
       </div>
 
       <nav class="space-y-1.5">
-        <button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-brand-500 bg-brand-500/10 border border-brand-500/20">
+        <button onclick="mudarAba('dashboard')" id="btn-dashboard" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-white bg-orange-500 shadow-md shadow-orange-500/20">
           <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Visão Geral
         </button>
-
-        <button onclick="navigate('pdv')" id="nav-pdv" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/40">
+        <button onclick="mudarAba('pdv')" id="btn-pdv" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/50">
           <i data-lucide="shopping-cart" class="w-4 h-4"></i> Frente de Caixa (PDV)
         </button>
-
-        <button onclick="navigate('produtos')" id="nav-produtos" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/40">
+        <button onclick="mudarAba('produtos')" id="btn-produtos" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/50">
           <i data-lucide="package" class="w-4 h-4"></i> Estoque de Peças
         </button>
-
-        <button onclick="navigate('os')" id="nav-os" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/40">
+        <button onclick="mudarAba('os')" id="btn-os" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/50">
           <i data-lucide="wrench" class="w-4 h-4"></i> Ordens de Serviço
         </button>
-
-        <button onclick="navigate('painel-dono')" id="nav-painel-dono" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-amber-400 hover:bg-amber-500/10 border border-transparent hover:border-amber-500/20">
+        <button onclick="mudarAba('painel')" id="btn-painel" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-amber-400 hover:bg-amber-500/10">
           <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Painel do Proprietário
         </button>
       </nav>
     </div>
 
-    <div class="pt-4 border-t border-app-border">
-      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-900/80 border border-app-border text-xs">
-        <span class="flex items-center gap-2 font-medium text-slate-300">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Supabase Sync
-        </span>
-      </div>
+    <div class="card p-3 rounded-xl flex items-center justify-between text-[11px]">
+      <span class="flex items-center gap-2 text-slate-300 font-medium">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Banco Conectado
+      </span>
     </div>
   </aside>
 
   <!-- MOBILE BOTTOM NAV -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 glass-card z-50 px-2 py-2 border-t border-app-border flex justify-around items-center">
-    <button onclick="navigate('dashboard')" class="flex flex-col items-center gap-1 p-2 text-slate-400 text-[10px]">
-      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-      <span>Início</span>
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 card z-50 px-2 py-2 border-t flex justify-around items-center">
+    <button onclick="mudarAba('dashboard')" class="flex flex-col items-center gap-1 p-2 text-orange-500 text-[10px]">
+      <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Início
     </button>
-    <button onclick="navigate('pdv')" class="flex flex-col items-center gap-1 p-2 text-brand-500 text-[10px]">
-      <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-      <span>PDV</span>
+    <button onclick="mudarAba('pdv')" class="flex flex-col items-center gap-1 p-2 text-slate-400 text-[10px]">
+      <i data-lucide="shopping-cart" class="w-5 h-5"></i> PDV
     </button>
-    <button onclick="navigate('os')" class="flex flex-col items-center gap-1 p-2 text-slate-400 text-[10px]">
-      <i data-lucide="wrench" class="w-5 h-5"></i>
-      <span>O.S.</span>
+    <button onclick="mudarAba('os')" class="flex flex-col items-center gap-1 p-2 text-slate-400 text-[10px]">
+      <i data-lucide="wrench" class="w-5 h-5"></i> O.S.
     </button>
-    <button onclick="navigate('painel-dono')" class="flex flex-col items-center gap-1 p-2 text-amber-400 text-[10px]">
-      <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-      <span>Painel</span>
+    <button onclick="mudarAba('painel')" class="flex flex-col items-center gap-1 p-2 text-amber-400 text-[10px]">
+      <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Painel
     </button>
   </nav>
 
@@ -132,141 +101,117 @@
   <main class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
 
     <!-- HEADER TOP -->
-    <header class="flex items-center justify-between mb-8 pb-4 border-b border-app-border">
+    <header class="flex items-center justify-between mb-8 pb-4 border-b border-bordercol">
       <div>
-        <h2 id="page-title" class="text-xl md:text-2xl font-heading font-extrabold text-white tracking-tight">Visão Geral</h2>
-        <p id="page-subtitle" class="text-xs text-slate-400 mt-0.5">Acompanhamento e estatísticas da oficina</p>
+        <h2 id="titulo-pagina" class="text-xl md:text-2xl font-extrabold text-white">Visão Geral</h2>
+        <p id="subtitulo-pagina" class="text-xs text-slate-400 mt-0.5">Indicadores e resumo operacional</p>
       </div>
-
-      <button onclick="carregarDadosGerais()" class="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 border border-app-border transition flex items-center gap-2 text-xs">
+      <button onclick="carregarDados()" class="px-3 py-2 rounded-xl card hover:bg-slate-800 text-slate-300 transition flex items-center gap-2 text-xs font-semibold">
         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Atualizar
       </button>
     </header>
 
-    <!-- SECTION: DASHBOARD -->
-    <section id="sec-dashboard" class="app-sec space-y-6">
+    <!-- ABA: DASHBOARD -->
+    <section id="aba-dashboard" class="space-y-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="glass-card p-5 rounded-2xl">
+        <div class="card p-5 rounded-2xl">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Vendas Hoje</span>
-          <div id="dash-vendas-hoje" class="text-2xl font-black font-heading text-white mt-2">R$ 0,00</div>
+          <div id="dash-vendas" class="text-2xl font-extrabold text-white mt-2">R$ 0,00</div>
           <span id="dash-qtd-vendas" class="text-[11px] text-slate-400 mt-1 block">0 operações</span>
         </div>
-
-        <div class="glass-card p-5 rounded-2xl">
+        <div class="card p-5 rounded-2xl">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Peças no Estoque</span>
-          <div id="dash-qtd-produtos" class="text-2xl font-black font-heading text-blue-400 mt-2">0</div>
+          <div id="dash-produtos" class="text-2xl font-extrabold text-sky-400 mt-2">0</div>
           <span class="text-[11px] text-slate-400 mt-1 block">Itens cadastrados</span>
         </div>
-
-        <div class="glass-card p-5 rounded-2xl">
+        <div class="card p-5 rounded-2xl">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Estoque Baixo</span>
-          <div id="dash-estoque-baixo" class="text-2xl font-black font-heading text-amber-400 mt-2">0</div>
-          <span class="text-[11px] text-slate-400 mt-1 block">Precisam de reposição</span>
+          <div id="dash-baixo" class="text-2xl font-extrabold text-amber-400 mt-2">0</div>
+          <span class="text-[11px] text-slate-400 mt-1 block">Reposição necessária</span>
         </div>
-
-        <div class="glass-card p-5 rounded-2xl">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">O.S. no Pátio</span>
-          <div id="dash-os-andamento" class="text-2xl font-black font-heading text-purple-400 mt-2">0</div>
-          <span class="text-[11px] text-slate-400 mt-1 block">Motos em manutenção</span>
+        <div class="card p-5 rounded-2xl">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">O.S. em Andamento</span>
+          <div id="dash-os" class="text-2xl font-extrabold text-purple-400 mt-2">0</div>
+          <span class="text-[11px] text-slate-400 mt-1 block">Motos na oficina</span>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-card p-5 rounded-2xl">
-          <h3 class="font-heading font-bold text-sm text-white mb-4 flex items-center gap-2">
-            <i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Últimas Vendas
-          </h3>
+        <div class="card p-5 rounded-2xl">
+          <h3 class="font-bold text-sm text-white mb-4 flex items-center gap-2"><i data-lucide="clock" class="w-4 h-4 text-orange-500"></i> Últimas Vendas</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
-              <thead class="text-slate-400 border-b border-app-border uppercase text-[10px]">
-                <tr>
-                  <th class="pb-2 font-semibold">ID</th>
-                  <th class="pb-2 font-semibold">Pagamento</th>
-                  <th class="pb-2 font-semibold">Status</th>
-                  <th class="pb-2 font-semibold text-right">Valor</th>
-                </tr>
+              <thead class="text-slate-400 border-b border-bordercol uppercase text-[10px]">
+                <tr><th class="pb-2 font-semibold">ID</th><th class="pb-2 font-semibold">Pagamento</th><th class="pb-2 font-semibold">Status</th><th class="pb-2 font-semibold text-right">Valor</th></tr>
               </thead>
-              <tbody id="tbl-dash-vendas" class="divide-y divide-app-border/40">
-                <tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma venda registrada.</td></tr>
-              </tbody>
+              <tbody id="tbl-dash-vendas" class="divide-y divide-bordercol/50"><tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma venda.</td></tr></tbody>
             </table>
           </div>
         </div>
 
-        <div class="glass-card p-5 rounded-2xl">
-          <h3 class="font-heading font-bold text-sm text-white mb-4 flex items-center gap-2">
-            <i data-lucide="wrench" class="w-4 h-4 text-brand-500"></i> Ordens de Serviço Recentes
-          </h3>
+        <div class="card p-5 rounded-2xl">
+          <h3 class="font-bold text-sm text-white mb-4 flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4 text-orange-500"></i> O.S. Recentes</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
-              <thead class="text-slate-400 border-b border-app-border uppercase text-[10px]">
-                <tr>
-                  <th class="pb-2 font-semibold">Placa</th>
-                  <th class="pb-2 font-semibold">Serviço</th>
-                  <th class="pb-2 font-semibold">Status</th>
-                  <th class="pb-2 font-semibold text-right">Valor</th>
-                </tr>
+              <thead class="text-slate-400 border-b border-bordercol uppercase text-[10px]">
+                <tr><th class="pb-2 font-semibold">Placa</th><th class="pb-2 font-semibold">Serviço</th><th class="pb-2 font-semibold">Status</th><th class="pb-2 font-semibold text-right">Valor</th></tr>
               </thead>
-              <tbody id="tbl-dash-os" class="divide-y divide-app-border/40">
-                <tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma O.S. no momento.</td></tr>
-              </tbody>
+              <tbody id="tbl-dash-os" class="divide-y divide-bordercol/50"><tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma O.S.</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- SECTION: PDV -->
-    <section id="sec-pdv" class="app-sec hidden space-y-6">
+    <!-- ABA: PDV -->
+    <section id="aba-pdv" class="space-y-6 hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div class="lg:col-span-7 space-y-4">
-          <div class="flex p-1 bg-slate-900/90 rounded-xl border border-app-border">
-            <button id="pdv-tab-peca" onclick="switchPdvTab('peca')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-500 text-white shadow">📦 Peças do Estoque</button>
-            <button id="pdv-tab-servico" onclick="switchPdvTab('servico')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white">🛠️ Mão de Obra Livre</button>
+          <div class="flex p-1 bg-darkbg rounded-xl border border-bordercol">
+            <button id="tab-peca" onclick="mudarAbaPdv('peca')" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-orange-500 text-white">📦 Peças do Estoque</button>
+            <button id="tab-servico" onclick="mudarAbaPdv('servico')" class="flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white">🛠️ Mão de Obra Livre</button>
           </div>
 
-          <div id="pdv-panel-peca" class="glass-card p-5 rounded-2xl space-y-3">
-            <input type="text" id="pdv-busca-produto" onkeyup="renderPDVProdutos()" placeholder="Buscar por Nome ou SKU (ex: JM-1001)..." class="w-full bg-slate-900 border border-app-border rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500">
-            <div id="pdv-lista-produtos" class="max-h-80 overflow-y-auto space-y-2 pr-1"></div>
+          <div id="panel-peca" class="card p-5 rounded-2xl space-y-3">
+            <input type="text" id="pdv-busca" onkeyup="renderPdvProdutos()" placeholder="Pesquisar peça por nome ou SKU (ex: JM-1001)..." class="w-full bg-darkbg border border-bordercol rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500">
+            <div id="pdv-lista" class="max-h-80 overflow-y-auto space-y-2 pr-1"></div>
           </div>
 
-          <div id="pdv-panel-servico" class="glass-card p-5 rounded-2xl space-y-3 hidden">
+          <div id="panel-servico" class="card p-5 rounded-2xl space-y-3 hidden">
             <div>
               <label class="block text-[11px] font-medium text-slate-400 mb-1">Descrição do Serviço *</label>
-              <input type="text" id="pdv-mo-descricao" placeholder="Ex: Troca de relação + regulagem de corrente" class="w-full bg-slate-900 border border-app-border rounded-xl px-3.5 py-2 text-xs text-white">
+              <input type="text" id="mo-desc" placeholder="Ex: Troca de pneu + alinhamento" class="w-full bg-darkbg border border-bordercol rounded-xl px-3.5 py-2 text-xs text-white">
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-[11px] font-medium text-slate-400 mb-1">Valor (R$) *</label>
-                <input type="number" step="0.01" id="pdv-mo-valor" placeholder="0.00" class="w-full bg-slate-900 border border-app-border rounded-xl px-3.5 py-2 text-xs text-emerald-400 font-bold">
+                <input type="number" step="0.01" id="mo-valor" placeholder="0.00" class="w-full bg-darkbg border border-bordercol rounded-xl px-3.5 py-2 text-xs text-emerald-400 font-bold">
               </div>
               <div>
                 <label class="block text-[11px] font-medium text-slate-400 mb-1">Garantia (Dias)</label>
-                <input type="number" id="pdv-mo-garantia" value="30" class="w-full bg-slate-900 border border-app-border rounded-xl px-3.5 py-2 text-xs text-white">
+                <input type="number" id="mo-garantia" value="30" class="w-full bg-darkbg border border-bordercol rounded-xl px-3.5 py-2 text-xs text-white">
               </div>
             </div>
-            <button onclick="adicionarMaoDeObraPDV()" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl shadow">Adicionar ao Carrinho</button>
+            <button onclick="adicionarMaoDeObra()" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition">Adicionar Serviço</button>
           </div>
         </div>
 
         <div class="lg:col-span-5 space-y-4">
-          <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-full min-h-[440px]">
+          <div class="card p-5 rounded-2xl flex flex-col justify-between h-full min-h-[440px]">
             <div>
-              <div class="flex items-center justify-between pb-3 border-b border-app-border mb-3">
-                <h3 class="font-heading font-bold text-xs text-white flex items-center gap-2">
-                  <i data-lucide="shopping-bag" class="w-4 h-4 text-brand-500"></i> Carrinho de Compras
-                </h3>
-                <button onclick="limparCarrinho()" class="text-[11px] text-red-400 hover:underline">Limpar</button>
+              <div class="flex items-center justify-between pb-3 border-b border-bordercol mb-3">
+                <h3 class="font-bold text-xs text-white flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-orange-500"></i> Carrinho</h3>
+                <button onclick="carrinho=[]; renderCarrinho();" class="text-[11px] text-red-400 hover:underline">Limpar</button>
               </div>
-              <div id="pdv-carrinho-itens" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+              <div id="carrinho-itens" class="space-y-2 max-h-60 overflow-y-auto pr-1">
                 <p class="text-center text-xs text-slate-500 py-10">Carrinho vazio.</p>
               </div>
             </div>
 
-            <div class="pt-3 border-t border-app-border space-y-3 mt-3">
+            <div class="pt-3 border-t border-bordercol space-y-3 mt-3">
               <div>
                 <label class="block text-[11px] font-medium text-slate-400 mb-1">Forma de Pagamento</label>
-                <select id="pdv-forma-pagamento" class="w-full bg-slate-900 border border-app-border rounded-xl px-3 py-2 text-xs text-white">
+                <select id="pagamento-forma" class="w-full bg-darkbg border border-bordercol rounded-xl px-3 py-2 text-xs text-white">
                   <option value="Dinheiro">Dinheiro</option>
                   <option value="Pix">PIX</option>
                   <option value="Cartão de débito">Cartão de Débito</option>
@@ -275,13 +220,13 @@
                 </select>
               </div>
 
-              <div class="flex justify-between items-center bg-slate-900 px-3 py-2.5 rounded-xl border border-app-border">
+              <div class="flex justify-between items-center bg-darkbg px-3 py-2.5 rounded-xl border border-bordercol">
                 <span class="text-[11px] font-semibold text-slate-400 uppercase">Total</span>
-                <span id="pdv-total-valor" class="text-xl font-extrabold font-heading text-emerald-400">R$ 0,00</span>
+                <span id="carrinho-total" class="text-xl font-extrabold text-emerald-400">R$ 0,00</span>
               </div>
 
-              <button onclick="finalizarVendaPDV()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow flex items-center justify-center gap-2">
-                <i data-lucide="check-circle" class="w-4 h-4"></i> Finalizar & Baixar Estoque
+              <button onclick="finalizarVenda()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Finalizar Venda & Baixar Estoque
               </button>
             </div>
           </div>
@@ -289,102 +234,87 @@
       </div>
     </section>
 
-    <!-- SECTION: ESTOQUE -->
-    <section id="sec-produtos" class="app-sec hidden space-y-6">
+    <!-- ABA: PRODUTOS -->
+    <section id="aba-produtos" class="space-y-6 hidden">
       <div class="flex justify-between items-center gap-4">
-        <input type="text" id="busca-produtos-lista" onkeyup="renderProdutosTabela()" placeholder="Buscar peças no estoque..." class="w-full sm:w-72 bg-slate-900 border border-app-border rounded-xl px-3.5 py-2 text-xs text-white">
-        <button onclick="abrirModalProduto()" class="py-2 px-4 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow flex items-center gap-2">
-          <i data-lucide="plus" class="w-4 h-4"></i> Cadastrar Peça
+        <input type="text" id="produtos-busca" onkeyup="renderProdutosTabela()" placeholder="Buscar peças..." class="w-full sm:w-72 bg-darkbg border border-bordercol rounded-xl px-3.5 py-2 text-xs text-white">
+        <button onclick="abrirModal('modal-produto')" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2">
+          <i data-lucide="plus" class="w-4 h-4"></i> Nova Peça
         </button>
       </div>
 
-      <div class="glass-card rounded-2xl overflow-hidden">
+      <div class="card rounded-2xl overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900/90 text-slate-400 border-b border-app-border uppercase text-[10px]">
-              <tr>
-                <th class="p-3">SKU</th>
-                <th class="p-3">Peça / Produto</th>
-                <th class="p-3">Categoria</th>
-                <th class="p-3">Estoque</th>
-                <th class="p-3">Custo</th>
-                <th class="p-3">Venda</th>
-                <th class="p-3">Garantia</th>
-              </tr>
+            <thead class="bg-darkbg text-slate-400 border-b border-bordercol uppercase text-[10px]">
+              <tr><th class="p-3">SKU</th><th class="p-3">Peça</th><th class="p-3">Categoria</th><th class="p-3">Estoque</th><th class="p-3">Custo</th><th class="p-3">Venda</th><th class="p-3">Garantia</th></tr>
             </thead>
-            <tbody id="tbl-produtos-body" class="divide-y divide-app-border/40"></tbody>
+            <tbody id="tbl-produtos" class="divide-y divide-bordercol/50"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- SECTION: ORDENS DE SERVIÇO -->
-    <section id="sec-os" class="app-sec hidden space-y-6">
+    <!-- ABA: OS -->
+    <section id="aba-os" class="space-y-6 hidden">
       <div class="flex justify-between items-center">
-        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Acompanhamento da Oficina</h3>
-        <button onclick="abrirModalOS()" class="py-2 px-4 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow flex items-center gap-2">
+        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Motos na Oficina</h3>
+        <button onclick="abrirModal('modal-os')" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2">
           <i data-lucide="plus" class="w-4 h-4"></i> Nova O.S.
         </button>
       </div>
 
-      <div class="glass-card rounded-2xl overflow-hidden">
+      <div class="card rounded-2xl overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900/90 text-slate-400 border-b border-app-border uppercase text-[10px]">
-              <tr>
-                <th class="p-3">Nº OS</th>
-                <th class="p-3">Placa</th>
-                <th class="p-3">Serviço</th>
-                <th class="p-3">Status</th>
-                <th class="p-3 text-right">Valor</th>
-              </tr>
+            <thead class="bg-darkbg text-slate-400 border-b border-bordercol uppercase text-[10px]">
+              <tr><th class="p-3">Nº OS</th><th class="p-3">Placa</th><th class="p-3">Serviço</th><th class="p-3">Status</th><th class="p-3 text-right">Valor</th></tr>
             </thead>
-            <tbody id="tbl-os-body" class="divide-y divide-app-border/40"></tbody>
+            <tbody id="tbl-os" class="divide-y divide-bordercol/50"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- SECTION: PAINEL DO DONO -->
-    <section id="sec-painel-dono" class="app-sec hidden space-y-6">
+    <!-- ABA: PAINEL DO PROPRIETÁRIO -->
+    <section id="aba-painel" class="space-y-6 hidden">
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="glass-card p-5 rounded-2xl">
+        <div class="card p-5 rounded-2xl">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Entrada Total</span>
-          <div id="dono-entrada" class="text-xl font-extrabold font-heading text-emerald-400 mt-2">R$ 0,00</div>
+          <div id="dono-entrada" class="text-xl font-extrabold text-emerald-400 mt-2">R$ 0,00</div>
         </div>
-        <div class="glass-card p-5 rounded-2xl">
+        <div class="card p-5 rounded-2xl">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Lucro Bruto</span>
-          <div id="dono-lucro" class="text-xl font-extrabold font-heading text-brand-500 mt-2">R$ 0,00</div>
+          <div id="dono-lucro" class="text-xl font-extrabold text-orange-500 mt-2">R$ 0,00</div>
         </div>
-        <div class="glass-card p-5 rounded-2xl">
+        <div class="card p-5 rounded-2xl">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Valor em Estoque</span>
-          <div id="dono-estoque-valor" class="text-xl font-extrabold font-heading text-blue-400 mt-2">R$ 0,00</div>
+          <div id="dono-estoque" class="text-xl font-extrabold text-sky-400 mt-2">R$ 0,00</div>
         </div>
-        <div class="glass-card p-5 rounded-2xl">
+        <div class="card p-5 rounded-2xl">
           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fiado a Receber</span>
-          <div id="dono-fiado" class="text-xl font-extrabold font-heading text-amber-400 mt-2">R$ 0,00</div>
+          <div id="dono-fiado" class="text-xl font-extrabold text-amber-400 mt-2">R$ 0,00</div>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- MODAL: CADASTRAR PRODUTO -->
+  <!-- MODAL: PRODUTO -->
   <div id="modal-produto" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card p-6 rounded-2xl max-w-md w-full space-y-4">
-      <div class="flex justify-between items-center border-b border-app-border pb-3">
-        <h3 class="font-heading font-bold text-white text-xs uppercase tracking-wider">Cadastrar Peça</h3>
-        <button onclick="fecharModalProduto()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+    <div class="card p-6 rounded-2xl max-w-md w-full space-y-4">
+      <div class="flex justify-between items-center border-b border-bordercol pb-3">
+        <h3 class="font-bold text-white text-xs uppercase">Cadastrar Peça</h3>
+        <button onclick="fecharModal('modal-produto')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-
       <div class="grid grid-cols-2 gap-3 text-xs">
         <div>
           <label class="block text-slate-400 mb-1">SKU</label>
-          <input type="text" id="prod-sku" readonly class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-amber-400 font-bold font-mono">
+          <input type="text" id="p-sku" readonly class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-amber-400 font-bold font-mono">
         </div>
         <div>
           <label class="block text-slate-400 mb-1">Categoria</label>
-          <select id="prod-categoria" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
+          <select id="p-cat" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
             <option value="Lubrificantes">Lubrificantes</option>
             <option value="Transmissão">Transmissão</option>
             <option value="Freios">Freios</option>
@@ -393,47 +323,45 @@
         </div>
         <div class="col-span-2">
           <label class="block text-slate-400 mb-1">Nome da Peça *</label>
-          <input type="text" id="prod-nome" placeholder="Ex: Óleo Mobil 20W50" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
+          <input type="text" id="p-nome" placeholder="Ex: Óleo Mobil 20W50" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
         </div>
         <div>
           <label class="block text-slate-400 mb-1">Quantidade *</label>
-          <input type="number" id="prod-qtd" value="10" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
+          <input type="number" id="p-qtd" value="10" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
         </div>
         <div>
           <label class="block text-slate-400 mb-1">Garantia (Dias)</label>
-          <input type="number" id="prod-garantia" value="90" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
+          <input type="number" id="p-garantia" value="90" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
         </div>
         <div>
           <label class="block text-slate-400 mb-1">Custo (R$)</label>
-          <input type="number" step="0.01" id="prod-custo" placeholder="0.00" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
+          <input type="number" step="0.01" id="p-custo" placeholder="0.00" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
         </div>
         <div>
           <label class="block text-slate-400 mb-1">Venda (R$) *</label>
-          <input type="number" step="0.01" id="prod-venda" placeholder="0.00" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-emerald-400 font-bold">
+          <input type="number" step="0.01" id="p-venda" placeholder="0.00" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-emerald-400 font-bold">
         </div>
       </div>
-
-      <button onclick="salvarProduto()" class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl shadow">Salvar Peça</button>
+      <button onclick="salvarProduto()" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition">Salvar Peça</button>
     </div>
   </div>
 
-  <!-- MODAL: NOVA OS -->
+  <!-- MODAL: OS -->
   <div id="modal-os" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card p-6 rounded-2xl max-w-md w-full space-y-4">
-      <div class="flex justify-between items-center border-b border-app-border pb-3">
-        <h3 class="font-heading font-bold text-white text-xs uppercase tracking-wider">Nova Ordem de Serviço</h3>
-        <button onclick="fecharModalOS()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+    <div class="card p-6 rounded-2xl max-w-md w-full space-y-4">
+      <div class="flex justify-between items-center border-b border-bordercol pb-3">
+        <h3 class="font-bold text-white text-xs uppercase">Nova Ordem de Serviço</h3>
+        <button onclick="fecharModal('modal-os')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
-
       <div class="space-y-3 text-xs">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-slate-400 mb-1">Placa *</label>
-            <input type="text" id="os-placa" placeholder="ABC-1D23" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white uppercase font-bold">
+            <input type="text" id="os-placa" placeholder="ABC-1D23" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white uppercase font-bold">
           </div>
           <div>
             <label class="block text-slate-400 mb-1">Status</label>
-            <select id="os-status" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
+            <select id="os-status" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white">
               <option value="Aberta">Aberta</option>
               <option value="Em Andamento">Em Andamento</option>
               <option value="Concluída">Concluída</option>
@@ -442,15 +370,14 @@
         </div>
         <div>
           <label class="block text-slate-400 mb-1">Serviço Solicitado *</label>
-          <textarea id="os-descricao" rows="3" placeholder="Descreva o serviço..." class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white"></textarea>
+          <textarea id="os-desc" rows="3" placeholder="Descreva o serviço..." class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-white"></textarea>
         </div>
         <div>
           <label class="block text-slate-400 mb-1">Valor Estimado (R$)</label>
-          <input type="number" step="0.01" id="os-valor" placeholder="0.00" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-emerald-400 font-bold">
+          <input type="number" step="0.01" id="os-val" placeholder="0.00" class="w-full bg-darkbg border border-bordercol rounded-xl p-2.5 text-emerald-400 font-bold">
         </div>
       </div>
-
-      <button onclick="salvarOS()" class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-xl shadow">Abrir O.S.</button>
+      <button onclick="salvarOs()" class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition">Abrir O.S.</button>
     </div>
   </div>
 
@@ -458,131 +385,145 @@
     const SUPABASE_URL = "https://nbwvncqobsvsrtzuhrxf.supabase.co";
     const SUPABASE_KEY = "sb_publishable_uXYDMzK_oNkbHeCY5Fzt2Q_ayUnHdR7";
     let db = null;
-    let produtosCache = [];
-    let osCache = [];
+    let produtos = [];
+    let ordens = [];
     let carrinho = [];
 
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
       if (typeof supabase !== 'undefined') {
         db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        carregarDadosGerais();
+        carregarDados();
       }
     });
 
-    function navigate(sec) {
-      document.querySelectorAll('.app-sec').forEach(e => e.classList.add('hidden'));
-      document.querySelectorAll('.nav-link').forEach(e => {
-        e.classList.remove('text-brand-500', 'bg-brand-500/10', 'border', 'border-brand-500/25');
-        e.classList.add('text-slate-400');
+    function mudarAba(aba) {
+      ['dashboard', 'pdv', 'produtos', 'os', 'painel'].forEach(a => {
+        document.getElementById(`aba-${a}`).classList.add('hidden');
+        const btn = document.getElementById(`btn-${a}`);
+        if (btn) {
+          btn.className = "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-800/50";
+        }
       });
 
-      document.getElementById(`sec-${sec}`).classList.remove('hidden');
-      const btn = document.getElementById(`nav-${sec}`);
-      if (btn) {
-        btn.classList.add('text-brand-500', 'bg-brand-500/10', 'border', 'border-brand-500/25');
-        btn.classList.remove('text-slate-400');
+      document.getElementById(`aba-${aba}`).classList.remove('hidden');
+      const ativo = document.getElementById(`btn-${aba}`);
+      if (ativo) {
+        ativo.className = aba === 'painel' 
+          ? "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-amber-400 bg-amber-500/10"
+          : "w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition text-white bg-orange-500 shadow-md shadow-orange-500/20";
       }
 
-      const titles = {
-        'dashboard': ['Visão Geral', 'Resumo da oficina em tempo real'],
-        'pdv': ['Frente de Caixa (PDV)', 'Venda rápida de peças e serviços livres'],
-        'produtos': ['Estoque de Peças', 'Controle e catálogo de mercadorias'],
-        'os': ['Ordens de Serviço', 'Acompanhamento de motos na oficina'],
-        'painel-dono': ['Painel do Proprietário', 'Indicadores financeiros executivos']
+      const titulos = {
+        'dashboard': ['Visão Geral', 'Indicadores e resumo operacional'],
+        'pdv': ['Frente de Caixa (PDV)', 'Venda rápida e baixa automática'],
+        'produtos': ['Estoque de Peças', 'Gerenciamento de mercadorias'],
+        'os': ['Ordens de Serviço', 'Controle da oficina e pátio'],
+        'painel': ['Painel do Proprietário', 'Análise financeira e patrimônio']
       };
-
-      if(titles[sec]) {
-        document.getElementById('page-title').innerText = titles[sec][0];
-        document.getElementById('page-subtitle').innerText = titles[sec][1];
-      }
+      document.getElementById('titulo-pagina').innerText = titulos[aba][0];
+      document.getElementById('subtitulo-pagina').innerText = titulos[aba][1];
     }
 
-    async function carregarDadosGerais() {
+    async function carregarDados() {
       if (!db) return;
 
+      // Produtos
       const { data: prods } = await db.from('produtos').select('*');
       if (prods) {
-        produtosCache = prods;
-        document.getElementById('dash-qtd-produtos').innerText = prods.length;
+        produtos = prods;
+        document.getElementById('dash-produtos').innerText = prods.length;
         const baixos = prods.filter(p => p.quantidade <= (p.estoque_minimo || 2)).length;
-        document.getElementById('dash-estoque-baixo').innerText = baixos;
-        
-        let valorEstoque = prods.reduce((a, b) => a + (Number(b.quantidade || 0) * Number(b.preco_custo || 0)), 0);
-        document.getElementById('dono-estoque-valor').innerText = `R$ ${valorEstoque.toFixed(2)}`;
+        document.getElementById('dash-baixo').innerText = baixos;
+
+        const valEstoque = prods.reduce((acc, p) => acc + (Number(p.quantidade || 0) * Number(p.preco_custo || 0)), 0);
+        document.getElementById('dono-estoque').innerText = `R$ ${valEstoque.toFixed(2)}`;
 
         renderProdutosTabela();
-        renderPDVProdutos();
+        renderPdvProdutos();
       }
 
+      // Vendas
       const { data: vendas } = await db.from('vendas').select('*').order('id', { ascending: false });
+      const { data: itensVenda } = await db.from('venda_itens').select('*, produtos(preco_custo)');
       if (vendas) {
-        let totalHoje = vendas.reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
-        document.getElementById('dash-vendas-hoje').innerText = `R$ ${totalHoje.toFixed(2)}`;
+        const totalHoje = vendas.reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
+        document.getElementById('dash-vendas').innerText = `R$ ${totalHoje.toFixed(2)}`;
         document.getElementById('dono-entrada').innerText = `R$ ${totalHoje.toFixed(2)}`;
         document.getElementById('dash-qtd-vendas').innerText = `${vendas.length} operações`;
 
-        let fiado = vendas.filter(v => v.status_pagamento === 'Pendente').reduce((a, b) => a + Number(b.valor_total || 0), 0);
+        const fiado = vendas.filter(v => v.status_pagamento === 'Pendente').reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
         document.getElementById('dono-fiado').innerText = `R$ ${fiado.toFixed(2)}`;
 
-        let html = '';
+        let htmlVendas = '';
         vendas.slice(0, 5).forEach(v => {
-          html += `<tr>
+          htmlVendas += `<tr>
             <td class="p-3 font-mono text-amber-400">#${v.id}</td>
             <td class="p-3">${v.forma_pagamento}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${v.status_pagamento === 'Pago' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">${v.status_pagamento}</span></td>
             <td class="p-3 text-right font-bold text-emerald-400">R$ ${Number(v.valor_total).toFixed(2)}</td>
           </tr>`;
         });
-        document.getElementById('tbl-dash-vendas').innerHTML = html || '<tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma venda.</td></tr>';
+        document.getElementById('tbl-dash-vendas').innerHTML = htmlVendas || '<tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma venda.</td></tr>';
       }
 
-      const { data: ordens } = await db.from('ordens_servico').select('*').order('id', { ascending: false });
-      if (ordens) {
-        osCache = ordens;
-        const emAndamento = ordens.filter(o => o.status === 'Em Andamento' || o.status === 'Aberta').length;
-        document.getElementById('dash-os-andamento').innerText = emAndamento;
-        renderOSTabela();
+      // Lucro
+      if (itensVenda) {
+        let lucro = 0;
+        itensVenda.forEach(i => {
+          const rev = Number(i.subtotal || 0);
+          const custoUni = i.produtos ? Number(i.produtos.preco_custo || 0) : 0;
+          lucro += (rev - (custoUni * Number(i.quantidade || 1)));
+        });
+        document.getElementById('dono-lucro').innerText = `R$ ${lucro.toFixed(2)}`;
+      }
+
+      // O.S.
+      const { data: os } = await db.from('ordens_servico').select('*').order('id', { ascending: false });
+      if (os) {
+        ordens = os;
+        const andamento = os.filter(o => o.status === 'Em Andamento' || o.status === 'Aberta').length;
+        document.getElementById('dash-os').innerText = andamento;
+        renderOsTabela();
       }
     }
 
-    function switchPdvTab(tab) {
-      if (tab === 'peca') {
-        document.getElementById('pdv-tab-peca').className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-500 text-white shadow";
-        document.getElementById('pdv-tab-servico').className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
-        document.getElementById('pdv-panel-peca').classList.remove('hidden');
-        document.getElementById('pdv-panel-servico').classList.add('hidden');
+    function mudarAbaPdv(tipo) {
+      if (tipo === 'peca') {
+        document.getElementById('tab-peca').className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-orange-500 text-white";
+        document.getElementById('tab-servico').className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
+        document.getElementById('panel-peca').classList.remove('hidden');
+        document.getElementById('panel-servico').classList.add('hidden');
       } else {
-        document.getElementById('pdv-tab-servico').className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-brand-500 text-white shadow";
-        document.getElementById('pdv-tab-peca').className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
-        document.getElementById('pdv-panel-servico').classList.remove('hidden');
-        document.getElementById('pdv-panel-peca').classList.add('hidden');
+        document.getElementById('tab-servico').className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-orange-500 text-white";
+        document.getElementById('tab-peca').className = "flex-1 py-2 text-xs font-bold rounded-lg transition text-slate-400 hover:text-white";
+        document.getElementById('panel-servico').classList.remove('hidden');
+        document.getElementById('panel-peca').classList.add('hidden');
       }
     }
 
-    function renderPDVProdutos() {
-      const lista = document.getElementById('pdv-lista-produtos');
-      const busca = document.getElementById('pdv-busca-produto').value.toLowerCase();
+    function renderPdvProdutos() {
+      const busca = document.getElementById('pdv-busca').value.toLowerCase();
+      const lista = document.getElementById('pdv-lista');
       let html = '';
 
-      const filtrados = produtosCache.filter(p => p.nome.toLowerCase().includes(busca) || p.codigo_interno.toLowerCase().includes(busca));
-      filtrados.forEach(p => {
+      produtos.filter(p => p.nome.toLowerCase().includes(busca) || p.codigo_interno.toLowerCase().includes(busca)).forEach(p => {
         html += `
-          <div onclick="adicionarProdutoPDV(${p.id})" class="p-3 bg-slate-900 border border-app-border rounded-xl hover:border-brand-500 cursor-pointer flex justify-between items-center text-xs transition">
+          <div onclick="adicionar Carrinho(${p.id})" class="p-3 bg-darkbg border border-bordercol rounded-xl hover:border-orange-500 cursor-pointer flex justify-between items-center text-xs transition">
             <div>
               <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">${p.codigo_interno}</span>
               <span class="font-bold text-white ml-2">${p.nome}</span>
               <span class="block text-[10px] text-slate-400 mt-0.5">Estoque: ${p.quantidade} un.</span>
             </div>
-            <span class="font-bold text-emerald-400 font-heading">R$ ${Number(p.preco_venda).toFixed(2)}</span>
+            <span class="font-bold text-emerald-400">R$ ${Number(p.preco_venda).toFixed(2)}</span>
           </div>
         `;
       });
       lista.innerHTML = html || '<p class="text-xs text-slate-500 text-center py-4">Nenhuma peça encontrada.</p>';
     }
 
-    function adicionarProdutoPDV(id) {
-      const p = produtosCache.find(item => item.id === id);
+    function adicionarCarrinho(id) {
+      const p = produtos.find(item => item.id === id);
       if (!p) return;
       const ex = carrinho.find(i => i.produto_id === id);
       if (ex) {
@@ -594,64 +535,68 @@
       renderCarrinho();
     }
 
-    function adicionarMaoDeObraPDV() {
-      const desc = document.getElementById('pdv-mo-descricao').value;
-      const valor = parseFloat(document.getElementById('pdv-mo-valor').value);
-      if (!desc || isNaN(valor) || valor <= 0) return alert("Preencha descrição e valor válidos.");
+    function adicionarMaoDeObra() {
+      const desc = document.getElementById('mo-desc').value;
+      const val = parseFloat(document.getElementById('mo-valor').value);
+      if (!desc || isNaN(val) || val <= 0) return alert("Preencha descrição e valor válidos.");
 
-      carrinho.push({ produto_id: null, tipo_item: 'servico_livre', descricao_item: desc, quantidade: 1, preco_unitario: valor, subtotal: valor });
-      document.getElementById('pdv-mo-descricao').value = '';
-      document.getElementById('pdv-mo-valor').value = '';
+      carrinho.push({ produto_id: null, tipo_item: 'servico_livre', descricao_item: desc, quantidade: 1, preco_unitario: val, subtotal: val });
+      document.getElementById('mo-desc').value = '';
+      document.getElementById('mo-valor').value = '';
       renderCarrinho();
     }
 
     function renderCarrinho() {
-      const c = document.getElementById('pdv-carrinho-itens');
+      const container = document.getElementById('carrinho-itens');
       let html = '', total = 0;
       carrinho.forEach((item, idx) => {
         total += item.subtotal;
         html += `
-          <div class="p-2.5 bg-slate-900 border border-app-border rounded-xl flex justify-between items-center text-xs">
+          <div class="p-2.5 bg-darkbg border border-bordercol rounded-xl flex justify-between items-center text-xs">
             <div>
               <span class="font-bold text-white block">${item.descricao_item}</span>
               <span class="text-[10px] text-slate-400">${item.quantidade}x R$ ${item.preco_unitario.toFixed(2)}</span>
             </div>
             <div class="flex items-center gap-3">
               <span class="font-bold text-emerald-400">R$ ${item.subtotal.toFixed(2)}</span>
-              <button onclick="carrinho.splice(${idx},1);renderCarrinho();" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+              <button onclick="carrinho.splice(${idx},1); renderCarrinho();" class="text-red-400"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
             </div>
           </div>
         `;
       });
-      c.innerHTML = html || '<p class="text-center text-xs text-slate-500 py-10">Carrinho vazio.</p>';
-      document.getElementById('pdv-total-valor').innerText = `R$ ${total.toFixed(2)}`;
+      container.innerHTML = html || '<p class="text-center text-xs text-slate-500 py-10">Carrinho vazio.</p>';
+      document.getElementById('carrinho-total').innerText = `R$ ${total.toFixed(2)}`;
       lucide.createIcons();
     }
 
-    function limparCarrinho() { carrinho = []; renderCarrinho(); }
-
-    async function finalizarVendaPDV() {
-      if (carrinho.length === 0) return alert("Carrinho vazio!");
+    async function finalizarVenda() {
+      if (carrinho.length === 0) return alert("O carrinho está vazio.");
       const total = carrinho.reduce((a, b) => a + b.subtotal, 0);
-      const forma = document.getElementById('pdv-forma-pagamento').value;
+      const pagamento = document.getElementById('pagamento-forma').value;
 
       try {
-        const { data: v, error: errV } = await db.from('vendas').insert([{ valor_total: total, forma_pagamento: forma, status_pagamento: forma === 'A prazo' ? 'Pendente' : 'Pago' }]).select().single();
+        const { data: v, error: errV } = await db.from('vendas').insert([{ valor_total: total, forma_pagamento: pagamento, status_pagamento: pagamento === 'A prazo' ? 'Pendente' : 'Pago' }]).select().single();
         if (errV) throw errV;
 
-        const itensInsert = carrinho.map(i => ({ venda_id: v.id, produto_id: i.produto_id, tipo_item: i.tipo_item, descricao_item: i.descricao_item, quantidade: i.quantidade, preco_unitario: i.preco_unitario, subtotal: i.subtotal }));
-        await db.from('venda_itens').insert(itensInsert);
+        const itensIns = carrinho.map(i => ({ venda_id: v.id, produto_id: i.produto_id, tipo_item: i.tipo_item, descricao_item: i.descricao_item, quantidade: i.quantidade, preco_unitario: i.preco_unitario, subtotal: i.subtotal }));
+        await db.from('venda_itens').insert(itensIns);
 
-        alert("Venda registrada e estoque atualizado!");
-        limparCarrinho();
-        carregarDadosGerais();
-      } catch (e) { console.error(e); alert("Erro ao salvar no Supabase."); }
+        alert("Venda realizada com sucesso!");
+        carrinho = [];
+        renderCarrinho();
+        carregarDados();
+      } catch (e) {
+        console.error(e);
+        alert("Erro ao registrar venda.");
+      }
     }
 
     function renderProdutosTabela() {
-      const b = document.getElementById('tbl-produtos-body');
+      const busca = document.getElementById('produtos-busca').value.toLowerCase();
+      const tbody = document.getElementById('tbl-produtos');
       let html = '';
-      produtosCache.forEach(p => {
+
+      produtos.filter(p => p.nome.toLowerCase().includes(busca) || p.codigo_interno.toLowerCase().includes(busca)).forEach(p => {
         html += `<tr>
           <td class="p-3 font-mono font-bold text-amber-400">${p.codigo_interno}</td>
           <td class="p-3 font-bold text-white">${p.nome}</td>
@@ -662,73 +607,72 @@
           <td class="p-3 text-slate-400">${p.garantia_dias || 90} dias</td>
         </tr>`;
       });
-      b.innerHTML = html || '<tr><td colspan="7" class="text-center py-4 text-slate-500">Nenhum produto cadastrado.</td></tr>';
+      tbody.innerHTML = html || '<tr><td colspan="7" class="text-center py-4 text-slate-500">Nenhum produto cadastrado.</td></tr>';
     }
 
-    function renderOSTabela() {
-      const b = document.getElementById('tbl-os-body');
-      const dashB = document.getElementById('tbl-dash-os');
+    function renderOsTabela() {
+      const tbody = document.getElementById('tbl-os');
+      const dashTbody = document.getElementById('tbl-dash-os');
       let html = '', dashHtml = '';
 
-      osCache.forEach(o => {
+      ordens.forEach(o => {
         html += `<tr>
           <td class="p-3 font-mono font-bold text-amber-400">#${o.id}</td>
           <td class="p-3 font-bold uppercase text-white">${o.placa || 'N/I'}</td>
           <td class="p-3 text-slate-300">${o.descricao_servico}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/20 text-blue-400">${o.status}</span></td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-400">${o.status}</span></td>
           <td class="p-3 text-right font-bold text-emerald-400">R$ ${Number(o.valor_total).toFixed(2)}</td>
         </tr>`;
       });
 
-      osCache.slice(0, 5).forEach(o => {
+      ordens.slice(0, 5).forEach(o => {
         dashHtml += `<tr>
           <td class="py-2 font-bold uppercase text-white">${o.placa || 'N/I'}</td>
           <td class="py-2 truncate max-w-[120px] text-slate-300">${o.descricao_servico}</td>
-          <td class="py-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/20 text-blue-400">${o.status}</span></td>
+          <td class="py-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-400">${o.status}</span></td>
           <td class="py-2 text-right font-semibold text-emerald-400">R$ ${Number(o.valor_total).toFixed(2)}</td>
         </tr>`;
       });
 
-      b.innerHTML = html || '<tr><td colspan="5" class="text-center py-4 text-slate-500">Nenhuma O.S. registrada.</td></tr>';
-      if(dashHtml) dashB.innerHTML = dashHtml;
+      tbody.innerHTML = html || '<tr><td colspan="5" class="text-center py-4 text-slate-500">Nenhuma O.S. registrada.</td></tr>';
+      if (dashHtml) dashTbody.innerHTML = dashHtml;
     }
 
-    function abrirModalProduto() {
-      document.getElementById('prod-sku').value = `JM-${produtosCache.length + 1001}`;
-      document.getElementById('modal-produto').classList.remove('hidden');
+    function abrirModal(id) {
+      if (id === 'modal-produto') {
+        document.getElementById('p-sku').value = `JM-${produtos.length + 1001}`;
+      }
+      document.getElementById(id).classList.remove('hidden');
     }
-    function fecharModalProduto() { document.getElementById('modal-produto').classList.add('hidden'); }
+    function fecharModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     async function salvarProduto() {
-      const sku = document.getElementById('prod-sku').value;
-      const nome = document.getElementById('prod-nome').value;
-      const cat = document.getElementById('prod-categoria').value;
-      const qtd = parseInt(document.getElementById('prod-qtd').value) || 0;
-      const gar = parseInt(document.getElementById('prod-garantia').value) || 90;
-      const custo = parseFloat(document.getElementById('prod-custo').value) || 0;
-      const venda = parseFloat(document.getElementById('prod-venda').value) || 0;
+      const sku = document.getElementById('p-sku').value;
+      const nome = document.getElementById('p-nome').value;
+      const cat = document.getElementById('p-cat').value;
+      const qtd = parseInt(document.getElementById('p-qtd').value) || 0;
+      const gar = parseInt(document.getElementById('p-garantia').value) || 90;
+      const custo = parseFloat(document.getElementById('p-custo').value) || 0;
+      const venda = parseFloat(document.getElementById('p-venda').value) || 0;
 
-      if(!nome || venda <= 0) return alert("Preencha o nome e valor de venda!");
+      if (!nome || venda <= 0) return alert("Preencha o nome e o preço de venda.");
 
       await db.from('produtos').insert([{ codigo_interno: sku, nome, categoria: cat, quantidade: qtd, garantia_dias: gar, preco_custo: custo, preco_venda: venda }]);
-      fecharModalProduto();
-      carregarDadosGerais();
+      fecharModal('modal-produto');
+      carregarDados();
     }
 
-    function abrirModalOS() { document.getElementById('modal-os').classList.remove('hidden'); }
-    function fecharModalOS() { document.getElementById('modal-os').classList.add('hidden'); }
-
-    async function salvarOS() {
+    async function salvarOs() {
       const placa = document.getElementById('os-placa').value.toUpperCase();
       const status = document.getElementById('os-status').value;
-      const desc = document.getElementById('os-descricao').value;
-      const valor = parseFloat(document.getElementById('os-valor').value) || 0;
+      const desc = document.getElementById('os-desc').value;
+      const val = parseFloat(document.getElementById('os-val').value) || 0;
 
       if (!placa || !desc) return alert("Preencha a placa e os serviços.");
 
-      await db.from('ordens_servico').insert([{ placa, status, descricao_servico: desc, valor_total: valor }]);
-      fecharModalOS();
-      carregarDadosGerais();
+      await db.from('ordens_servico').insert([{ placa, status, descricao_servico: desc, valor_total: val }]);
+      fecharModal('modal-os');
+      carregarDados();
     }
   </script>
 </body>
