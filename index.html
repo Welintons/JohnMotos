@@ -5,352 +5,265 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0b0f17">
 
-    <title>John Motos Peças</title>
+    <title>John Motos Peças | Início</title>
 
-    <!-- Aproveita o CSS existente -->
     <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/app.js" defer></script>
+    <script src="js/index.js" defer></script>
 </head>
 
 <body>
 
-    <div class="app">
+    <!-- CABEÇALHO PADRÃO -->
+    <header class="topo">
 
-        <!-- MENU LATERAL -->
-        <aside class="sidebar" id="sidebar">
+        <div class="topo-identidade">
+            <div class="logo">JM</div>
 
-            <div class="sidebar-header">
-                <div class="brand-icon">JM</div>
-
-                <div class="brand-info">
-                    <h2>John Motos</h2>
-                    <span>Peças & Oficina</span>
-                </div>
-
-                <button
-                    type="button"
-                    class="close-sidebar"
-                    id="closeSidebar"
-                    aria-label="Fechar menu">
-                    &times;
-                </button>
+            <div class="identidade-texto">
+                <h1>John Motos</h1>
+                <span>PEÇAS & OFICINA</span>
             </div>
-
-            <div class="sidebar-section-title">MENU PRINCIPAL</div>
-
-            <nav class="sidebar-nav">
-
-                <a href="index.html" class="nav-item active">
-                    <span class="nav-icon">⌂</span>
-                    <span class="nav-text">Início</span>
-                </a>
-
-                <a href="pages/pdv.html" class="nav-item">
-                    <span class="nav-icon">▣</span>
-                    <span class="nav-text">PDV / Vendas</span>
-                </a>
-
-                <a href="pages/produtos.html" class="nav-item">
-                    <span class="nav-icon">◈</span>
-                    <span class="nav-text">Produtos</span>
-                </a>
-
-                <a href="pages/estoque.html" class="nav-item">
-                    <span class="nav-icon">▤</span>
-                    <span class="nav-text">Estoque</span>
-                </a>
-
-                <a href="pages/oficina.html" class="nav-item">
-                    <span class="nav-icon">🔧</span>
-                    <span class="nav-text">Oficina</span>
-                </a>
-
-                <a href="pages/ordens-servico.html" class="nav-item">
-                    <span class="nav-icon">▧</span>
-                    <span class="nav-text">Ordens de serviço</span>
-                </a>
-
-                <a href="pages/clientes.html" class="nav-item">
-                    <span class="nav-icon">♙</span>
-                    <span class="nav-text">Clientes</span>
-                </a>
-
-                <a href="pages/pendencias.html" class="nav-item">
-                    <span class="nav-icon">◷</span>
-                    <span class="nav-text">Pagamentos pendentes</span>
-                </a>
-
-            </nav>
-
-            <div class="sidebar-section-title">GERENCIAMENTO</div>
-
-            <nav class="sidebar-nav">
-
-                <a href="pages/relatorios.html" class="nav-item">
-                    <span class="nav-icon">▥</span>
-                    <span class="nav-text">Relatórios</span>
-                </a>
-
-                <a href="pages/configuracoes.html" class="nav-item">
-                    <span class="nav-icon">⚙</span>
-                    <span class="nav-text">Configurações</span>
-                </a>
-
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="status-indicator"></div>
-
-                <div>
-                    <strong>John Motos Peças</strong>
-                    <span>Sistema de gerenciamento</span>
-                </div>
-            </div>
-
-        </aside>
-
-        <!-- SOBREPOSIÇÃO DO MENU -->
-        <div
-            class="sidebar-overlay"
-            id="sidebarOverlay">
         </div>
 
-        <!-- CONTEÚDO PRINCIPAL -->
-        <main class="main-content">
+        <nav class="navegacao" aria-label="Navegação principal">
 
-            <header class="topbar">
+            <a href="index.html" class="nav-btn ativo" aria-current="page">
+                <span>⌂</span> Início
+            </a>
 
-                <div class="topbar-left">
+            <a href="pdv.html" class="nav-btn">
+                <span>▣</span> PDV
+            </a>
 
-                    <button
-                        type="button"
-                        class="menu-toggle"
-                        id="menuToggle"
-                        aria-label="Abrir menu"
-                        aria-expanded="false"
-                        aria-controls="sidebar">
-                        ☰
-                    </button>
+            <a href="produtos.html" class="nav-btn">
+                <span>▤</span> Produtos
+            </a>
 
-                    <div class="page-heading">
-                        <span class="breadcrumb">John Motos / Painel</span>
-                        <h1>Visão geral</h1>
+            <a href="oficina.html" class="nav-btn">
+                <span>🔧</span> Oficina
+            </a>
+
+            <a href="clientes.html" class="nav-btn">
+                <span>♙</span> Clientes
+            </a>
+
+            <a href="fornecedores.html" class="nav-btn">
+                <span>♧</span> Fornecedores
+            </a>
+
+            <a href="compras.html" class="nav-btn">
+                <span>🛒</span> Compras
+            </a>
+
+            <a href="financeiro.html" class="nav-btn">
+                <span>▥</span> Financeiro
+            </a>
+
+            <a href="relatorios.html" class="nav-btn">
+                <span>▦</span> Relatórios
+            </a>
+
+        </nav>
+
+        <div class="topo-status">
+            <span class="status-indicador"></span>
+            <span>Sistema operacional</span>
+        </div>
+
+    </header>
+
+
+    <!-- CONTEÚDO DA PÁGINA INICIAL -->
+    <main class="conteudo">
+
+        <section class="pagina-titulo">
+            <div>
+                <span class="subtitulo">PAINEL DE CONTROLE</span>
+                <h2>Visão geral</h2>
+                <p>Acompanhe as pendências e os avisos da loja.</p>
+            </div>
+
+            <div class="data-atual">
+                <span id="data-atual">Carregando data...</span>
+            </div>
+        </section>
+
+
+        <!-- RESUMO OPERACIONAL -->
+        <section class="resumo-grid">
+
+            <article class="card-resumo">
+                <div class="card-resumo-topo">
+                    <span>Estoque baixo</span>
+                    <div class="icone-card icone-amarelo">!</div>
+                </div>
+
+                <strong id="total-estoque-baixo">—</strong>
+
+                <p>Produtos que precisam de reposição</p>
+
+                <a href="produtos.html" class="link-card">
+                    Consultar estoque →
+                </a>
+            </article>
+
+
+            <article class="card-resumo">
+                <div class="card-resumo-topo">
+                    <span>Pagamentos pendentes</span>
+                    <div class="icone-card icone-vermelho">R$</div>
+                </div>
+
+                <strong id="total-pagamentos-pendentes">—</strong>
+
+                <p>Contas e pagamentos que precisam de atenção</p>
+
+                <a href="financeiro.html" class="link-card">
+                    Ver pendências →
+                </a>
+            </article>
+
+
+            <article class="card-resumo">
+                <div class="card-resumo-topo">
+                    <span>Ordens em andamento</span>
+                    <div class="icone-card icone-azul">🔧</div>
+                </div>
+
+                <strong id="total-ordens-abertas">—</strong>
+
+                <p>Serviços que ainda não foram concluídos</p>
+
+                <a href="oficina.html" class="link-card">
+                    Consultar oficina →
+                </a>
+            </article>
+
+        </section>
+
+
+        <!-- ALERTAS E PENDÊNCIAS -->
+        <section class="painel-grid">
+
+            <article class="painel">
+                <div class="painel-cabecalho">
+                    <div>
+                        <span class="subtitulo">ATENÇÃO</span>
+                        <h3>Alertas do sistema</h3>
+                    </div>
+
+                    <span class="etiqueta etiqueta-amarela">
+                        Estoque
+                    </span>
+                </div>
+
+                <div id="lista-alertas" class="lista-conteudo">
+
+                    <div class="estado-vazio">
+                        <div class="estado-icone">⌛</div>
+                        <p>Carregando alertas...</p>
                     </div>
 
                 </div>
 
-                <div class="topbar-right">
-                    <div class="system-status">
-                        <span class="status-dot"></span>
-                        <span>Sistema</span>
+                <a href="produtos.html" class="botao-secundario">
+                    Acessar produtos
+                </a>
+            </article>
+
+
+            <article class="painel">
+                <div class="painel-cabecalho">
+                    <div>
+                        <span class="subtitulo">ACOMPANHAMENTO</span>
+                        <h3>Pendências de pagamentos</h3>
                     </div>
 
-                    <div class="user-avatar">JM</div>
+                    <span class="etiqueta etiqueta-vermelha">
+                        Financeiro
+                    </span>
                 </div>
 
-            </header>
+                <div id="lista-pagamentos" class="lista-conteudo">
 
-            <!-- BOAS-VINDAS -->
-            <section class="welcome-section">
+                    <div class="estado-vazio">
+                        <div class="estado-icone">⌛</div>
+                        <p>Carregando pendências...</p>
+                    </div>
 
+                </div>
+
+                <a href="financeiro.html" class="botao-secundario">
+                    Acessar financeiro
+                </a>
+            </article>
+
+        </section>
+
+
+        <!-- ACESSO RÁPIDO -->
+        <section class="secao-atalhos">
+
+            <div class="secao-cabecalho">
                 <div>
-                    <span class="welcome-label">PAINEL DE CONTROLE</span>
-                    <h2>Bem-vindo à John Motos!</h2>
-                    <p>Acompanhe as atividades da oficina e das vendas.</p>
+                    <span class="subtitulo">NAVEGAÇÃO</span>
+                    <h3>Acesso rápido</h3>
                 </div>
+            </div>
 
-                <div class="welcome-icon">🏍️</div>
+            <div class="atalhos-grid">
 
-            </section>
-
-            <!-- RESUMO OPERACIONAL -->
-            <section class="section-block">
-
-                <div class="section-heading">
+                <a href="pdv.html" class="atalho">
+                    <div class="atalho-icone">▣</div>
                     <div>
-                        <h2>Resumo operacional</h2>
-                        <p>Indicadores do sistema</p>
+                        <strong>Frente de caixa</strong>
+                        <span>Registrar vendas</span>
                     </div>
-                </div>
+                    <span class="atalho-seta">→</span>
+                </a>
 
-                <div class="stats-grid">
-
-                    <article class="stat-card">
-                        <div class="stat-card-top">
-                            <span>Vendas de hoje</span>
-                            <div class="stat-icon sales-icon">▣</div>
-                        </div>
-
-                        <strong id="totalVendas">—</strong>
-                        <small>Quantidade de vendas</small>
-                    </article>
-
-                    <article class="stat-card">
-                        <div class="stat-card-top">
-                            <span>Serviços em andamento</span>
-                            <div class="stat-icon service-icon">🔧</div>
-                        </div>
-
-                        <strong id="servicosAndamento">—</strong>
-                        <small>Ordens de serviço abertas</small>
-                    </article>
-
-                    <article class="stat-card">
-                        <div class="stat-card-top">
-                            <span>Estoque baixo</span>
-                            <div class="stat-icon stock-icon">📦</div>
-                        </div>
-
-                        <strong id="estoqueBaixo">—</strong>
-                        <small>Produtos para verificar</small>
-                    </article>
-
-                    <article class="stat-card">
-                        <div class="stat-card-top">
-                            <span>Pagamentos pendentes</span>
-                            <div class="stat-icon pending-icon">◷</div>
-                        </div>
-
-                        <strong id="pagamentosPendentes">—</strong>
-                        <small>Valores a receber</small>
-                    </article>
-
-                </div>
-
-            </section>
-
-            <!-- ALERTAS -->
-            <section class="section-block">
-
-                <div class="section-heading">
+                <a href="produtos.html" class="atalho">
+                    <div class="atalho-icone">▤</div>
                     <div>
-                        <h2>Central de alertas</h2>
-                        <p>Informações que precisam de atenção</p>
+                        <strong>Produtos</strong>
+                        <span>Consultar catálogo</span>
                     </div>
-                </div>
+                    <span class="atalho-seta">→</span>
+                </a>
 
-                <div class="alerts-grid">
-
-                    <!-- ESTOQUE BAIXO -->
-                    <article class="panel-card">
-
-                        <div class="panel-header">
-
-                            <div class="panel-title-group">
-                                <div class="panel-icon">📦</div>
-
-                                <div>
-                                    <h3>Estoque baixo</h3>
-                                    <p>Produtos que precisam de reposição</p>
-                                </div>
-                            </div>
-
-                            <a href="pages/estoque.html" class="text-link">
-                                Ver estoque →
-                            </a>
-
-                        </div>
-
-                        <div class="alert-list" id="listaEstoqueBaixo">
-                            <div class="empty-state">
-                                <p>Carregando estoque...</p>
-                            </div>
-                        </div>
-
-                    </article>
-
-                    <!-- PAGAMENTOS PENDENTES -->
-                    <article class="panel-card">
-
-                        <div class="panel-header">
-
-                            <div class="panel-title-group">
-                                <div class="panel-icon payment-panel-icon">◷</div>
-
-                                <div>
-                                    <h3>Pagamentos pendentes</h3>
-                                    <p>Valores a receber dos clientes</p>
-                                </div>
-                            </div>
-
-                            <a href="pages/pendencias.html" class="text-link">
-                                Ver pendências →
-                            </a>
-
-                        </div>
-
-                        <div class="alert-list" id="listaPagamentosPendentes">
-                            <div class="empty-state">
-                                <p>Carregando pagamentos...</p>
-                            </div>
-                        </div>
-
-                    </article>
-
-                </div>
-
-            </section>
-
-            <!-- ACESSO RÁPIDO -->
-            <section class="section-block">
-
-                <div class="section-heading">
+                <a href="oficina.html" class="atalho">
+                    <div class="atalho-icone">🔧</div>
                     <div>
-                        <h2>Acesso rápido</h2>
-                        <p>Atalhos para as operações principais</p>
+                        <strong>Oficina</strong>
+                        <span>Ordens de serviço</span>
                     </div>
-                </div>
+                    <span class="atalho-seta">→</span>
+                </a>
 
-                <div class="quick-actions">
+                <a href="clientes.html" class="atalho">
+                    <div class="atalho-icone">♙</div>
+                    <div>
+                        <strong>Clientes</strong>
+                        <span>Cadastro e consulta</span>
+                    </div>
+                    <span class="atalho-seta">→</span>
+                </a>
 
-                    <a href="pages/pdv.html" class="quick-action">
-                        <div class="quick-action-icon">▣</div>
+            </div>
 
-                        <div>
-                            <strong>Nova venda</strong>
-                            <span>Abrir o PDV</span>
-                        </div>
+        </section>
 
-                        <span class="quick-arrow">→</span>
-                    </a>
 
-                    <a href="pages/ordens-servico.html" class="quick-action">
-                        <div class="quick-action-icon">🔧</div>
+        <!-- RODAPÉ -->
+        <footer class="rodape">
+            <span>John Motos Peças</span>
+            <span>Sistema de gestão • <span id="ano-atual"></span></span>
+        </footer>
 
-                        <div>
-                            <strong>Ordens de serviço</strong>
-                            <span>Acompanhar serviços</span>
-                        </div>
-
-                        <span class="quick-arrow">→</span>
-                    </a>
-
-                    <a href="pages/clientes.html" class="quick-action">
-                        <div class="quick-action-icon">♙</div>
-
-                        <div>
-                            <strong>Clientes</strong>
-                            <span>Consultar clientes</span>
-                        </div>
-
-                        <span class="quick-arrow">→</span>
-                    </a>
-
-                </div>
-
-            </section>
-
-            <footer class="main-footer">
-                <span>John Motos Peças</span>
-                <span>Painel de gerenciamento</span>
-            </footer>
-
-        </main>
-
-    </div>
-
-    <!-- APROVEITA O JAVASCRIPT EXISTENTE -->
-    <script src="js/config.js"></script>
-    <script src="js/script.js"></script>
+    </main>
 
 </body>
 </html>
