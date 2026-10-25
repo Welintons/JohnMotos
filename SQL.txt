@@ -1,549 +1,117 @@
+-- ========================================================
+-- SISTEMA JOHN MOTOS — ESTRUTURA COMPLETA DE BANCO DE DADOS (PostgreSQL / Supabase)
+-- ========================================================
 
--- =========================================================
--- JOHN MOTOS | BANCO DE DADOS
--- Supabase / PostgreSQL
--- Um único administrador
--- =========================================================
-
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
--- =========================================================
--- 01. CATEGORIAS E MARCAS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.categorias (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome TEXT NOT NULL UNIQUE,
-    descricao TEXT,
-    ativa BOOLEAN NOT NULL DEFAULT TRUE,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.marcas (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome TEXT NOT NULL UNIQUE,
-    ativa BOOLEAN NOT NULL DEFAULT TRUE,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- =========================================================
--- 02. PRODUTOS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.produtos (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    codigo TEXT NOT NULL UNIQUE,
-    codigo_barras TEXT UNIQUE,
-    nome TEXT NOT NULL,
-    descricao TEXT,
-    categoria_id UUID REFERENCES public.categorias(id),
-    marca_id UUID REFERENCES public.marcas(id),
-    unidade TEXT NOT NULL DEFAULT 'UN',
-    custo NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (custo >= 0),
-    preco_venda NUMERIC(12,2) NOT NULL DEFAULT 0
-        CHECK (preco_venda >= 0),
-    estoque_minimo NUMERIC(12,3) NOT NULL DEFAULT 0
-        CHECK (estoque_minimo >= 0),
-    controla_estoque BOOLEAN NOT NULL DEFAULT TRUE,
-    ativo BOOLEAN NOT NULL DEFAULT TRUE,
-    observacoes TEXT,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_produtos_nome
-ON public.produtos(nome);
-
-CREATE INDEX IF NOT EXISTS idx_produtos_categoria
-ON public.produtos(categoria_id);
-
--- =========================================================
--- 03. APLICAÇÃO DAS PEÇAS EM MOTOCICLETAS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.aplicacoes_moto (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    produto_id UUID NOT NULL REFERENCES public.produtos(id),
-    marca_moto TEXT NOT NULL,
-    modelo_moto TEXT NOT NULL,
-    ano_inicio INTEGER,
-    ano_fim INTEGER,
-    observacoes TEXT,
-    CHECK (ano_inicio IS NULL OR ano_fim IS NULL
-           OR ano_fim >= ano_inicio)
-);
-
-CREATE INDEX IF NOT EXISTS idx_aplicacoes_produto
-ON public.aplicacoes_moto(produto_id);
-
--- =========================================================
--- 04. ESTRUTURA FÍSICA DO ESTOQUE
--- Estante -> Prateleira -> Divisão
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.estantes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    codigo TEXT NOT NULL UNIQUE,
-    nome TEXT NOT NULL,
-    descricao TEXT,
-    ordem INTEGER NOT NULL DEFAULT 0,
-    ativa BOOLEAN NOT NULL DEFAULT TRUE,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.prateleiras (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    estante_id UUID NOT NULL
-        REFERENCES public.estantes(id) ON DELETE RESTRICT,
-    numero INTEGER NOT NULL CHECK (numero > 0),
-    descricao TEXT,
-    ativa BOOLEAN NOT NULL DEFAULT TRUE,
-    UNIQUE(estante_id, numero)
-);
-
-CREATE TABLE IF NOT EXISTS public.divisoes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    prateleira_id UUID NOT NULL
-        REFERENCES public.prateleiras(id) ON DELETE RESTRICT,
-    codigo TEXT NOT NULL,
-    descricao TEXT,
-    ordem INTEGER NOT NULL DEFAULT 0,
-    ativa BOOLEAN NOT NULL DEFAULT TRUE,
-    UNIQUE(prateleira_id, codigo)
-);
-
--- =========================================================
--- 05. SALDOS DE ESTOQUE POR LOCALIZAÇÃO
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.saldos_estoque (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    produto_id UUID NOT NULL
-        REFERENCES public.produtos(id) ON DELETE RESTRICT,
-    divisao_id UUID NOT NULL
-        REFERENCES public.divisoes(id) ON DELETE RESTRICT,
-    quantidade NUMERIC(12,3) NOT NULL DEFAULT 0
-        CHECK (quantidade >= 0),
-    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE(produto_id, divisao_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_saldos_produto
-ON public.saldos_estoque(produto_id);
-
--- =========================================================
--- 06. FORNECEDORES
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.fornecedores (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome TEXT NOT NULL,
-    nome_fantasia TEXT,
-    documento TEXT,
-    telefone TEXT,
-    whatsapp TEXT,
-    email TEXT,
+-- 1. TABELA DE CLIENTES E SEUS VEÍCULOS
+CREATE TABLE clientes (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    telefone VARCHAR(30),
+    documento VARCHAR(30), -- CPF ou CNPJ
     endereco TEXT,
-    observacoes TEXT,
-    ativo BOOLEAN NOT NULL DEFAULT TRUE,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    moto_modelo VARCHAR(100), -- Ex: Honda Fan 160
+    placa VARCHAR(20),       -- Ex: ABC-1D23 (Para consulta de histórico)
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- =========================================================
--- 07. COMPRAS E ITENS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.compras (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    numero BIGINT GENERATED ALWAYS AS IDENTITY UNIQUE,
-    fornecedor_id UUID REFERENCES public.fornecedores(id),
-    status TEXT NOT NULL DEFAULT 'rascunho'
-        CHECK (status IN ('rascunho','finalizada','cancelada')),
-    data_compra TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    valor_produtos NUMERIC(12,2) NOT NULL DEFAULT 0,
-    frete NUMERIC(12,2) NOT NULL DEFAULT 0,
-    desconto NUMERIC(12,2) NOT NULL DEFAULT 0,
-    valor_total NUMERIC(12,2) NOT NULL DEFAULT 0,
-    observacoes TEXT,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CHECK (valor_produtos >= 0 AND frete >= 0
-           AND desconto >= 0 AND valor_total >= 0)
+-- 2. TABELA DE FORNECEDORES
+CREATE TABLE fornecedores (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    telefone VARCHAR(30),
+    documento VARCHAR(30),
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS public.itens_compra (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    compra_id UUID NOT NULL
-        REFERENCES public.compras(id) ON DELETE RESTRICT,
-    produto_id UUID NOT NULL
-        REFERENCES public.produtos(id) ON DELETE RESTRICT,
-    divisao_id UUID REFERENCES public.divisoes(id),
-    quantidade NUMERIC(12,3) NOT NULL CHECK (quantidade > 0),
-    custo_unitario NUMERIC(12,2) NOT NULL CHECK (custo_unitario >= 0),
-    subtotal NUMERIC(12,2) NOT NULL CHECK (subtotal >= 0)
+-- 3. TABELA DE PRODUTOS E PEÇAS
+CREATE TABLE produtos (
+    id SERIAL PRIMARY KEY,
+    codigo_interno VARCHAR(50) UNIQUE NOT NULL, -- Ex: JM-1001 (Código Exclusivo SKU)
+    codigo_barras VARCHAR(50),                  -- Opcional (EAN do fabricante)
+    nome VARCHAR(200) NOT NULL,
+    categoria VARCHAR(100),                     -- Ex: Lubrificantes, Freios, Transmissão
+    quantidade INT DEFAULT 0,
+    estoque_minimo INT DEFAULT 2,
+    preco_custo NUMERIC(10, 2) DEFAULT 0.00,
+    preco_venda NUMERIC(10, 2) DEFAULT 0.00,
+    garantia_dias INT DEFAULT 90,               -- Prazo padrão de garantia em dias
+    fornecedor_id INT REFERENCES fornecedores(id) ON DELETE SET NULL,
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_itens_compra_compra
-ON public.itens_compra(compra_id);
-
--- =========================================================
--- 08. CLIENTES E MOTOCICLETAS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.clientes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome TEXT NOT NULL,
-    documento TEXT,
-    telefone TEXT,
-    whatsapp TEXT,
-    email TEXT,
-    endereco TEXT,
-    observacoes TEXT,
-    ativo BOOLEAN NOT NULL DEFAULT TRUE,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- 4. TABELA DE CAIXA (Abertura e Fechamento de Turno/Dia)
+CREATE TABLE caixa_sessoes (
+    id SERIAL PRIMARY KEY,
+    valor_abertura NUMERIC(10, 2) NOT NULL,
+    valor_fechamento NUMERIC(10, 2),
+    status VARCHAR(20) DEFAULT 'Aberto',        -- 'Aberto' ou 'Fechado'
+    data_abertura TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    data_fechamento TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TABLE IF NOT EXISTS public.motocicletas (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    cliente_id UUID NOT NULL
-        REFERENCES public.clientes(id) ON DELETE RESTRICT,
-    marca TEXT NOT NULL,
-    modelo TEXT NOT NULL,
-    ano INTEGER,
-    cilindrada INTEGER,
-    placa TEXT,
-    chassi TEXT,
-    quilometragem INTEGER,
-    observacoes TEXT,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- 5. TABELA DE ORDENS DE SERVIÇO (OS)
+CREATE TABLE ordens_servico (
+    id SERIAL PRIMARY KEY,
+    cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
+    placa VARCHAR(20),                          -- Placa da moto vinculada
+    descricao_servico TEXT NOT NULL,
+    valor_total NUMERIC(10, 2) DEFAULT 0.00,
+    status VARCHAR(30) DEFAULT 'Aberta',        -- 'Aberta', 'Em Andamento', 'Concluída', 'Entregue'
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_motos_cliente
-ON public.motocicletas(cliente_id);
-
--- =========================================================
--- 09. SERVIÇOS DE OFICINA
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.servicos (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome TEXT NOT NULL UNIQUE,
-    descricao TEXT,
-    preco_base NUMERIC(12,2) NOT NULL DEFAULT 0
-        CHECK (preco_base >= 0),
-    ativo BOOLEAN NOT NULL DEFAULT TRUE,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- 6. TABELA DE VENDAS (Cabeçalho do PDV)
+CREATE TABLE vendas (
+    id SERIAL PRIMARY KEY,
+    cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
+    caixa_id INT REFERENCES caixa_sessoes(id) ON DELETE SET NULL,
+    valor_total NUMERIC(10, 2) NOT NULL,
+    forma_pagamento VARCHAR(50) NOT NULL,       -- 'Dinheiro', 'Pix', 'Cartão de débito', 'Cartão de crédito', 'A prazo'
+    status_pagamento VARCHAR(30) DEFAULT 'Pago', -- 'Pago' ou 'Pendente' (Fiado)
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS public.ordens_servico (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    numero BIGINT GENERATED ALWAYS AS IDENTITY UNIQUE,
-    cliente_id UUID NOT NULL REFERENCES public.clientes(id),
-    motocicleta_id UUID NOT NULL REFERENCES public.motocicletas(id),
-    status TEXT NOT NULL DEFAULT 'recebida'
-        CHECK (status IN (
-            'recebida',
-            'diagnostico',
-            'aguardando_aprovacao',
-            'aguardando_pecas',
-            'em_reparo',
-            'pronta',
-            'entregue',
-            'cancelada'
-        )),
-    quilometragem INTEGER,
-    reclamacao TEXT,
-    diagnostico TEXT,
-    observacoes TEXT,
-    mao_de_obra NUMERIC(12,2) NOT NULL DEFAULT 0,
-    valor_pecas NUMERIC(12,2) NOT NULL DEFAULT 0,
-    desconto NUMERIC(12,2) NOT NULL DEFAULT 0,
-    valor_total NUMERIC(12,2) NOT NULL DEFAULT 0,
-    data_entrada TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    data_conclusao TIMESTAMPTZ,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CHECK (mao_de_obra >= 0 AND valor_pecas >= 0
-           AND desconto >= 0 AND valor_total >= 0)
+-- 7. ITENS DA VENDA (Peças do Estoque + Mão de Obra Livre)
+CREATE TABLE venda_itens (
+    id SERIAL PRIMARY KEY,
+    venda_id INT REFERENCES vendas(id) ON DELETE CASCADE,
+    produto_id INT REFERENCES produtos(id) ON DELETE SET NULL, -- Nulo se for mão de obra livre
+    tipo_item VARCHAR(20) NOT NULL,            -- 'produto' ou 'servico_livre'
+    descricao_item VARCHAR(200) NOT NULL,       -- Nome da peça ou descrição do serviço
+    quantidade INT NOT NULL,
+    preco_unitario NUMERIC(10, 2) NOT NULL,
+    subtotal NUMERIC(10, 2) NOT NULL,
+    data_limite_garantia DATE                   -- Calculado na venda se houver garantia
 );
 
-CREATE TABLE IF NOT EXISTS public.itens_ordem_servico (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ordem_id UUID NOT NULL
-        REFERENCES public.ordens_servico(id) ON DELETE RESTRICT,
-    tipo TEXT NOT NULL CHECK (tipo IN ('peca','servico')),
-    produto_id UUID REFERENCES public.produtos(id),
-    servico_id UUID REFERENCES public.servicos(id),
-    descricao TEXT NOT NULL,
-    quantidade NUMERIC(12,3) NOT NULL CHECK (quantidade > 0),
-    valor_unitario NUMERIC(12,2) NOT NULL
-        CHECK (valor_unitario >= 0),
-    custo_unitario NUMERIC(12,2) NOT NULL DEFAULT 0
-        CHECK (custo_unitario >= 0),
-    subtotal NUMERIC(12,2) NOT NULL CHECK (subtotal >= 0),
-    CHECK (
-        (tipo = 'peca' AND produto_id IS NOT NULL AND servico_id IS NULL)
-        OR
-        (tipo = 'servico' AND servico_id IS NOT NULL AND produto_id IS NULL)
-    )
-);
-
--- =========================================================
--- 10. VENDAS E ITENS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.vendas (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    numero BIGINT GENERATED ALWAYS AS IDENTITY UNIQUE,
-    cliente_id UUID REFERENCES public.clientes(id),
-    ordem_id UUID REFERENCES public.ordens_servico(id),
-    status TEXT NOT NULL DEFAULT 'rascunho'
-        CHECK (status IN ('rascunho','finalizada','cancelada')),
-    valor_produtos NUMERIC(12,2) NOT NULL DEFAULT 0,
-    desconto NUMERIC(12,2) NOT NULL DEFAULT 0,
-    valor_total NUMERIC(12,2) NOT NULL DEFAULT 0,
-    observacoes TEXT,
-    data_venda TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CHECK (valor_produtos >= 0 AND desconto >= 0
-           AND valor_total >= 0)
-);
-
-CREATE TABLE IF NOT EXISTS public.itens_venda (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    venda_id UUID NOT NULL
-        REFERENCES public.vendas(id) ON DELETE RESTRICT,
-    produto_id UUID NOT NULL
-        REFERENCES public.produtos(id) ON DELETE RESTRICT,
-    quantidade NUMERIC(12,3) NOT NULL CHECK (quantidade > 0),
-    preco_unitario NUMERIC(12,2) NOT NULL
-        CHECK (preco_unitario >= 0),
-    custo_unitario NUMERIC(12,2) NOT NULL DEFAULT 0
-        CHECK (custo_unitario >= 0),
-    subtotal NUMERIC(12,2) NOT NULL CHECK (subtotal >= 0)
-);
-
-CREATE INDEX IF NOT EXISTS idx_itens_venda_venda
-ON public.itens_venda(venda_id);
-
--- =========================================================
--- 11. PAGAMENTOS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.pagamentos (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    venda_id UUID REFERENCES public.vendas(id),
-    ordem_id UUID REFERENCES public.ordens_servico(id),
-    tipo TEXT NOT NULL CHECK (tipo IN ('recebimento','estorno')),
-    forma TEXT NOT NULL CHECK (forma IN (
-        'dinheiro','pix','debito','credito',
-        'transferencia','outro'
-    )),
-    valor NUMERIC(12,2) NOT NULL CHECK (valor > 0),
-    data_pagamento TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    observacoes TEXT,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CHECK (
-        (venda_id IS NOT NULL AND ordem_id IS NULL)
-        OR
-        (venda_id IS NULL AND ordem_id IS NOT NULL)
-    )
-);
-
--- =========================================================
--- 12. MOVIMENTAÇÕES DE ESTOQUE
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.movimentacoes_estoque (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    produto_id UUID NOT NULL
-        REFERENCES public.produtos(id) ON DELETE RESTRICT,
-    divisao_id UUID REFERENCES public.divisoes(id),
-    tipo TEXT NOT NULL CHECK (tipo IN (
-        'entrada','saida','ajuste_positivo','ajuste_negativo',
-        'transferencia_entrada','transferencia_saida'
-    )),
-    quantidade NUMERIC(12,3) NOT NULL CHECK (quantidade > 0),
-    custo_unitario NUMERIC(12,2),
-    referencia_tipo TEXT,
-    referencia_id UUID,
-    observacao TEXT,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX IF NOT EXISTS idx_movimentacoes_produto
-ON public.movimentacoes_estoque(produto_id, criado_em DESC);
-
--- =========================================================
--- 13. CONTAS A PAGAR E A RECEBER
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.contas_pagar (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    fornecedor_id UUID REFERENCES public.fornecedores(id),
-    compra_id UUID REFERENCES public.compras(id),
-    descricao TEXT NOT NULL,
-    valor NUMERIC(12,2) NOT NULL CHECK (valor > 0),
-    vencimento DATE NOT NULL,
-    pago_em TIMESTAMPTZ,
-    valor_pago NUMERIC(12,2) NOT NULL DEFAULT 0
-        CHECK (valor_pago >= 0),
-    status TEXT NOT NULL DEFAULT 'pendente'
-        CHECK (status IN ('pendente','parcial','pago','cancelado')),
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.contas_receber (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    cliente_id UUID REFERENCES public.clientes(id),
-    venda_id UUID REFERENCES public.vendas(id),
-    ordem_id UUID REFERENCES public.ordens_servico(id),
-    descricao TEXT NOT NULL,
-    valor NUMERIC(12,2) NOT NULL CHECK (valor > 0),
-    vencimento DATE NOT NULL,
-    recebido_em TIMESTAMPTZ,
-    valor_recebido NUMERIC(12,2) NOT NULL DEFAULT 0
-        CHECK (valor_recebido >= 0),
-    status TEXT NOT NULL DEFAULT 'pendente'
-        CHECK (status IN ('pendente','parcial','recebido','cancelado')),
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CHECK (num_nonnulls(venda_id, ordem_id) <= 1)
-);
-
-CREATE TABLE IF NOT EXISTS public.movimentacoes_caixa (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tipo TEXT NOT NULL CHECK (tipo IN ('entrada','saida')),
-    categoria TEXT NOT NULL,
-    descricao TEXT NOT NULL,
-    valor NUMERIC(12,2) NOT NULL CHECK (valor > 0),
-    forma_pagamento TEXT,
-    data_movimentacao TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    referencia_tipo TEXT,
-    referencia_id UUID,
+-- 8. TABELA DE REGISTRO / ACIONAMENTO DE GARANTIAS
+CREATE TABLE garantias_acionadas (
+    id SERIAL PRIMARY KEY,
+    venda_item_id INT REFERENCES venda_itens(id) ON DELETE CASCADE,
+    cliente_id INT REFERENCES clientes(id) ON DELETE SET NULL,
+    produto_id INT REFERENCES produtos(id) ON DELETE SET NULL,
+    data_solicitacao TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    motivo_defeito TEXT NOT NULL,
+    status VARCHAR(30) DEFAULT 'Em Análise',    -- 'Em Análise', 'Trocado/Aprovado', 'Recusado'
     observacoes TEXT
 );
 
--- =========================================================
--- 14. GARANTIAS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.garantias (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    cliente_id UUID REFERENCES public.clientes(id),
-    venda_id UUID REFERENCES public.vendas(id),
-    ordem_id UUID REFERENCES public.ordens_servico(id),
-    produto_id UUID REFERENCES public.produtos(id),
-    descricao TEXT NOT NULL,
-    data_inicio DATE NOT NULL DEFAULT CURRENT_DATE,
-    data_fim DATE,
-    status TEXT NOT NULL DEFAULT 'ativa'
-        CHECK (status IN ('ativa','em_analise','atendida','negada','expirada')),
-    observacoes TEXT,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    CHECK (num_nonnulls(venda_id, ordem_id) >= 1)
+-- 9. TABELA DE CONTAS E FINANCEIRO (A Pagar / A Receber / Fiado)
+CREATE TABLE financeiro (
+    id SERIAL PRIMARY KEY,
+    descricao VARCHAR(200) NOT NULL,
+    tipo VARCHAR(20) NOT NULL,                  -- 'Pagar' ou 'Receber'
+    venda_id INT REFERENCES vendas(id) ON DELETE CASCADE, -- Vinculado se for venda a prazo (fiado)
+    valor NUMERIC(10, 2) NOT NULL,
+    vencimento DATE NOT NULL,
+    status VARCHAR(20) DEFAULT 'Pendente',      -- 'Pendente', 'Pago', 'Atrasado'
+    criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- =========================================================
--- 15. CONFIGURAÇÕES E LOGS
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS public.configuracoes (
-    chave TEXT PRIMARY KEY,
-    valor JSONB NOT NULL DEFAULT '{}'::JSONB,
-    descricao TEXT,
-    atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS public.logs_sistema (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    acao TEXT NOT NULL,
-    modulo TEXT NOT NULL,
-    registro_id UUID,
-    detalhes JSONB NOT NULL DEFAULT '{}'::JSONB,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- =========================================================
--- 16. ATUALIZAÇÃO AUTOMÁTICA DE atualizado_em
--- =========================================================
-
-CREATE OR REPLACE FUNCTION public.atualizar_data_modificacao()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    NEW.atualizado_em = NOW();
-    RETURN NEW;
-END;
-$$;
-
-DROP TRIGGER IF EXISTS trg_produtos_atualizado
-ON public.produtos;
-
-CREATE TRIGGER trg_produtos_atualizado
-BEFORE UPDATE ON public.produtos
-FOR EACH ROW EXECUTE FUNCTION public.atualizar_data_modificacao();
-
-DROP TRIGGER IF EXISTS trg_fornecedores_atualizado
-ON public.fornecedores;
-
-CREATE TRIGGER trg_fornecedores_atualizado
-BEFORE UPDATE ON public.fornecedores
-FOR EACH ROW EXECUTE FUNCTION public.atualizar_data_modificacao();
-
-DROP TRIGGER IF EXISTS trg_clientes_atualizado
-ON public.clientes;
-
-CREATE TRIGGER trg_clientes_atualizado
-BEFORE UPDATE ON public.clientes
-FOR EACH ROW EXECUTE FUNCTION public.atualizar_data_modificacao();
-
--- =========================================================
--- 17. SEGURANÇA: RLS EM TODAS AS TABELAS
--- As políticas são criadas separadamente na próxima etapa.
--- =========================================================
-
-DO $$
-DECLARE
-    tabela TEXT;
-BEGIN
-    FOREACH tabela IN ARRAY ARRAY[
-        'categorias',
-        'marcas',
-        'produtos',
-        'aplicacoes_moto',
-        'estantes',
-        'prateleiras',
-        'divisoes',
-        'saldos_estoque',
-        'fornecedores',
-        'compras',
-        'itens_compra',
-        'clientes',
-        'motocicletas',
-        'servicos',
-        'ordens_servico',
-        'itens_ordem_servico',
-        'vendas',
-        'itens_venda',
-        'pagamentos',
-        'movimentacoes_estoque',
-        'contas_pagar',
-        'contas_receber',
-        'movimentacoes_caixa',
-        'garantias',
-        'configuracoes',
-        'logs_sistema'
-    ]
-    LOOP
-        EXECUTE format(
-            'ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY',
-            tabela
-        );
-    END LOOP;
-END;
-$$;
-
--- =========================================================
--- FIM DA ESTRUTURA INICIAL
--- =========================================================
+-- ========================================================
+-- ÍNDICES PARA DESEMPENHO E CONSULTAS RÁPIDAS
+-- ========================================================
+CREATE INDEX idx_produtos_codigo ON produtos(codigo_interno);
+CREATE INDEX idx_clientes_placa ON clientes(placa);
+CREATE INDEX idx_vendas_cliente ON vendas(cliente_id);
+CREATE INDEX idx_venda_itens_venda ON venda_itens(venda_id);
