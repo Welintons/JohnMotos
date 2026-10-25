@@ -3,766 +3,1290 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JOHN MOTOS — Sistema Integrado de Gestão</title>
-  
-  <!-- Tailwind CSS & DaisyUI CSS Framework -->
+  <meta name="theme-color" content="#090d14">
+  <title>John Motos | Gestão</title>
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <!-- Lucide Icons & Supabase SDK -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google Fonts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            base: '#090d14',
+            panel: '#101722',
+            line: '#202b3b',
+            orange: '#f97316'
           }
         }
-      },
-      daisyui: {
-        themes: [{
-          johnmotos: {
-            "primary": "#ea580c",
-            "secondary": "#38bdf8",
-            "accent": "#f59e0b",
-            "neutral": "#1e293b",
-            "base-100": "#0f172a",
-            "base-200": "#020617",
-            "base-300": "#1e293b",
-            "info": "#0ea5e9",
-            "success": "#10b981",
-            "warning": "#f59e0b",
-            "error": "#ef4444",
-          },
-        }],
-      },
+      }
     }
   </script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #090d14;
+      color: #e5eaf2;
+      font-family: Inter, sans-serif;
+    }
+
+    .sidebar {
+      background: #0d131d;
+      border-right: 1px solid #202b3b;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      color: #8996a9;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: left;
+      transition: .2s;
+    }
+
+    .nav-item:hover {
+      background: #182231;
+      color: white;
+    }
+
+    .nav-item.active {
+      background: #2b1b13;
+      color: #fb923c;
+      box-shadow: inset 3px 0 #f97316;
+    }
+
+    .panel {
+      background: #101722;
+      border: 1px solid #202b3b;
+      border-radius: 16px;
+    }
+
+    .metric {
+      transition: transform .2s, border-color .2s;
+    }
+
+    .metric:hover {
+      transform: translateY(-2px);
+      border-color: #39485d;
+    }
+
+    .icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .app-page { display: none; }
+    .app-page.active { display: block; }
+
+    .field {
+      width: 100%;
+      background: #0b111a;
+      border: 1px solid #293548;
+      color: white;
+      border-radius: 10px;
+      padding: 11px 12px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .field:focus { border-color: #f97316; }
+
+    .primary-btn {
+      background: #f97316;
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: .2s;
+    }
+
+    .primary-btn:hover { background: #ea580c; }
+
+    .table-wrap { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      color: #8290a4;
+      background: #0c121c;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      text-align: left;
+      padding: 13px 16px;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-top: 1px solid #202b3b;
+      font-size: 12px;
+    }
+
+    .mobile-nav {
+      background: #0d131d;
+      border-top: 1px solid #202b3b;
+    }
+
+    .mobile-nav button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      color: #8290a4;
+      font-size: 9px;
+      flex: 1;
+      padding: 10px 2px;
+    }
+
+    .mobile-nav button.active { color: #fb923c; }
+
+    @media (min-width: 768px) {
+      .main-content { margin-left: 250px; }
+    }
+
+    @media (max-width: 767px) {
+      .main-content { padding-bottom: 90px; }
+    }
+  </style>
 </head>
-<body class="bg-base-200 text-base-content font-sans min-h-screen flex flex-col md:flex-row pb-20 md:pb-0">
 
-  <!-- SIDEBAR DESKTOP NAV -->
-  <aside class="w-full md:w-64 bg-base-100 border-r border-slate-800 p-4 flex flex-col justify-between hidden md:flex min-h-screen">
-    <div>
-      <!-- BRAND -->
-      <div class="flex items-center gap-3 px-2 py-3 mb-6">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-amber-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-primary/20">
-          JM
-        </div>
-        <div>
-          <h1 class="font-extrabold text-base tracking-wide text-white leading-tight">JOHN MOTOS</h1>
-          <p class="text-xs text-slate-400 font-medium">Gestão & Oficina</p>
-        </div>
+<body class="min-h-screen">
+
+  <!-- MENU LATERAL -->
+  <aside class="sidebar fixed left-0 top-0 z-40 hidden h-screen w-[250px] flex-col p-5 md:flex">
+
+    <div class="mb-9 flex items-center gap-3 px-1">
+      <div class="grid h-11 w-11 place-items-center rounded-xl bg-orange text-lg font-black text-white shadow-lg shadow-orange/20">
+        JM
       </div>
-
-      <!-- MENU -->
-      <ul class="menu bg-transparent w-full p-0 space-y-1">
-        <li>
-          <a onclick="navigate('dashboard')" id="nav-dashboard" class="active flex items-center gap-3 font-semibold text-sm py-3 rounded-xl">
-            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Visão Geral
-          </a>
-        </li>
-        <li>
-          <a onclick="navigate('pdv')" id="nav-pdv" class="flex items-center gap-3 font-semibold text-sm py-3 rounded-xl text-slate-400 hover:text-white">
-            <i data-lucide="shopping-cart" class="w-4 h-4"></i> Frente de Caixa (PDV)
-          </a>
-        </li>
-        <li>
-          <a onclick="navigate('produtos')" id="nav-produtos" class="flex items-center gap-3 font-semibold text-sm py-3 rounded-xl text-slate-400 hover:text-white">
-            <i data-lucide="package" class="w-4 h-4"></i> Estoque / Peças
-          </a>
-        </li>
-        <li>
-          <a onclick="navigate('os')" id="nav-os" class="flex items-center gap-3 font-semibold text-sm py-3 rounded-xl text-slate-400 hover:text-white">
-            <i data-lucide="wrench" class="w-4 h-4"></i> Ordens de Serviço
-          </a>
-        </li>
-        <li>
-          <a onclick="navigate('painel-dono')" id="nav-painel-dono" class="flex items-center gap-3 font-semibold text-sm py-3 rounded-xl text-amber-400 hover:text-amber-300">
-            <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Painel do Dono
-          </a>
-        </li>
-      </ul>
+      <div>
+        <h1 class="text-sm font-extrabold tracking-wide text-white">JOHN MOTOS</h1>
+        <p class="mt-1 text-[10px] text-slate-500">PEÇAS & OFICINA</p>
+      </div>
     </div>
 
-    <!-- CONNECTION BADGE -->
-    <div class="pt-4 border-t border-slate-800">
-      <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs">
-        <span class="flex items-center gap-2 font-medium">
-          <span class="w-2 h-2 rounded-full bg-success animate-pulse"></span> Supabase Conectado
+    <p class="mb-3 px-3 text-[10px] font-bold uppercase tracking-[.15em] text-slate-600">
+      Menu principal
+    </p>
+
+    <nav class="space-y-1">
+      <button class="nav-item active" data-page="dashboard">
+        <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+        Visão geral
+      </button>
+
+      <button class="nav-item" data-page="pdv">
+        <i data-lucide="shopping-cart" class="h-4 w-4"></i>
+        Frente de caixa
+      </button>
+
+      <button class="nav-item" data-page="produtos">
+        <i data-lucide="package" class="h-4 w-4"></i>
+        Estoque e peças
+      </button>
+
+      <button class="nav-item" data-page="os">
+        <i data-lucide="wrench" class="h-4 w-4"></i>
+        Ordens de serviço
+      </button>
+    </nav>
+
+    <p class="mb-3 mt-9 px-3 text-[10px] font-bold uppercase tracking-[.15em] text-slate-600">
+      Administração
+    </p>
+
+    <nav class="space-y-1">
+      <button class="nav-item" data-page="painel-dono">
+        <i data-lucide="chart-no-axes-combined" class="h-4 w-4"></i>
+        Painel do proprietário
+      </button>
+    </nav>
+
+    <div class="mt-auto rounded-xl border border-line bg-panel p-4">
+      <div class="flex items-center gap-2">
+        <span id="connection-dot" class="h-2 w-2 rounded-full bg-amber-400"></span>
+        <span id="connection-text" class="text-[11px] font-semibold text-slate-300">
+          Verificando conexão
         </span>
       </div>
+      <p class="mt-2 text-[10px] leading-relaxed text-slate-500">
+        Sistema de gestão John Motos
+      </p>
     </div>
   </aside>
 
-  <!-- MOBILE BOTTOM NAVBAR -->
-  <div class="btm-nav md:hidden bg-base-100 border-t border-slate-800 z-50">
-    <button onclick="navigate('dashboard')" class="text-slate-400 active">
-      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-      <span class="btm-nav-label text-[10px]">Início</span>
-    </button>
-    <button onclick="navigate('pdv')" class="text-slate-400">
-      <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-      <span class="btm-nav-label text-[10px]">PDV</span>
-    </button>
-    <button onclick="navigate('os')" class="text-slate-400">
-      <i data-lucide="wrench" class="w-5 h-5"></i>
-      <span class="btm-nav-label text-[10px]">O.S.</span>
-    </button>
-    <button onclick="navigate('painel-dono')" class="text-amber-400">
-      <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-      <span class="btm-nav-label text-[10px]">Painel</span>
-    </button>
-  </div>
+  <!-- CONTEÚDO -->
+  <main class="main-content min-h-screen p-4 sm:p-6 lg:p-8">
 
-  <!-- MAIN CONTENT CONTAINER -->
-  <main class="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
-
-    <!-- HEADER TOP -->
-    <div class="flex items-center justify-between pb-6 mb-6 border-b border-slate-800">
+    <!-- CABEÇALHO -->
+    <header class="mb-8 flex items-center justify-between gap-3 border-b border-line pb-6">
       <div>
-        <h2 id="page-title" class="text-2xl font-extrabold text-white">Visão Geral</h2>
-        <p id="page-subtitle" class="text-xs text-slate-400">Resumo da oficina em tempo real</p>
+        <div class="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-orange">
+          <span class="h-1.5 w-1.5 rounded-full bg-orange"></span>
+          Central de operações
+        </div>
+        <h2 id="page-title" class="text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+          Visão geral
+        </h2>
+        <p id="page-subtitle" class="mt-2 text-xs text-slate-500">
+          Acompanhe o funcionamento da oficina.
+        </p>
       </div>
 
-      <button onclick="carregarDadosGerais()" class="btn btn-sm btn-ghost gap-2 border border-slate-700">
-        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Atualizar
+      <button id="refresh-btn"
+        class="flex items-center gap-2 rounded-xl border border-line bg-panel px-3 py-3 text-xs font-semibold text-slate-300 transition hover:border-orange hover:text-white">
+        <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+        <span class="hidden sm:inline">Atualizar</span>
       </button>
-    </div>
+    </header>
 
-    <!-- SECTION: DASHBOARD -->
-    <section id="sec-dashboard" class="app-sec space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="stats bg-base-100 shadow border border-slate-800">
-          <div class="stat">
-            <div class="stat-title text-xs font-bold uppercase text-slate-400">Vendas Hoje</div>
-            <div class="stat-value text-primary text-2xl" id="dash-vendas-hoje">R$ 0,00</div>
-            <div class="stat-desc text-slate-400" id="dash-qtd-vendas">0 vendas efetuadas</div>
-          </div>
-        </div>
+    <!-- VISÃO GERAL -->
+    <section id="page-dashboard" class="app-page active space-y-6">
 
-        <div class="stats bg-base-100 shadow border border-slate-800">
-          <div class="stat">
-            <div class="stat-title text-xs font-bold uppercase text-slate-400">Estoque de Peças</div>
-            <div class="stat-value text-secondary text-2xl" id="dash-qtd-produtos">0</div>
-            <div class="stat-desc text-slate-400">Itens cadastrados</div>
-          </div>
-        </div>
+      <div class="mb-2">
+        <h3 class="text-sm font-bold text-white">Resumo da oficina</h3>
+        <p class="mt-1 text-xs text-slate-500">Indicadores operacionais</p>
+      </div>
 
-        <div class="stats bg-base-100 shadow border border-slate-800">
-          <div class="stat">
-            <div class="stat-title text-xs font-bold uppercase text-slate-400">Reposição Crítica</div>
-            <div class="stat-value text-warning text-2xl" id="dash-estoque-baixo">0</div>
-            <div class="stat-desc text-slate-400">Abaixo do mínimo</div>
-          </div>
-        </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
 
-        <div class="stats bg-base-100 shadow border border-slate-800">
-          <div class="stat">
-            <div class="stat-title text-xs font-bold uppercase text-slate-400">O.S. no Pátio</div>
-            <div class="stat-value text-accent text-2xl" id="dash-os-andamento">0</div>
-            <div class="stat-desc text-slate-400">Motos em manutenção</div>
+        <article class="panel metric p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Vendas registradas</span>
+            <div class="icon-box bg-orange/10 text-orange">
+              <i data-lucide="receipt" class="h-5 w-5"></i>
+            </div>
           </div>
+          <p id="dash-vendas-hoje" class="mt-5 text-2xl font-extrabold text-white">R$ 0,00</p>
+          <p id="dash-qtd-vendas" class="mt-2 text-[10px] text-slate-500">0 vendas</p>
+        </article>
+
+        <article class="panel metric p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Produtos cadastrados</span>
+            <div class="icon-box bg-sky-400/10 text-sky-400">
+              <i data-lucide="package" class="h-5 w-5"></i>
+            </div>
+          </div>
+          <p id="dash-qtd-produtos" class="mt-5 text-2xl font-extrabold text-white">0</p>
+          <p class="mt-2 text-[10px] text-slate-500">Itens no catálogo</p>
+        </article>
+
+        <article class="panel metric p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Estoque baixo</span>
+            <div class="icon-box bg-amber-400/10 text-amber-400">
+              <i data-lucide="package-minus" class="h-5 w-5"></i>
+            </div>
+          </div>
+          <p id="dash-estoque-baixo" class="mt-5 text-2xl font-extrabold text-amber-400">0</p>
+          <p class="mt-2 text-[10px] text-slate-500">Precisam de reposição</p>
+        </article>
+
+        <article class="panel metric p-5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400">Motos na oficina</span>
+            <div class="icon-box bg-emerald-400/10 text-emerald-400">
+              <i data-lucide="wrench" class="h-5 w-5"></i>
+            </div>
+          </div>
+          <p id="dash-os-andamento" class="mt-5 text-2xl font-extrabold text-white">0</p>
+          <p class="mt-2 text-[10px] text-slate-500">Ordens em aberto</p>
+        </article>
+      </div>
+
+      <!-- ATALHOS -->
+      <div>
+        <h3 class="text-sm font-bold text-white">Acesso rápido</h3>
+        <p class="mb-4 mt-1 text-xs text-slate-500">Acesse as funções mais utilizadas.</p>
+
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <button data-page="pdv" class="panel group p-4 text-left transition hover:border-orange">
+            <div class="icon-box mb-4 bg-orange/10 text-orange group-hover:bg-orange group-hover:text-white">
+              <i data-lucide="shopping-bag" class="h-5 w-5"></i>
+            </div>
+            <p class="text-xs font-bold text-white">Nova venda</p>
+            <p class="mt-1 text-[10px] text-slate-500">Abrir o caixa</p>
+          </button>
+
+          <button data-page="produtos" class="panel group p-4 text-left transition hover:border-sky-400">
+            <div class="icon-box mb-4 bg-sky-400/10 text-sky-400">
+              <i data-lucide="boxes" class="h-5 w-5"></i>
+            </div>
+            <p class="text-xs font-bold text-white">Estoque</p>
+            <p class="mt-1 text-[10px] text-slate-500">Gerenciar peças</p>
+          </button>
+
+          <button data-page="os" class="panel group p-4 text-left transition hover:border-emerald-400">
+            <div class="icon-box mb-4 bg-emerald-400/10 text-emerald-400">
+              <i data-lucide="clipboard-plus" class="h-5 w-5"></i>
+            </div>
+            <p class="text-xs font-bold text-white">Nova O.S.</p>
+            <p class="mt-1 text-[10px] text-slate-500">Registrar serviço</p>
+          </button>
+
+          <button data-page="produtos" class="panel group p-4 text-left transition hover:border-amber-400">
+            <div class="icon-box mb-4 bg-amber-400/10 text-amber-400">
+              <i data-lucide="search" class="h-5 w-5"></i>
+            </div>
+            <p class="text-xs font-bold text-white">Consultar peças</p>
+            <p class="mt-1 text-[10px] text-slate-500">Buscar no catálogo</p>
+          </button>
         </div>
       </div>
 
-      <!-- RECENT TABLES -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-base-100 p-5 rounded-2xl border border-slate-800">
-          <h3 class="font-bold text-sm text-white mb-4 flex items-center gap-2">
-            <i data-lucide="clock" class="w-4 h-4 text-primary"></i> Últimas Vendas do Caixa
-          </h3>
-          <div class="overflow-x-auto">
-            <table class="table table-sm w-full">
-              <thead>
-                <tr class="text-slate-400 border-slate-800">
-                  <th>ID</th>
-                  <th>Pagamento</th>
-                  <th>Status</th>
-                  <th class="text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-dash-vendas">
-                <tr><td colspan="4" class="text-center py-4 text-slate-500">Nenhuma venda salva ainda.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="bg-base-100 p-5 rounded-2xl border border-slate-800">
-          <h3 class="font-bold text-sm text-white mb-4 flex items-center gap-2">
-            <i data-lucide="wrench" class="w-4 h-4 text-primary"></i> Ordens de Serviço Recentes
-          </h3>
-          <div class="overflow-x-auto">
-            <table class="table table-sm w-full">
-              <thead>
-                <tr class="text-slate-400 border-slate-800">
-                  <th>Placa</th>
-                  <th>Serviço</th>
-                  <th>Status</th>
-                  <th class="text-right">Valor</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-dash-os">
-                <tr><td colspan="4" class="text-center py-4 text-slate-500">Nenhuma O.S. registrada.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: PDV (FRENTE DE CAIXA) -->
-    <section id="sec-pdv" class="app-sec hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- SELEÇÃO DE ITENS -->
-        <div class="lg:col-span-7 space-y-4">
-          <div class="join w-full">
-            <button id="pdv-tab-peca" onclick="switchPdvTab('peca')" class="btn join-item flex-1 btn-primary">📦 Peça do Estoque</button>
-            <button id="pdv-tab-servico" onclick="switchPdvTab('servico')" class="btn join-item flex-1 btn-outline">🛠️ Mão de Obra Livre</button>
-          </div>
-
-          <!-- PAINEL PRODUTO -->
-          <div id="pdv-panel-peca" class="bg-base-100 p-5 rounded-2xl border border-slate-800 space-y-4">
-            <input type="text" id="pdv-busca-produto" onkeyup="renderPDVProdutos()" placeholder="Buscar por Nome ou SKU (ex: JM-1001)..." class="input input-bordered w-full bg-slate-900 border-slate-700 text-xs">
-            
-            <div id="pdv-lista-produtos" class="max-h-80 overflow-y-auto space-y-2 pr-1">
-              <!-- Render via JS -->
+      <!-- ALERTAS -->
+      <div class="panel overflow-hidden">
+        <div class="flex items-center justify-between border-b border-line p-5">
+          <div class="flex items-center gap-3">
+            <div class="icon-box h-9 w-9 bg-amber-400/10 text-amber-400">
+              <i data-lucide="bell-ring" class="h-4 w-4"></i>
             </div>
-          </div>
-
-          <!-- PAINEL MÃO DE OBRA -->
-          <div id="pdv-panel-servico" class="bg-base-100 p-5 rounded-2xl border border-slate-800 space-y-4 hidden">
-            <div class="form-control w-full">
-              <label class="label"><span class="label-text text-xs text-slate-400">Descrição do Serviço *</span></label>
-              <input type="text" id="pdv-mo-descricao" placeholder="Ex: Remendo de câmara de ar + regulagem de freio" class="input input-bordered bg-slate-900 border-slate-700 text-xs">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div class="form-control">
-                <label class="label"><span class="label-text text-xs text-slate-400">Valor (R$) *</span></label>
-                <input type="number" step="0.01" id="pdv-mo-valor" placeholder="0.00" class="input input-bordered bg-slate-900 border-slate-700 text-xs font-bold text-success">
-              </div>
-
-              <div class="form-control">
-                <label class="label"><span class="label-text text-xs text-slate-400">Garantia (Dias)</span></label>
-                <input type="number" id="pdv-mo-garantia" value="30" class="input input-bordered bg-slate-900 border-slate-700 text-xs">
-              </div>
-            </div>
-
-            <button onclick="adicionarMaoDeObraPDV()" class="btn btn-primary w-full gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Adicionar ao Carrinho</button>
-          </div>
-        </div>
-
-        <!-- CARRINHO -->
-        <div class="lg:col-span-5 space-y-4">
-          <div class="bg-base-100 p-5 rounded-2xl border border-slate-800 flex flex-col justify-between h-full min-h-[450px]">
             <div>
-              <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-4">
-                <h3 class="font-bold text-sm text-white flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-primary"></i> Carrinho de Compras</h3>
-                <button onclick="limparCarrinho()" class="text-xs text-error hover:underline">Limpar</button>
-              </div>
-
-              <div id="pdv-carrinho-itens" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <p class="text-center text-xs text-slate-500 py-10">Carrinho vazio.</p>
-              </div>
-            </div>
-
-            <div class="pt-4 border-t border-slate-800 space-y-3">
-              <div class="form-control">
-                <label class="label"><span class="label-text text-xs text-slate-400">Forma de Pagamento</span></label>
-                <select id="pdv-forma-pagamento" class="select select-bordered select-sm bg-slate-900 border-slate-700 text-xs text-white">
-                  <option value="Dinheiro">Dinheiro</option>
-                  <option value="Pix">PIX</option>
-                  <option value="Cartão de débito">Cartão de Débito</option>
-                  <option value="Cartão de crédito">Cartão de Crédito</option>
-                  <option value="A prazo">A Prazo / Fiado</option>
-                </select>
-              </div>
-
-              <div class="flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-slate-800">
-                <span class="text-xs font-semibold text-slate-400">TOTAL</span>
-                <span id="pdv-total-valor" class="text-2xl font-black text-success">R$ 0,00</span>
-              </div>
-
-              <button onclick="finalizarVendaPDV()" class="btn btn-success text-white w-full gap-2"><i data-lucide="check-circle" class="w-4 h-4"></i> Finalizar & Baixar Estoque</button>
+              <h3 class="text-sm font-bold text-white">Atenção necessária</h3>
+              <p class="mt-1 text-[10px] text-slate-500">Pendências operacionais</p>
             </div>
           </div>
+          <span id="alert-count" class="rounded-full bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold text-amber-400">0 alertas</span>
         </div>
 
+        <div id="dashboard-alerts" class="space-y-3 p-5">
+          <p class="text-xs text-slate-500">Carregando alertas...</p>
+        </div>
+      </div>
+
+      <!-- ÚLTIMAS MOVIMENTAÇÕES -->
+      <div class="panel overflow-hidden">
+        <div class="flex items-center justify-between border-b border-line p-5">
+          <div>
+            <h3 class="text-sm font-bold text-white">Últimas vendas</h3>
+            <p class="mt-1 text-[10px] text-slate-500">Movimentações recentes do caixa</p>
+          </div>
+          <button data-page="pdv" class="text-xs font-bold text-orange hover:text-orange-300">
+            Abrir PDV →
+          </button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Venda</th>
+                <th>Pagamento</th>
+                <th>Status</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-dash-vendas">
+              <tr><td colspan="4" class="py-8 text-center text-slate-500">Nenhuma venda registrada.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel overflow-hidden">
+        <div class="border-b border-line p-5">
+          <h3 class="text-sm font-bold text-white">Ordens de serviço recentes</h3>
+          <p class="mt-1 text-[10px] text-slate-500">Acompanhamento da oficina</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Placa</th>
+                <th>Serviço</th>
+                <th>Status</th>
+                <th class="text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-dash-os">
+              <tr><td colspan="4" class="py-8 text-center text-slate-500">Nenhuma ordem registrada.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <!-- SECTION: ESTOQUE / PRODUTOS -->
-    <section id="sec-produtos" class="app-sec hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <input type="text" id="busca-produtos-lista" onkeyup="renderProdutosTabela()" placeholder="Filtrar peças..." class="input input-bordered input-sm bg-slate-900 border-slate-700 w-64 text-xs">
-        <button onclick="abrirModalProduto()" class="btn btn-sm btn-primary gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Cadastrar Peça</button>
+    <!-- PDV -->
+    <section id="page-pdv" class="app-page space-y-5">
+      <div>
+        <h3 class="text-sm font-bold text-white">Frente de caixa</h3>
+        <p class="mt-1 text-xs text-slate-500">Registre peças e serviços em uma venda.</p>
       </div>
 
-      <div class="bg-base-100 rounded-2xl border border-slate-800 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="table table-sm w-full text-xs">
+      <div class="grid grid-cols-1 gap-5 xl:grid-cols-5">
+        <div class="panel space-y-4 p-5 xl:col-span-3">
+          <div class="flex gap-2">
+            <button id="tab-peca" class="primary-btn flex-1" onclick="switchPdvTab('peca')">Peças</button>
+            <button id="tab-servico" class="flex-1 rounded-xl border border-line px-3 py-2 text-xs font-bold text-slate-400" onclick="switchPdvTab('servico')">Mão de obra</button>
+          </div>
+
+          <div id="pdv-pecas">
+            <input id="pdv-busca" class="field mb-4" placeholder="Buscar por nome ou código..." oninput="renderPDVProdutos()">
+            <div id="pdv-lista" class="max-h-[420px] space-y-2 overflow-y-auto">
+              <p class="py-5 text-center text-xs text-slate-500">Carregando produtos...</p>
+            </div>
+          </div>
+
+          <div id="pdv-servico" class="hidden space-y-4">
+            <div>
+              <label class="mb-2 block text-xs text-slate-400">Descrição do serviço</label>
+              <input id="mo-descricao" class="field" placeholder="Ex.: Troca de relação">
+            </div>
+            <div>
+              <label class="mb-2 block text-xs text-slate-400">Valor (R$)</label>
+              <input id="mo-valor" type="number" min="0.01" step="0.01" class="field" placeholder="0,00">
+            </div>
+            <button onclick="adicionarMaoDeObra()" class="primary-btn w-full">Adicionar serviço</button>
+          </div>
+        </div>
+
+        <div class="panel flex flex-col p-5 xl:col-span-2">
+          <div class="mb-5 flex items-center justify-between border-b border-line pb-4">
+            <h3 class="text-sm font-bold text-white">Carrinho</h3>
+            <button onclick="limparCarrinho()" class="text-xs text-red-400">Limpar</button>
+          </div>
+
+          <div id="carrinho-itens" class="flex-1 space-y-3">
+            <p class="py-10 text-center text-xs text-slate-500">Carrinho vazio.</p>
+          </div>
+
+          <div class="mt-5 border-t border-line pt-5">
+            <label class="mb-2 block text-xs text-slate-400">Forma de pagamento</label>
+            <select id="forma-pagamento" class="field mb-4">
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="Pix">PIX</option>
+              <option value="Cartão de débito">Cartão de débito</option>
+              <option value="Cartão de crédito">Cartão de crédito</option>
+              <option value="A prazo">A prazo</option>
+            </select>
+
+            <div class="mb-4 flex items-center justify-between rounded-xl bg-[#0b111a] p-4">
+              <span class="text-xs font-bold text-slate-400">TOTAL</span>
+              <span id="pdv-total" class="text-xl font-extrabold text-emerald-400">R$ 0,00</span>
+            </div>
+            <button onclick="finalizarVenda()" class="w-full rounded-xl bg-emerald-500 py-3 text-xs font-bold text-white hover:bg-emerald-400">
+              Confirmar venda
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUTOS -->
+    <section id="page-produtos" class="app-page space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="text-sm font-bold text-white">Estoque de peças</h3>
+          <p class="mt-1 text-xs text-slate-500">Catálogo e quantidades disponíveis.</p>
+        </div>
+        <button onclick="abrirModalProduto()" class="primary-btn flex items-center gap-2">
+          <i data-lucide="plus" class="h-4 w-4"></i> Cadastrar peça
+        </button>
+      </div>
+
+      <input id="busca-estoque" class="field" placeholder="Filtrar por nome, código ou categoria..." oninput="renderProdutos()">
+
+      <div class="panel overflow-hidden">
+        <div class="table-wrap">
+          <table>
             <thead>
-              <tr class="bg-slate-900 text-slate-400 border-slate-800">
-                <th>SKU</th>
-                <th>Produto / Peça</th>
+              <tr>
+                <th>Código</th>
+                <th>Produto</th>
                 <th>Categoria</th>
-                <th>Estoque</th>
-                <th>Custo</th>
-                <th>Venda</th>
+                <th>Quantidade</th>
+                <th>Preço de venda</th>
                 <th>Garantia</th>
               </tr>
             </thead>
-            <tbody id="tbl-produtos-body">
-              <!-- Render JS -->
+            <tbody id="tbl-produtos">
+              <tr><td colspan="6" class="py-8 text-center text-slate-500">Carregando estoque...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- SECTION: ORDENS DE SERVIÇO -->
-    <section id="sec-os" class="app-sec hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <h3 class="text-sm font-bold text-slate-300">Oficina & Pátio</h3>
-        <button onclick="abrirModalOS()" class="btn btn-sm btn-primary gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Nova O.S.</button>
+    <!-- ORDENS DE SERVIÇO -->
+    <section id="page-os" class="app-page space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="text-sm font-bold text-white">Ordens de serviço</h3>
+          <p class="mt-1 text-xs text-slate-500">Controle dos serviços e das motos.</p>
+        </div>
+        <button onclick="abrirModalOS()" class="primary-btn flex items-center gap-2">
+          <i data-lucide="plus" class="h-4 w-4"></i> Nova O.S.
+        </button>
       </div>
 
-      <div class="bg-base-100 rounded-2xl border border-slate-800 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="table table-sm w-full text-xs">
+      <div class="panel overflow-hidden">
+        <div class="table-wrap">
+          <table>
             <thead>
-              <tr class="bg-slate-900 text-slate-400 border-slate-800">
-                <th>Nº OS</th>
+              <tr>
+                <th>Número</th>
                 <th>Placa</th>
-                <th>Descrição do Serviço</th>
+                <th>Descrição</th>
                 <th>Status</th>
-                <th class="text-right">Valor Total</th>
+                <th class="text-right">Valor</th>
               </tr>
             </thead>
-            <tbody id="tbl-os-body">
-              <!-- Render JS -->
+            <tbody id="tbl-os">
+              <tr><td colspan="5" class="py-8 text-center text-slate-500">Carregando ordens...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- SECTION: PAINEL DO DONO -->
-    <section id="sec-painel-dono" class="app-sec hidden space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="stats bg-base-100 shadow border border-slate-800">
-          <div class="stat">
-            <div class="stat-title text-xs font-bold uppercase text-slate-400">Entrada Total</div>
-            <div class="stat-value text-emerald-400 text-2xl" id="dono-entrada">R$ 0,00</div>
-            <div class="stat-desc text-slate-400">Total faturado no PDV</div>
-          </div>
-        </div>
+    <!-- PAINEL DO DONO -->
+    <section id="page-painel-dono" class="app-page space-y-5">
+      <div>
+        <h3 class="text-sm font-bold text-white">Painel do proprietário</h3>
+        <p class="mt-1 text-xs text-slate-500">Indicadores financeiros e mercadorias.</p>
+      </div>
 
-        <div class="stats bg-base-100 shadow border border-slate-800">
-          <div class="stat">
-            <div class="stat-title text-xs font-bold uppercase text-slate-400">Lucro Bruto Estimado</div>
-            <div class="stat-value text-primary text-2xl" id="dono-lucro">R$ 0,00</div>
-            <div class="stat-desc text-slate-400">Descontando custo de peças</div>
-          </div>
-        </div>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <article class="panel p-5">
+          <p class="text-xs text-slate-400">Faturamento registrado</p>
+          <p id="dono-entrada" class="mt-4 text-2xl font-extrabold text-emerald-400">R$ 0,00</p>
+        </article>
+        <article class="panel p-5">
+          <p class="text-xs text-slate-400">Lucro bruto estimado</p>
+          <p id="dono-lucro" class="mt-4 text-2xl font-extrabold text-orange">R$ 0,00</p>
+        </article>
+        <article class="panel p-5">
+          <p class="text-xs text-slate-400">Custo do estoque atual</p>
+          <p id="dono-estoque" class="mt-4 text-2xl font-extrabold text-sky-400">R$ 0,00</p>
+        </article>
+        <article class="panel p-5">
+          <p class="text-xs text-slate-400">Vendas a prazo pendentes</p>
+          <p id="dono-fiado" class="mt-4 text-2xl font-extrabold text-amber-400">R$ 0,00</p>
+        </article>
+      </div>
 
-        <div class="stats bg-base-100 shadow border border-slate-800">
-          <div class="stat">
-            <div class="stat-title text-xs font-bold uppercase text-slate-400">Valor em Estoque</div>
-            <div class="stat-value text-info text-2xl" id="dono-estoque-valor">R$ 0,00</div>
-            <div class="stat-desc text-slate-400">Investido em mercadoria</div>
-          </div>
-        </div>
-
-        <div class="stats bg-base-100 shadow border border-slate-800">
-          <div class="stat">
-            <div class="stat-title text-xs font-bold uppercase text-slate-400">Fiado (A Receber)</div>
-            <div class="stat-value text-warning text-2xl" id="dono-fiado">R$ 0,00</div>
-            <div class="stat-desc text-slate-400">Cobranças pendentes</div>
-          </div>
-        </div>
+      <div class="rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs leading-relaxed text-amber-200">
+        O lucro exibido é uma estimativa. Para calcular o lucro real, também é necessário registrar despesas, custos de serviços e outras saídas.
       </div>
     </section>
 
   </main>
 
-  <!-- MODAL: PRODUTO -->
-  <dialog id="modal_produto" class="modal">
-    <div class="modal-box bg-base-100 border border-slate-800 max-w-md">
-      <h3 class="font-bold text-lg text-white mb-4">Cadastrar Nova Peça</h3>
-      
-      <div class="space-y-3 text-xs">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="label"><span class="label-text text-slate-400">SKU</span></label>
-            <input type="text" id="prod-sku" readonly class="input input-bordered input-sm bg-slate-900 text-amber-400 font-bold w-full">
-          </div>
-          <div>
-            <label class="label"><span class="label-text text-slate-400">Categoria</span></label>
-            <select id="prod-categoria" class="select select-bordered select-sm bg-slate-900 w-full text-white">
-              <option value="Lubrificantes">Lubrificantes</option>
-              <option value="Transmissão">Transmissão</option>
-              <option value="Freios">Freios</option>
-              <option value="Geral">Peças Gerais</option>
-            </select>
-          </div>
-        </div>
+  <!-- NAVEGAÇÃO MOBILE -->
+  <nav class="mobile-nav fixed bottom-0 left-0 z-50 flex w-full md:hidden">
+    <button data-page="dashboard" class="active">
+      <i data-lucide="layout-dashboard" class="h-5 w-5"></i>
+      Início
+    </button>
+    <button data-page="pdv">
+      <i data-lucide="shopping-cart" class="h-5 w-5"></i>
+      Caixa
+    </button>
+    <button data-page="produtos">
+      <i data-lucide="package" class="h-5 w-5"></i>
+      Estoque
+    </button>
+    <button data-page="os">
+      <i data-lucide="wrench" class="h-5 w-5"></i>
+      Oficina
+    </button>
+    <button data-page="painel-dono">
+      <i data-lucide="chart-no-axes-combined" class="h-5 w-5"></i>
+      Dono
+    </button>
+  </nav>
 
+  <!-- MODAL PRODUTO -->
+  <dialog id="modal-produto" class="w-[calc(100%-24px)] max-w-lg rounded-2xl border border-line bg-panel p-0 text-white backdrop:bg-black/70">
+    <form id="form-produto" class="space-y-4 p-5">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold">Cadastrar peça</h3>
+        <button type="button" onclick="fecharModal('modal-produto')" class="text-slate-400">✕</button>
+      </div>
+
+      <div>
+        <label class="mb-2 block text-xs text-slate-400">Código interno</label>
+        <input id="prod-sku" class="field" readonly>
+      </div>
+      <div>
+        <label class="mb-2 block text-xs text-slate-400">Nome da peça *</label>
+        <input id="prod-nome" class="field" required placeholder="Ex.: Óleo 20W50">
+      </div>
+      <div>
+        <label class="mb-2 block text-xs text-slate-400">Categoria</label>
+        <select id="prod-categoria" class="field">
+          <option>Lubrificantes</option>
+          <option>Transmissão</option>
+          <option>Freios</option>
+          <option>Elétrica</option>
+          <option>Geral</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="label"><span class="label-text text-slate-400">Nome da Peça *</span></label>
-          <input type="text" id="prod-nome" placeholder="Ex: Óleo Mobil 20W50 1L" class="input input-bordered input-sm bg-slate-900 w-full text-white">
+          <label class="mb-2 block text-xs text-slate-400">Quantidade *</label>
+          <input id="prod-qtd" class="field" type="number" min="0" step="1" value="1" required>
         </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="label"><span class="label-text text-slate-400">Quantidade *</span></label>
-            <input type="number" id="prod-qtd" value="10" class="input input-bordered input-sm bg-slate-900 w-full text-white">
-          </div>
-          <div>
-            <label class="label"><span class="label-text text-slate-400">Garantia (Dias)</span></label>
-            <input type="number" id="prod-garantia" value="90" class="input input-bordered input-sm bg-slate-900 w-full text-white">
-          </div>
+        <div>
+          <label class="mb-2 block text-xs text-slate-400">Estoque mínimo</label>
+          <input id="prod-minimo" class="field" type="number" min="0" step="1" value="2">
         </div>
-
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="label"><span class="label-text text-slate-400">Custo (R$)</span></label>
-            <input type="number" step="0.01" id="prod-custo" placeholder="0.00" class="input input-bordered input-sm bg-slate-900 w-full text-white">
-          </div>
-          <div>
-            <label class="label"><span class="label-text text-slate-400">Venda (R$) *</span></label>
-            <input type="number" step="0.01" id="prod-venda" placeholder="0.00" class="input input-bordered input-sm bg-slate-900 w-full text-success font-bold">
-          </div>
+        <div>
+          <label class="mb-2 block text-xs text-slate-400">Custo unitário</label>
+          <input id="prod-custo" class="field" type="number" min="0" step="0.01" value="0">
+        </div>
+        <div>
+          <label class="mb-2 block text-xs text-slate-400">Preço de venda *</label>
+          <input id="prod-venda" class="field" type="number" min="0.01" step="0.01" required>
         </div>
       </div>
-
-      <div class="modal-action">
-        <form method="dialog"><button class="btn btn-sm btn-ghost">Cancelar</button></form>
-        <button onclick="salvarProduto()" class="btn btn-sm btn-primary">Salvar Produto</button>
+      <div>
+        <label class="mb-2 block text-xs text-slate-400">Garantia (dias)</label>
+        <input id="prod-garantia" class="field" type="number" min="0" value="90">
       </div>
-    </div>
+      <button class="primary-btn w-full" type="submit">Salvar peça</button>
+    </form>
   </dialog>
 
-  <!-- MODAL: O.S. -->
-  <dialog id="modal_os" class="modal">
-    <div class="modal-box bg-base-100 border border-slate-800 max-w-md">
-      <h3 class="font-bold text-lg text-white mb-4">Nova Ordem de Serviço (O.S.)</h3>
-      
-      <div class="space-y-3 text-xs">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="label"><span class="label-text text-slate-400">Placa do Veículo *</span></label>
-            <input type="text" id="os-placa" placeholder="ABC-1D23" class="input input-bordered input-sm bg-slate-900 text-white font-bold uppercase w-full">
-          </div>
-          <div>
-            <label class="label"><span class="label-text text-slate-400">Status</span></label>
-            <select id="os-status" class="select select-bordered select-sm bg-slate-900 w-full text-white">
-              <option value="Aberta">Aberta</option>
-              <option value="Em Andamento">Em Andamento</option>
-              <option value="Concluída">Concluída</option>
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <label class="label"><span class="label-text text-slate-400">Serviços Solicitados *</span></label>
-          <textarea id="os-descricao" rows="3" placeholder="Descreva os serviços a serem realizados..." class="textarea textarea-bordered bg-slate-900 w-full text-xs text-white"></textarea>
-        </div>
-
-        <div>
-          <label class="label"><span class="label-text text-slate-400">Valor Estimado (R$)</span></label>
-          <input type="number" step="0.01" id="os-valor" placeholder="0.00" class="input input-bordered input-sm bg-slate-900 w-full text-success font-bold">
-        </div>
+  <!-- MODAL ORDEM DE SERVIÇO -->
+  <dialog id="modal-os" class="w-[calc(100%-24px)] max-w-lg rounded-2xl border border-line bg-panel p-0 text-white backdrop:bg-black/70">
+    <form id="form-os" class="space-y-4 p-5">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold">Nova ordem de serviço</h3>
+        <button type="button" onclick="fecharModal('modal-os')" class="text-slate-400">✕</button>
       </div>
-
-      <div class="modal-action">
-        <form method="dialog"><button class="btn btn-sm btn-ghost">Cancelar</button></form>
-        <button onclick="salvarOS()" class="btn btn-sm btn-primary">Abrir O.S.</button>
+      <div>
+        <label class="mb-2 block text-xs text-slate-400">Placa *</label>
+        <input id="os-placa" class="field uppercase" required placeholder="ABC1D23">
       </div>
-    </div>
+      <div>
+        <label class="mb-2 block text-xs text-slate-400">Serviço solicitado *</label>
+        <textarea id="os-descricao" class="field" rows="4" required placeholder="Descreva o serviço..."></textarea>
+      </div>
+      <div>
+        <label class="mb-2 block text-xs text-slate-400">Valor estimado (R$)</label>
+        <input id="os-valor" class="field" type="number" min="0" step="0.01" value="0">
+      </div>
+      <div>
+        <label class="mb-2 block text-xs text-slate-400">Status</label>
+        <select id="os-status" class="field">
+          <option>Aberta</option>
+          <option>Em Andamento</option>
+          <option>Concluída</option>
+        </select>
+      </div>
+      <button class="primary-btn w-full" type="submit">Registrar ordem</button>
+    </form>
   </dialog>
 
-  <!-- JS APP LOGIC -->
   <script>
+    // CONFIGURAÇÃO SUPABASE
     const SUPABASE_URL = "https://nbwvncqobsvsrtzuhrxf.supabase.co";
     const SUPABASE_KEY = "sb_publishable_uXYDMzK_oNkbHeCY5Fzt2Q_ayUnHdR7";
-    let db = null;
 
+    let db = null;
     let produtosCache = [];
+    let vendasCache = [];
     let osCache = [];
     let carrinho = [];
+    let carregando = false;
 
-    window.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      if (typeof supabase !== 'undefined') {
-        db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        carregarDadosGerais();
+    const $ = id => document.getElementById(id);
+
+    const dinheiro = valor => Number(valor || 0).toLocaleString('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    });
+
+    const escapeHTML = valor => String(valor ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[c]);
+
+    function aviso(mensagem, tipo = 'info') {
+      if (window.Swal) {
+        Swal.fire({
+          toast: true,
+          position: 'top',
+          icon: tipo,
+          title: mensagem,
+          showConfirmButton: false,
+          timer: 2600,
+          background: '#101722',
+          color: '#e5eaf2'
+        });
+      } else {
+        alert(mensagem);
+      }
+    }
+
+    function atualizarIcones() {
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function navegar(pagina) {
+      document.querySelectorAll('.app-page').forEach(el => el.classList.remove('active'));
+      $('page-' + pagina)?.classList.add('active');
+
+      document.querySelectorAll('[data-page]').forEach(el => {
+        el.classList.toggle('active', el.dataset.page === pagina);
+      });
+
+      const paginas = {
+        dashboard: ['Visão geral', 'Acompanhe o funcionamento da oficina.'],
+        pdv: ['Frente de caixa', 'Venda de peças e serviços.'],
+        produtos: ['Estoque e peças', 'Controle e consulta de mercadorias.'],
+        os: ['Ordens de serviço', 'Acompanhamento das motos na oficina.'],
+        'painel-dono': ['Painel do proprietário', 'Indicadores administrativos e financeiros.']
+      };
+
+      $('page-title').textContent = paginas[pagina][0];
+      $('page-subtitle').textContent = paginas[pagina][1];
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.querySelectorAll('[data-page]').forEach(botao => {
+      botao.addEventListener('click', () => navegar(botao.dataset.page));
+    });
+
+    $('refresh-btn').addEventListener('click', carregarDadosGerais);
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      atualizarIcones();
+
+      try {
+        if (!window.supabase) throw new Error('SDK do Supabase indisponível');
+
+        db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        await carregarDadosGerais();
+      } catch (erro) {
+        $('connection-text').textContent = 'Falha na conexão';
+        $('connection-dot').className = 'h-2 w-2 rounded-full bg-red-500';
+        $('dashboard-alerts').innerHTML =
+          '<p class="text-xs text-red-400">Não foi possível conectar. Confira a internet e a configuração do Supabase.</p>';
       }
     });
 
-    function navigate(sec) {
-      document.querySelectorAll('.app-sec').forEach(e => e.classList.add('hidden'));
-      document.getElementById(`sec-${sec}`).classList.remove('hidden');
-
-      const titles = {
-        'dashboard': ['Visão Geral', 'Resumo da oficina em tempo real'],
-        'pdv': ['Frente de Caixa (PDV)', 'Venda rápida de peças e serviços livres'],
-        'produtos': ['Estoque de Peças', 'Controle e catálogo de mercadorias'],
-        'os': ['Ordens de Serviço', 'Acompanhamento de motos na oficina'],
-        'painel-dono': ['Painel do Dono', 'Indicadores financeiros executivos']
-      };
-
-      if(titles[sec]) {
-        document.getElementById('page-title').innerText = titles[sec][0];
-        document.getElementById('page-subtitle').innerText = titles[sec][1];
-      }
+    async function consultar(tabela, configurar) {
+      let query = db.from(tabela).select('*');
+      if (configurar) query = configurar(query);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
     }
 
     async function carregarDadosGerais() {
-      if (!db) return;
+      if (!db || carregando) return;
+      carregando = true;
 
-      // 1. Produtos
-      const { data: prods } = await db.from('produtos').select('*');
-      if (prods) {
-        produtosCache = prods;
-        document.getElementById('dash-qtd-produtos').innerText = prods.length;
-        const baixos = prods.filter(p => p.quantidade <= (p.estoque_minimo || 2)).length;
-        document.getElementById('dash-estoque-baixo').innerText = baixos;
-        
-        let valorEstoque = prods.reduce((a, b) => a + (Number(b.quantidade || 0) * Number(b.preco_custo || 0)), 0);
-        document.getElementById('dono-estoque-valor').innerText = `R$ ${valorEstoque.toFixed(2)}`;
+      $('refresh-btn').classList.add('opacity-50');
 
-        renderProdutosTabela();
-        renderPDVProdutos();
-      }
+      try {
+        const [produtos, vendas, ordens] = await Promise.all([
+          consultar('produtos'),
+          consultar('vendas', q => q.order('id', { ascending: false })),
+          consultar('ordens_servico', q => q.order('id', { ascending: false }))
+        ]);
 
-      // 2. Vendas
-      const { data: vendas } = await db.from('vendas').select('*').order('id', { ascending: false });
-      if (vendas) {
-        let totalHoje = vendas.reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
-        document.getElementById('dash-vendas-hoje').innerText = `R$ ${totalHoje.toFixed(2)}`;
-        document.getElementById('dono-entrada').innerText = `R$ ${totalHoje.toFixed(2)}`;
-        document.getElementById('dash-qtd-vendas').innerText = `${vendas.length} operações`;
-
-        let fiado = vendas.filter(v => v.status_pagamento === 'Pendente').reduce((a, b) => a + Number(b.valor_total || 0), 0);
-        document.getElementById('dono-fiado').innerText = `R$ ${fiado.toFixed(2)}`;
-
-        let html = '';
-        vendas.slice(0, 5).forEach(v => {
-          html += `<tr>
-            <td class="font-mono text-amber-400">#${v.id}</td>
-            <td>${v.forma_pagamento}</td>
-            <td><span class="badge badge-xs ${v.status_pagamento === 'Pago' ? 'badge-success' : 'badge-warning'}">${v.status_pagamento}</span></td>
-            <td class="text-right font-bold text-success">R$ ${Number(v.valor_total).toFixed(2)}</td>
-          </tr>`;
-        });
-        document.getElementById('tbl-dash-vendas').innerHTML = html || '<tr><td colspan="4" class="text-center py-4 text-slate-500">Nenhuma venda.</td></tr>';
-      }
-
-      // 3. OS
-      const { data: ordens } = await db.from('ordens_servico').select('*').order('id', { ascending: false });
-      if (ordens) {
+        produtosCache = produtos;
+        vendasCache = vendas;
         osCache = ordens;
-        const emAndamento = ordens.filter(o => o.status === 'Em Andamento' || o.status === 'Aberta').length;
-        document.getElementById('dash-os-andamento').innerText = emAndamento;
+
+        $('connection-text').textContent = 'Banco conectado';
+        $('connection-dot').className = 'h-2 w-2 rounded-full bg-emerald-400';
+
+        renderDashboard();
+        renderProdutos();
+        renderPDVProdutos();
         renderOSTabela();
+        renderCarrinho();
+        renderPainelDono();
+
+      } catch (erro) {
+        console.error('Erro ao carregar dados:', erro);
+        $('connection-text').textContent = 'Erro ao carregar dados';
+        $('connection-dot').className = 'h-2 w-2 rounded-full bg-red-500';
+        aviso('Não foi possível carregar os dados do banco.', 'error');
+      } finally {
+        carregando = false;
+        $('refresh-btn').classList.remove('opacity-50');
+        atualizarIcones();
       }
     }
 
-    // PDV FUNCS
-    function switchPdvTab(tab) {
-      if (tab === 'peca') {
-        document.getElementById('pdv-tab-peca').className = "btn join-item flex-1 btn-primary";
-        document.getElementById('pdv-tab-servico').className = "btn join-item flex-1 btn-outline";
-        document.getElementById('pdv-panel-peca').classList.remove('hidden');
-        document.getElementById('pdv-panel-servico').classList.add('hidden');
-      } else {
-        document.getElementById('pdv-tab-servico').className = "btn join-item flex-1 btn-primary";
-        document.getElementById('pdv-tab-peca').className = "btn join-item flex-1 btn-outline";
-        document.getElementById('pdv-panel-servico').classList.remove('hidden');
-        document.getElementById('pdv-panel-peca').classList.add('hidden');
-      }
+    function renderDashboard() {
+      const hoje = new Date();
+      const vendasHoje = vendasCache.filter(v => {
+        if (!v.created_at) return false;
+        const data = new Date(v.created_at);
+        return data.getFullYear() === hoje.getFullYear()
+          && data.getMonth() === hoje.getMonth()
+          && data.getDate() === hoje.getDate();
+      });
+
+      $('dash-vendas-hoje').textContent = dinheiro(
+        vendasHoje.reduce((s, v) => s + Number(v.valor_total || 0), 0)
+      );
+      $('dash-qtd-vendas').textContent = `${vendasHoje.length} venda(s) hoje`;
+      $('dash-qtd-produtos').textContent = produtosCache.length;
+
+      const baixos = produtosCache.filter(p =>
+        Number(p.quantidade || 0) <= Number(p.estoque_minimo ?? 2)
+      );
+
+      $('dash-estoque-baixo').textContent = baixos.length;
+
+      $('dash-os-andamento').textContent = osCache.filter(o =>
+        ['Aberta', 'Em Andamento'].includes(o.status)
+      ).length;
+
+      $('tbl-dash-vendas').innerHTML = vendasCache.slice(0, 5).map(v => `
+        <tr>
+          <td class="font-bold text-orange">#${escapeHTML(v.id)}</td>
+          <td>${escapeHTML(v.forma_pagamento || 'Não informado')}</td>
+          <td>${badgePagamento(v.status_pagamento)}</td>
+          <td class="text-right font-bold text-emerald-400">${dinheiro(v.valor_total)}</td>
+        </tr>
+      `).join('') || `
+        <tr><td colspan="4" class="py-8 text-center text-slate-500">Nenhuma venda registrada.</td></tr>
+      `;
+
+      const alertas = [];
+
+      baixos.slice(0, 8).forEach(p => {
+        alertas.push({
+          tipo: 'estoque',
+          titulo: `${p.nome}`,
+          descricao: `Restam ${p.quantidade} unidade(s). Verifique a reposição.`,
+          pagina: 'produtos'
+        });
+      });
+
+      osCache.filter(o => o.status === 'Aberta').slice(0, 5).forEach(o => {
+        alertas.push({
+          tipo: 'os',
+          titulo: `O.S. #${o.id} aguardando andamento`,
+          descricao: `Placa: ${o.placa || 'Não informada'}`,
+          pagina: 'os'
+        });
+      });
+
+      $('alert-count').textContent = `${alertas.length} alerta(s)`;
+
+      $('dashboard-alerts').innerHTML = alertas.slice(0, 10).map(a => `
+        <button data-page="${a.pagina}" class="flex w-full items-center gap-3 rounded-xl border border-line bg-[#0c121c] p-3 text-left hover:border-orange">
+          <div class="icon-box h-9 w-9 ${a.tipo === 'estoque' ? 'bg-amber-400/10 text-amber-400' : 'bg-sky-400/10 text-sky-400'}">
+            <i data-lucide="${a.tipo === 'estoque' ? 'package-minus' : 'wrench'}" class="h-4 w-4"></i>
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold text-white">${escapeHTML(a.titulo)}</p>
+            <p class="mt-1 text-[10px] text-slate-500">${escapeHTML(a.descricao)}</p>
+          </div>
+          <i data-lucide="chevron-right" class="h-4 w-4 text-slate-500"></i>
+        </button>
+      `).join('') || '<p class="text-xs text-emerald-400">Tudo em ordem. Nenhuma pendência identificada.</p>';
+
+      $('dashboard-alerts').querySelectorAll('[data-page]').forEach(b => {
+        b.addEventListener('click', () => navegar(b.dataset.page));
+      });
+
+      $('tbl-dash-os').innerHTML = osCache.slice(0, 5).map(o => `
+        <tr>
+          <td class="font-bold text-white">${escapeHTML(o.placa || 'N/I')}</td>
+          <td class="max-w-[180px] text-slate-400">${escapeHTML(o.descricao_servico || '')}</td>
+          <td>${badgeOS(o.status)}</td>
+          <td class="text-right font-bold text-emerald-400">${dinheiro(o.valor_total)}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="4" class="py-8 text-center text-slate-500">Nenhuma O.S. registrada.</td></tr>';
+
+      atualizarIcones();
+    }
+
+    function badgePagamento(status) {
+      const pago = status === 'Pago';
+      return `<span class="rounded-md px-2 py-1 text-[10px] font-bold ${pago ? 'bg-emerald-400/10 text-emerald-400' : 'bg-amber-400/10 text-amber-400'}">${escapeHTML(status || 'Pendente')}</span>`;
+    }
+
+    function badgeOS(status) {
+      const classe = status === 'Concluída'
+        ? 'bg-emerald-400/10 text-emerald-400'
+        : status === 'Em Andamento'
+          ? 'bg-sky-400/10 text-sky-400'
+          : 'bg-amber-400/10 text-amber-400';
+
+      return `<span class="rounded-md px-2 py-1 text-[10px] font-bold ${classe}">${escapeHTML(status || 'Aberta')}</span>`;
+    }
+
+    function renderProdutos() {
+      const busca = ($('busca-estoque')?.value || '').trim().toLowerCase();
+
+      const lista = produtosCache.filter(p =>
+        [p.nome, p.codigo_interno, p.categoria]
+          .some(v => String(v || '').toLowerCase().includes(busca))
+      );
+
+      $('tbl-produtos').innerHTML = lista.map(p => {
+        const baixo = Number(p.quantidade || 0) <= Number(p.estoque_minimo ?? 2);
+
+        return `
+          <tr>
+            <td class="font-mono font-bold text-orange">${escapeHTML(p.codigo_interno || '-')}</td>
+            <td class="font-bold text-white">${escapeHTML(p.nome)}</td>
+            <td class="text-slate-400">${escapeHTML(p.categoria || 'Geral')}</td>
+            <td>
+              <span class="rounded-md px-2 py-1 font-bold ${baixo ? 'bg-amber-400/10 text-amber-400' : 'bg-emerald-400/10 text-emerald-400'}">
+                ${Number(p.quantidade || 0)}
+              </span>
+            </td>
+            <td class="font-bold text-white">${dinheiro(p.preco_venda)}</td>
+            <td class="text-slate-400">${Number(p.garantia_dias ?? 90)} dias</td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="6" class="py-8 text-center text-slate-500">Nenhum produto encontrado.</td></tr>';
     }
 
     function renderPDVProdutos() {
-      const lista = document.getElementById('pdv-lista-produtos');
-      const busca = document.getElementById('pdv-busca-produto').value.toLowerCase();
-      let html = '';
+      const busca = ($('pdv-busca')?.value || '').trim().toLowerCase();
 
-      const filtrados = produtosCache.filter(p => p.nome.toLowerCase().includes(busca) || p.codigo_interno.toLowerCase().includes(busca));
-      filtrados.forEach(p => {
-        html += `
-          <div onclick="adicionarProdutoPDV(${p.id})" class="p-3 bg-slate-900 rounded-xl border border-slate-800 hover:border-primary cursor-pointer flex justify-between items-center text-xs">
-            <div>
-              <span class="badge badge-warning badge-xs font-mono font-bold">${p.codigo_interno}</span>
-              <span class="font-bold text-white ml-2">${p.nome}</span>
-              <span class="block text-[10px] text-slate-400 mt-0.5">Estoque: ${p.quantidade} un.</span>
-            </div>
-            <span class="font-bold text-success font-heading">R$ ${Number(p.preco_venda).toFixed(2)}</span>
+      const lista = produtosCache.filter(p =>
+        String(p.nome || '').toLowerCase().includes(busca) ||
+        String(p.codigo_interno || '').toLowerCase().includes(busca)
+      );
+
+      $('pdv-lista').innerHTML = lista.map(p => `
+        <button onclick="adicionarProduto(${Number(p.id)})"
+          class="flex w-full items-center justify-between gap-3 rounded-xl border border-line bg-[#0b111a] p-3 text-left hover:border-orange">
+          <div class="min-w-0">
+            <p class="truncate text-xs font-bold text-white">${escapeHTML(p.nome)}</p>
+            <p class="mt-1 text-[10px] text-slate-500">${escapeHTML(p.codigo_interno || '')} · Estoque: ${Number(p.quantidade || 0)}</p>
           </div>
-        `;
-      });
-      lista.innerHTML = html || '<p class="text-xs text-slate-500 text-center py-4">Nenhum produto encontrado.</p>';
+          <span class="shrink-0 text-xs font-bold text-emerald-400">${dinheiro(p.preco_venda)}</span>
+        </button>
+      `).join('') || '<p class="py-8 text-center text-xs text-slate-500">Nenhum produto encontrado.</p>';
     }
 
-    function adicionarProdutoPDV(id) {
-      const p = produtosCache.find(item => item.id === id);
+    function switchPdvTab(tab) {
+      $('pdv-pecas').classList.toggle('hidden', tab !== 'peca');
+      $('pdv-servico').classList.toggle('hidden', tab !== 'servico');
+
+      $('tab-peca').className = tab === 'peca'
+        ? 'primary-btn flex-1'
+        : 'flex-1 rounded-xl border border-line px-3 py-2 text-xs font-bold text-slate-400';
+
+      $('tab-servico').className = tab === 'servico'
+        ? 'primary-btn flex-1'
+        : 'flex-1 rounded-xl border border-line px-3 py-2 text-xs font-bold text-slate-400';
+    }
+
+    function adicionarProduto(id) {
+      const p = produtosCache.find(x => Number(x.id) === Number(id));
       if (!p) return;
-      const ex = carrinho.find(i => i.produto_id === id);
-      if (ex) {
-        ex.quantidade++;
-        ex.subtotal = ex.quantidade * ex.preco_unitario;
+
+      const existente = carrinho.find(i => i.produto_id === p.id);
+
+      if (existente) {
+        if (existente.quantidade >= Number(p.quantidade || 0)) {
+          return aviso('Quantidade maior que o estoque disponível.', 'warning');
+        }
+        existente.quantidade++;
+        existente.subtotal = existente.quantidade * existente.preco_unitario;
       } else {
-        carrinho.push({ produto_id: p.id, tipo_item: 'produto', descricao_item: p.nome, quantidade: 1, preco_unitario: Number(p.preco_venda), subtotal: Number(p.preco_venda) });
+        if (Number(p.quantidade || 0) < 1) {
+          return aviso('Produto sem estoque disponível.', 'warning');
+        }
+
+        carrinho.push({
+          produto_id: p.id,
+          tipo_item: 'produto',
+          descricao_item: p.nome,
+          quantidade: 1,
+          preco_unitario: Number(p.preco_venda || 0),
+          subtotal: Number(p.preco_venda || 0)
+        });
       }
+
       renderCarrinho();
     }
 
-    function adicionarMaoDeObraPDV() {
-      const desc = document.getElementById('pdv-mo-descricao').value;
-      const valor = parseFloat(document.getElementById('pdv-mo-valor').value);
-      if (!desc || isNaN(valor) || valor <= 0) return alert("Preencha descrição e valor válidos.");
+    function adicionarMaoDeObra() {
+      const descricao = $('mo-descricao').value.trim();
+      const valor = Number($('mo-valor').value);
 
-      carrinho.push({ produto_id: null, tipo_item: 'servico_livre', descricao_item: desc, quantidade: 1, preco_unitario: valor, subtotal: valor });
-      document.getElementById('pdv-mo-descricao').value = '';
-      document.getElementById('pdv-mo-valor').value = '';
+      if (!descricao || !Number.isFinite(valor) || valor <= 0) {
+        return aviso('Informe a descrição e um valor válido.', 'warning');
+      }
+
+      carrinho.push({
+        produto_id: null,
+        tipo_item: 'servico_livre',
+        descricao_item: descricao,
+        quantidade: 1,
+        preco_unitario: valor,
+        subtotal: valor
+      });
+
+      $('mo-descricao').value = '';
+      $('mo-valor').value = '';
       renderCarrinho();
+      aviso('Serviço adicionado.', 'success');
     }
 
     function renderCarrinho() {
-      const c = document.getElementById('pdv-carrinho-itens');
-      let html = '', total = 0;
-      carrinho.forEach((item, idx) => {
-        total += item.subtotal;
-        html += `
-          <div class="p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-            <div>
-              <span class="font-bold text-white block">${item.descricao_item}</span>
-              <span class="text-[10px] text-slate-400">${item.quantidade}x R$ ${item.preco_unitario.toFixed(2)}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-success">R$ ${item.subtotal.toFixed(2)}</span>
-              <button onclick="carrinho.splice(${idx},1);renderCarrinho();" class="text-error"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-            </div>
+      const total = carrinho.reduce((s, i) => s + i.subtotal, 0);
+
+      $('pdv-total').textContent = dinheiro(total);
+
+      $('carrinho-itens').innerHTML = carrinho.map((item, index) => `
+        <div class="flex items-center justify-between gap-3 rounded-xl border border-line bg-[#0b111a] p-3">
+          <div class="min-w-0">
+            <p class="truncate text-xs font-bold text-white">${escapeHTML(item.descricao_item)}</p>
+            <p class="mt-1 text-[10px] text-slate-500">${item.quantidade} × ${dinheiro(item.preco_unitario)}</p>
           </div>
-        `;
-      });
-      c.innerHTML = html || '<p class="text-center text-xs text-slate-500 py-10">Carrinho vazio.</p>';
-      document.getElementById('pdv-total-valor').innerText = `R$ ${total.toFixed(2)}`;
-      lucide.createIcons();
+          <div class="flex shrink-0 items-center gap-3">
+            <span class="text-xs font-bold text-emerald-400">${dinheiro(item.subtotal)}</span>
+            <button onclick="removerItem(${index})" class="text-red-400" aria-label="Remover item">
+              <i data-lucide="trash-2" class="h-4 w-4"></i>
+            </button>
+          </div>
+        </div>
+      `).join('') || '<p class="py-10 text-center text-xs text-slate-500">Carrinho vazio.</p>';
+
+      atualizarIcones();
     }
 
-    function limparCarrinho() { carrinho = []; renderCarrinho(); }
+    function removerItem(index) {
+      carrinho.splice(index, 1);
+      renderCarrinho();
+    }
 
-    async function finalizarVendaPDV() {
-      if (carrinho.length === 0) return alert("Carrinho vazio!");
-      const total = carrinho.reduce((a, b) => a + b.subtotal, 0);
-      const forma = document.getElementById('pdv-forma-pagamento').value;
+    function limparCarrinho() {
+      carrinho = [];
+      renderCarrinho();
+    }
+
+    async function finalizarVenda() {
+      if (!db) return aviso('Banco de dados desconectado.', 'error');
+      if (!carrinho.length) return aviso('Adicione itens ao carrinho.', 'warning');
+
+      const forma = $('forma-pagamento').value;
+      const total = carrinho.reduce((s, i) => s + i.subtotal, 0);
+
+      const confirmar = window.Swal
+        ? await Swal.fire({
+            title: 'Confirmar venda?',
+            text: `Total: ${dinheiro(total)}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Registrar venda',
+            cancelButtonText: 'Voltar',
+            background: '#101722',
+            color: '#e5eaf2'
+          }).then(r => r.isConfirmed)
+        : confirm(`Registrar venda de ${dinheiro(total)}?`);
+
+      if (!confirmar) return;
 
       try {
-        const { data: v, error: errV } = await db.from('vendas').insert([{ valor_total: total, forma_pagamento: forma, status_pagamento: forma === 'A prazo' ? 'Pendente' : 'Pago' }]).select().single();
-        if (errV) throw errV;
+        // A baixa de estoque precisa ser transacional no banco.
+        // Este fluxo simples não deve ser usado com vários caixas simultâneos.
+        const ids = carrinho.filter(i => i.produto_id !== null);
 
-        const itensInsert = carrinho.map(i => ({ venda_id: v.id, produto_id: i.produto_id, tipo_item: i.tipo_item, descricao_item: i.descricao_item, quantidade: i.quantidade, preco_unitario: i.preco_unitario, subtotal: i.subtotal }));
-        await db.from('venda_itens').insert(itensInsert);
+        for (const item of ids) {
+          const produto = produtosCache.find(p => Number(p.id) === Number(item.produto_id));
+          if (!produto || Number(produto.quantidade) < item.quantidade) {
+            throw new Error(`Estoque insuficiente para ${item.descricao_item}. Atualize os dados.`);
+          }
+        }
 
-        alert("Venda registrada com sucesso!");
+        const { data: venda, error: erroVenda } = await db
+          .from('vendas')
+          .insert([{
+            valor_total: total,
+            forma_pagamento: forma,
+            status_pagamento: forma === 'A prazo' ? 'Pendente' : 'Pago'
+          }])
+          .select()
+          .single();
+
+        if (erroVenda) throw erroVenda;
+
+        const itens = carrinho.map(i => ({
+          venda_id: venda.id,
+          produto_id: i.produto_id,
+          tipo_item: i.tipo_item,
+          descricao_item: i.descricao_item,
+          quantidade: i.quantidade,
+          preco_unitario: i.preco_unitario,
+          subtotal: i.subtotal
+        }));
+
+        const { error: erroItens } = await db.from('venda_itens').insert(itens);
+        if (erroItens) throw erroItens;
+
+        for (const item of ids) {
+          const produto = produtosCache.find(p => Number(p.id) === Number(item.produto_id));
+          const { error } = await db.from('produtos')
+            .update({ quantidade: Number(produto.quantidade) - item.quantidade })
+            .eq('id', produto.id);
+
+          if (error) throw error;
+        }
+
         limparCarrinho();
-        carregarDadosGerais();
-      } catch (e) { console.error(e); alert("Erro ao salvar no Supabase."); }
-    }
-
-    // TABELAS & MODAIS
-    function renderProdutosTabela() {
-      const b = document.getElementById('tbl-produtos-body');
-      let html = '';
-      produtosCache.forEach(p => {
-        html += `<tr>
-          <td class="font-mono font-bold text-amber-400">${p.codigo_interno}</td>
-          <td class="font-bold text-white">${p.nome}</td>
-          <td>${p.categoria || 'Geral'}</td>
-          <td class="font-bold text-white">${p.quantidade}</td>
-          <td class="text-slate-400">R$ ${Number(p.preco_custo).toFixed(2)}</td>
-          <td class="font-bold text-success">R$ ${Number(p.preco_venda).toFixed(2)}</td>
-          <td>${p.garantia_dias || 90} dias</td>
-        </tr>`;
-      });
-      b.innerHTML = html || '<tr><td colspan="7" class="text-center py-4 text-slate-500">Nenhum produto.</td></tr>';
+        await carregarDadosGerais();
+        aviso('Venda registrada.', 'success');
+      } catch (erro) {
+        console.error(erro);
+        aviso(erro.message || 'Não foi possível registrar a venda.', 'error');
+      }
     }
 
     function renderOSTabela() {
-      const b = document.getElementById('tbl-os-body');
-      const dashB = document.getElementById('tbl-dash-os');
-      let html = '', dashHtml = '';
+      $('tbl-os').innerHTML = osCache.map(o => `
+        <tr>
+          <td class="font-bold text-orange">#${escapeHTML(o.id)}</td>
+          <td class="font-bold text-white">${escapeHTML(o.placa || 'N/I')}</td>
+          <td class="text-slate-400">${escapeHTML(o.descricao_servico || '')}</td>
+          <td>${badgeOS(o.status)}</td>
+          <td class="text-right font-bold text-emerald-400">${dinheiro(o.valor_total)}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="5" class="py-8 text-center text-slate-500">Nenhuma O.S. registrada.</td></tr>';
+    }
 
-      osCache.forEach(o => {
-        html += `<tr>
-          <td class="font-mono font-bold text-amber-400">#${o.id}</td>
-          <td class="font-bold uppercase text-white">${o.placa || 'N/I'}</td>
-          <td class="text-slate-300">${o.descricao_servico}</td>
-          <td><span class="badge badge-xs badge-info">${o.status}</span></td>
-          <td class="text-right font-bold text-success">R$ ${Number(o.valor_total).toFixed(2)}</td>
-        </tr>`;
-      });
+    function renderPainelDono() {
+      const entrada = vendasCache.reduce((s, v) => s + Number(v.valor_total || 0), 0);
 
-      osCache.slice(0, 5).forEach(o => {
-        dashHtml += `<tr>
-          <td class="font-bold uppercase text-white">${o.placa || 'N/I'}</td>
-          <td class="truncate max-w-[120px] text-slate-300">${o.descricao_servico}</td>
-          <td><span class="badge badge-xs badge-info">${o.status}</span></td>
-          <td class="text-right font-bold text-success">R$ ${Number(o.valor_total).toFixed(2)}</td>
-        </tr>`;
-      });
+      // Estimativa: faturamento menos custo das peças vendidas.
+      // Serviços livres ainda não são discriminados por margem aqui.
+      const ids = new Map(produtosCache.map(p => [Number(p.id), p]));
+      let custoVendido = 0;
 
-      b.innerHTML = html || '<tr><td colspan="5" class="text-center py-4 text-slate-500">Nenhuma O.S.</td></tr>';
-      if(dashHtml) dashB.innerHTML = dashHtml;
+      // O lucro exato exige consultar os itens de venda e usar o custo
+      // histórico do produto no momento da venda.
+      $('dono-entrada').textContent = dinheiro(entrada);
+      $('dono-lucro').textContent = 'Indisponível';
+
+      $('dono-estoque').textContent = dinheiro(
+        produtosCache.reduce((s, p) =>
+          s + Number(p.quantidade || 0) * Number(p.preco_custo || 0), 0)
+      );
+
+      $('dono-fiado').textContent = dinheiro(
+        vendasCache.filter(v => v.status_pagamento === 'Pendente')
+          .reduce((s, v) => s + Number(v.valor_total || 0), 0)
+      );
     }
 
     function abrirModalProduto() {
-      document.getElementById('prod-sku').value = `JM-${produtosCache.length + 1001}`;
-      document.getElementById('modal_produto').showModal();
+      const maior = produtosCache.reduce((n, p) => {
+        const match = String(p.codigo_interno || '').match(/^JM-(\d+)$/);
+        return match ? Math.max(n, Number(match[1])) : n;
+      }, 1000);
+
+      $('prod-sku').value = `JM-${maior + 1}`;
+      $('form-produto').reset();
+      $('prod-sku').value = `JM-${maior + 1}`;
+      $('prod-qtd').value = '1';
+      $('prod-minimo').value = '2';
+      $('prod-custo').value = '0';
+      $('prod-garantia').value = '90';
+      $('modal-produto').showModal();
     }
 
-    async function salvarProduto() {
-      const sku = document.getElementById('prod-sku').value;
-      const nome = document.getElementById('prod-nome').value;
-      const cat = document.getElementById('prod-categoria').value;
-      const qtd = parseInt(document.getElementById('prod-qtd').value) || 0;
-      const gar = parseInt(document.getElementById('prod-garantia').value) || 90;
-      const custo = parseFloat(document.getElementById('prod-custo').value) || 0;
-      const venda = parseFloat(document.getElementById('prod-venda').value) || 0;
-
-      if(!nome || venda <= 0) return alert("Preencha o nome e valor de venda!");
-
-      await db.from('produtos').insert([{ codigo_interno: sku, nome, categoria: cat, quantidade: qtd, garantia_dias: gar, preco_custo: custo, preco_venda: venda }]);
-      document.getElementById('modal_produto').close();
-      carregarDadosGerais();
+    function abrirModalOS() {
+      $('form-os').reset();
+      $('os-valor').value = '0';
+      $('modal-os').showModal();
     }
 
-    function abrirModalOS() { document.getElementById('modal_os').showModal(); }
-
-    async function salvarOS() {
-      const placa = document.getElementById('os-placa').value.toUpperCase();
-      const status = document.getElementById('os-status').value;
-      const desc = document.getElementById('os-descricao').value;
-      const valor = parseFloat(document.getElementById('os-valor').value) || 0;
-
-      if (!placa || !desc) return alert("Preencha a placa e os serviços.");
-
-      await db.from('ordens_servico').insert([{ placa, status, descricao_servico: desc, valor_total: valor }]);
-      document.getElementById('modal_os').close();
-      carregarDadosGerais();
+    function fecharModal(id) {
+      $(id).close();
     }
+
+    $('form-produto').addEventListener('submit', async event => {
+      event.preventDefault();
+
+      const produto = {
+        codigo_interno: $('prod-sku').value,
+        nome: $('prod-nome').value.trim(),
+        categoria: $('prod-categoria').value,
+        quantidade: Number($('prod-qtd').value),
+        estoque_minimo: Number($('prod-minimo').value),
+        preco_custo: Number($('prod-custo').value),
+        preco_venda: Number($('prod-venda').value),
+        garantia_dias: Number($('prod-garantia').value)
+      };
+
+      if (!produto.nome || produto.preco_venda <= 0 || produto.quantidade < 0) {
+        return aviso('Confira os campos do produto.', 'warning');
+      }
+
+      try {
+        const { error } = await db.from('produtos').insert([produto]);
+        if (error) throw error;
+
+        fecharModal('modal-produto');
+        await carregarDadosGerais();
+        aviso('Peça cadastrada.', 'success');
+      } catch (erro) {
+        console.error(erro);
+        aviso('Erro ao cadastrar. Confira as colunas da tabela produtos.', 'error');
+      }
+    });
+
+    $('form-os').addEventListener('submit', async event => {
+      event.preventDefault();
+
+      const ordem = {
+        placa: $('os-placa').value.trim().toUpperCase(),
+        descricao_servico: $('os-descricao').value.trim(),
+        valor_total: Number($('os-valor').value || 0),
+        status: $('os-status').value
+      };
+
+      if (!ordem.placa || !ordem.descricao_servico) {
+        return aviso('Preencha a placa e a descrição.', 'warning');
+      }
+
+      try {
+        const { error } = await db.from('ordens_servico').insert([ordem]);
+        if (error) throw error;
+
+        fecharModal('modal-os');
+        await carregarDadosGerais();
+        aviso('Ordem de serviço registrada.', 'success');
+      } catch (erro) {
+        console.error(erro);
+        aviso('Erro ao registrar O.S. Confira a tabela no Supabase.', 'error');
+      }
+    });
   </script>
 </body>
 </html>
