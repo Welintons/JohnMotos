@@ -77,7 +77,7 @@
       <div class="brand-icon"><i class="bi bi-gear-wide-connected"></i></div>
       <div>
         <h4 style="font-size:14px; color:#fff;" id="shopTitleNav">NEXUS OFICINA</h4>
-        <p style="font-size:11px; color:#94a3b8;" id="syncStatusText">Modo Local</p>
+        <p style="font-size:11px; color:#94a3b8;" id="syncStatusText">Conectando Nuvem...</p>
       </div>
     </div>
     <div class="nav-links">
@@ -124,51 +124,144 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-    let SB_URL = localStorage.getItem("nexus_sb_url") || "";
-    let SB_KEY = localStorage.getItem("nexus_sb_key") || "";
-    let TG_TOKEN = localStorage.getItem("nexus_tg_token") || "";
+    // Credenciais Supabase Padrão (podem ser alteradas nas configurações)
+    let SB_URL = localStorage.getItem("nexus_sb_url") || "https://seu-projeto.supabase.co";
+    let SB_KEY = localStorage.getItem("nexus_sb_key") || "sua-anon-key";
     let TG_CHAT = localStorage.getItem("nexus_tg_chat") || "";
 
     let supabaseClient = null;
-    if (SB_URL && SB_KEY && window.supabase) {
-      try {
-        supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-        $("syncStatusText").textContent = "Supabase Conectado";
-        $("syncStatusText").style.color = "#34d399";
-      } catch(e) { console.error(e); }
-    }
+    let tgTemplates = {};
+    let globalTelegramToken = "";
 
-    const STORAGE_KEY = "nexus_sistema_oficina_v6";
-    function loadDB() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return { products: [], customers: [], sales: [], orders: [], history: [], settings: { shop: "Oficina & Peças" } };
-        const dbData = JSON.parse(raw);
-        if (!dbData.history) dbData.history = [];
-        return dbData;
-      } catch(e) {
-        return { products: [], customers: [], sales: [], orders: [], history: [], settings: { shop: "Oficina & Peças" } };
-      }
-    }
+    try {
+      supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+    } catch(e) { console.error(e); }
 
-    let db = loadDB();
+    // Banco de dados local em memória cache sincronizado
+    let db = {
+      products: [],
+      customers: [],
+      sales: [],
+      orders: [],
+      history: [],
+      settings: { shop: "Nexus Oficina & Peças" }
+    };
+
     let cart = [];
     let currentPage = "inicio";
     let historySearchFilter = "";
 
-    function saveDB() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    // Inicialização ao carregar a página
+    async function initSystem() {
+      if (supabaseClient && SB_URL !== "https://seu-projeto.supabase.co") {
+        await loadDataFromSupabase();
+      } else {
+        loadLocalFallback();
+      }
+      initDailyReportCron();
+      render();
     }
 
-    async function sendTelegramAlert(text) {
-      if (!TG_TOKEN || !TG_CHAT) return;
+    function loadLocalFallback() {
+      const raw = localStorage.getItem("nexus_cache_db");
+      if (raw) {
+        try { db = JSON.parse(raw); } catch(e) {}
+      }
+      $("syncStatusText").textContent = "Modo Local / Cache";
+      $("syncStatusText").style.color = "#f59e0b";
+      $("shopTitleNav").textContent = db.settings.shop;
+    }
+
+    async function loadDataFromSupabase() {
       try {
-        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+        const [pRes, cRes, oRes, hRes, sRes, setRes, tRes] = await Promise.all([
+          supabaseClient.from("products").select("*"),
+          supabaseClient.from("customers").select("*"),
+          supabaseClient.from("orders").select("*"),
+          supabaseClient.from("history").select("*"),
+          supabaseClient.from("sales").select("*"),
+          supabaseClient.from("settings").select("*").limit(1).single(),
+          supabaseClient.from("telegram_templates").select("*")
+        ]);
+
+        if (pRes.data) db.products = pRes.data;
+        if (cRes.data) db.customers = cRes.data;
+        if (oRes.data) db.orders = oRes.data;
+        if (hRes.data) db.history = hRes.data;
+        if (sRes.data) db.sales = sRes.data;
+        
+        if (setRes.data) {
+          db.settings.shop = setRes.data.shop_name || "Nexus Oficina & Peças";
+          globalTelegramToken = setRes.data.telegram_token || "";
+          $("shopTitleNav").textContent = db.settings.shop;
+        }
+
+        if (tRes.data) {
+          tRes.data.forEach(t => { tgTemplates[t.key] = t.template; });
+        }
+
+        $("syncStatusText").textContent = "Supabase Conectado";
+        $("syncStatusText").style.color = "#34d399";
+      } catch (e) {
+        console.error("Erro ao sincronizar com Supabase:", e);
+        loadLocalFallback();
+      }
+    }
+
+    function saveCache() {
+      localStorage.setItem("nexus_cache_db", JSON.stringify(db));
+    }
+
+    // Motor de Disparo do Telegram baseado nos templates do Supabase
+    async function sendTelegramTemplate(key, dataObj) {
+      if (!globalTelegramToken || !TG_CHAT) return;
+      let templateStr = tgTemplates[key];
+      if (!templateStr) return;
+
+      // Substitui as chaves dinâmicas ex: {total}, {customer}, etc.
+      for (const [k, v] of Object.entries(dataObj)) {
+        templateStr = templateStr.replaceAll(`{${k}}`, v);
+      }
+
+      try {
+        await fetch(`https://api.telegram.org/bot${globalTelegramToken}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: TG_CHAT, text: text, parse_mode: "Markdown" })
+          body: JSON.stringify({ chat_id: TG_CHAT, text: templateStr, parse_mode: "Markdown" })
         });
-      } catch (e) { console.error("Erro Telegram:", e); }
+      } catch (e) {
+        console.error("Erro ao enviar mensagem Telegram:", e);
+      }
+    }
+
+    // Agendamento do Relatório automático das 19:00
+    function initDailyReportCron() {
+      setInterval(() => {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        const todayStr = todayISO();
+        const lastSentKey = "nexus_report_sent_" + todayStr;
+
+        if (hours === 19 && minutes === 0 && !localStorage.getItem(lastSentKey)) {
+          sendDailyReport();
+          localStorage.setItem(lastSentKey, "true");
+        }
+      }, 30000); // Verifica a cada 30 segundos
+    }
+
+    async function sendDailyReport() {
+      const today = todayISO();
+      const todaySales = db.sales.filter(s => s.date === today);
+      const todayOrders = db.orders.filter(o => o.date === today);
+      const totalRevenue = todaySales.reduce((a, b) => a + Number(b.total), 0);
+
+      await sendTelegramTemplate("relatorio_dia", {
+        date: new Date().toLocaleDateString("pt-BR"),
+        total_sales: money(totalRevenue),
+        count_sales: todaySales.length,
+        count_orders: todayOrders.length
+      });
     }
 
     function navigate(page) {
@@ -184,7 +277,6 @@
     });
 
     $("todayDate").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
-    $("shopTitleNav").textContent = db.settings.shop;
 
     function render() {
       if (currentPage === "inicio") renderHome();
@@ -273,23 +365,33 @@
       `);
     }
 
-    function saveProduct() {
+    async function saveProduct() {
       const code = $("pCode").value;
       const name = $("pName").value.trim();
       const price = parseFloat($("pPrice").value) || 0;
       const stock = parseInt($("pStock").value) || 0;
 
       if (!name) return alert("Digite o nome do produto.");
-      db.products.push({ id: uid(), code, name, price, stock });
-      saveDB();
+      const newProd = { id: uid(), code, name, price, stock };
+      db.products.push(newProd);
+      saveCache();
+
+      if (supabaseClient) {
+        await supabaseClient.from("products").insert([newProd]);
+      }
+
       closeModal();
       renderProducts();
     }
 
-    function deleteProduct(id) {
+    async function deleteProduct(id) {
       if (!confirm("Deseja excluir este produto?")) return;
       db.products = db.products.filter(p => p.id !== id);
-      saveDB();
+      saveCache();
+
+      if (supabaseClient) {
+        await supabaseClient.from("products").delete().eq("id", id);
+      }
       renderProducts();
     }
 
@@ -354,25 +456,36 @@
       renderPDV();
     }
 
-    function finishSale() {
+    async function finishSale() {
       if (!cart.length) return alert("Carrinho vazio!");
       const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
       const payment = $("pdvPayment").value;
 
-      cart.forEach(c => {
+      for (let c of cart) {
         const p = db.products.find(x => x.id === c.id);
         if (p) {
           p.stock -= c.qty;
           if (p.stock <= 2) {
-            sendTelegramAlert(`⚠️ *Estoque Baixo!*\n• Produto: *${p.name}*\n• Restam apenas: *${p.stock} un*`);
+            // Notificação Automática: Estoque Baixo
+            await sendTelegramTemplate("estoque_baixo", { product_name: p.name, stock: p.stock });
+          }
+          if (supabaseClient) {
+            await supabaseClient.from("products").update({ stock: p.stock }).eq("id", p.id);
           }
         }
-      });
+      }
 
-      db.sales.push({ id: uid(), date: todayISO(), total, payment, items: [...cart] });
-      saveDB();
+      const sale = { id: uid(), date: todayISO(), total, payment, items: [...cart] };
+      db.sales.push(sale);
+      saveCache();
 
-      sendTelegramAlert(`🛒 *Nova Venda Realizada!*\n• Total: *${money(total)}*\n• Pagamento: *${payment}*`);
+      if (supabaseClient) {
+        await supabaseClient.from("sales").insert([sale]);
+      }
+
+      // Notificação Automática: Nova Venda
+      await sendTelegramTemplate("nova_venda", { total: money(total), payment });
+
       cart = [];
       alert("Venda finalizada com sucesso!");
       renderPDV();
@@ -418,7 +531,7 @@
       `);
     }
 
-    function saveOrder() {
+    async function saveOrder() {
       const customer = $("osCustomer").value.trim();
       const vehicle = $("osVehicle").value.trim();
       const plate = $("osPlate").value.trim().toUpperCase();
@@ -428,20 +541,28 @@
       if (!customer || !vehicle || !plate) return alert("Preencha o cliente, o veículo e a placa.");
 
       const number = "OS-" + Math.floor(1000 + Math.random() * 9000);
-      db.orders.push({ id: uid(), number, customer, vehicle, plate, problem, value, status: "Em andamento", date: todayISO() });
-      saveDB();
+      const newOrder = { id: uid(), number, customer, vehicle, plate, problem, value, status: "Em andamento", date: todayISO() };
+      
+      db.orders.push(newOrder);
+      saveCache();
+
+      if (supabaseClient) {
+        await supabaseClient.from("orders").insert([newOrder]);
+      }
+
       closeModal();
 
-      sendTelegramAlert(`🔧 *Nova OS Aberta (${number})*\n• Cliente: *${customer}*\n• Veículo: *${vehicle}* (${plate})\n• Defeito: _${problem}_`);
+      // Notificação Automática: Nova OS
+      await sendTelegramTemplate("nova_os", { number, customer, vehicle, plate, problem });
       renderWorkshop();
     }
 
-    function finishOrder(id) {
+    async function finishOrder(id) {
       const order = db.orders.find(o => o.id === id);
       if (!order) return;
       order.status = "Concluída";
 
-      db.history.push({
+      const historyItem = {
         id: uid(),
         date: todayISO(),
         number: order.number,
@@ -450,18 +571,23 @@
         plate: order.plate,
         service: order.problem,
         value: order.value
-      });
+      };
 
-      saveDB();
-      sendTelegramAlert(`✅ *OS ${order.number} Concluída!*\n• Veículo: *${order.vehicle}* (${order.plate})\n• Serviço: _${order.service}_`);
+      db.history.push(historyItem);
+      saveCache();
+
+      if (supabaseClient) {
+        await supabaseClient.from("orders").update({ status: "Concluída" }).eq("id", id);
+        await supabaseClient.from("history").insert([historyItem]);
+      }
+
       renderWorkshop();
     }
 
-    /* --- HISTÓRICO DE MANUTENÇÕES (COM BUSCA E MODAL DE PLACA) --- */
+    /* --- HISTÓRICO DE MANUTENÇÕES --- */
     function renderHistory() {
       $("pageTitle").textContent = "Histórico de Manutenções por Veículo";
 
-      // Agrupa por Placa única
       const platesMap = {};
       db.history.forEach(h => {
         const p = h.plate || "SEM-PLACA";
@@ -511,8 +637,6 @@
       if (!records.length) return;
 
       const vehicleName = records[0].vehicle;
-      const customerName = records[0].customer;
-
       const itemsHtml = records.map(r => `
         <div style="border-bottom: 1px solid var(--border); padding: 12px 0;">
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
@@ -563,14 +687,20 @@
       `);
     }
 
-    function saveCustomer() {
+    async function saveCustomer() {
       const name = $("cName").value.trim();
       const phone = $("cPhone").value.trim();
       const doc = $("cDoc").value.trim();
 
       if (!name) return alert("Digite o nome do cliente.");
-      db.customers.push({ id: uid(), name, phone, doc });
-      saveDB();
+      const newCust = { id: uid(), name, phone, doc };
+      db.customers.push(newCust);
+      saveCache();
+
+      if (supabaseClient) {
+        await supabaseClient.from("customers").insert([newCust]);
+      }
+
       closeModal();
       renderCustomers();
     }
@@ -596,13 +726,9 @@
             <input id="settingKey" type="password" class="field" value="${SB_KEY}" placeholder="sua-chave-anon">
           </div>
 
-          <h3 style="font-size:16px; margin:25px 0 15px 0;">Configuração do Telegram do John</h3>
+          <h3 style="font-size:16px; margin:25px 0 15px 0;">Configuração do Telegram</h3>
           <div class="mb-3">
-            <label class="label">Token da API do Bot</label>
-            <input id="settingTgToken" type="password" class="field" value="${TG_TOKEN}" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
-          </div>
-          <div class="mb-3">
-            <label class="label">Chat ID do Telegram</label>
+            <label class="label">Chat ID do Telegram (Configurado no navegador)</label>
             <input id="settingTgChat" class="field" value="${TG_CHAT}" placeholder="-100123456789 ou seu ID numérico">
           </div>
 
@@ -611,19 +737,34 @@
       `;
     }
 
-    function saveAllSettings() {
-      db.settings.shop = document.getElementById("settingShopName").value || "Oficina & Peças";
-      localStorage.setItem("nexus_sb_url", document.getElementById("settingUrl").value.trim());
-      localStorage.setItem("nexus_sb_key", document.getElementById("settingKey").value.trim());
-      localStorage.setItem("nexus_tg_token", document.getElementById("settingTgToken").value.trim());
-      localStorage.setItem("nexus_tg_chat", document.getElementById("settingTgChat").value.trim());
+    async function saveAllSettings() {
+      const newShop = document.getElementById("settingShopName").value || "Nexus Oficina & Peças";
+      const newUrl = document.getElementById("settingUrl").value.trim();
+      const newKey = document.getElementById("settingKey").value.trim();
+      const newChat = document.getElementById("settingTgChat").value.trim();
 
-      saveDB();
+      db.settings.shop = newShop;
+      localStorage.setItem("nexus_sb_url", newUrl);
+      localStorage.setItem("nexus_sb_key", newKey);
+      localStorage.setItem("nexus_tg_chat", newChat);
+
+      saveCache();
+
+      if (supabaseClient) {
+        try {
+          await supabaseClient
+            .from("settings")
+            .update({ shop_name: newShop })
+            .neq("id", "00000000-0000-0000-0000-000000000000");
+        } catch(e) { console.error(e); }
+      }
+
       alert("Configurações salvas com sucesso! O sistema será recarregado.");
       location.reload();
     }
 
-    render();
+    // Inicializa o sistema ao abrir o arquivo
+    initSystem();
   </script>
 </body>
 </html>
