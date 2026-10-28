@@ -3,718 +3,218 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nexus Oficina & Peças | Gestão Avançada</title>
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Bootstrap Icons -->
+  <title>Nexus Oficina & Peças | Gestão</title>
+  <!-- Ícones -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f4f6f9; color: #1e293b; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .custom-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+    :root {
+      --bg: #f8fafc; --sidebar: #0f172a; --card: #ffffff;
+      --text: #1e293b; --muted: #64748b; --primary: #2563eb;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+    
+    /* Sidebar */
+    aside { width: 260px; background: var(--sidebar); color: #cbd5e1; display: flex; flex-direction: column; position: fixed; inset: y 0; height: 100vh; z-index: 50; }
+    .brand { padding: 20px; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
+    .brand-icon { background: var(--primary); color: white; padding: 10px; border-radius: 10px; font-size: 18px; }
+    .nav-links { padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex: 1; }
+    .navbtn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 10px; color: #94a3b8; background: transparent; border: none; font-size: 14px; font-weight: 500; cursor: pointer; text-align: left; transition: 0.2s; }
+    .navbtn:hover, .navbtn.active { background: #1e293b; color: white; }
+    .navbtn.active { background: var(--primary); }
+
+    /* Main Content */
+    .main { flex: 1; margin-left: 260px; display: flex; flex-direction: column; }
+    header { height: 70px; background: var(--card); border-bottom: 1px solid var(--border); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+    .content { padding: 30px; max-width: 1200px; width: 100%; margin: 0 auto; flex: 1; }
+    
+    /* Cards & Tabelas */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
+    .metric { display: flex; justify-content: space-between; align-items: flex-start; }
+    .metric h3 { font-size: 24px; font-weight: 700; color: var(--text); margin-top: 5px; }
+    .metric p { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
+    .metric-icon { padding: 10px 12px; border-radius: 10px; background: #eff6ff; color: var(--primary); font-size: 18px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { background: #f8fafc; color: var(--muted); font-weight: 600; }
+    tbody tr:hover { background: #f8fafc; }
+
+    /* Formulários e Botões */
+    .btn { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .btn:hover { opacity: 0.9; }
+    .field { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; background: #fff; margin-top: 5px; }
+    .field:focus { border-color: var(--primary); }
+    
+    @media(max-width: 768px) {
+      aside { transform: translateX(-100%); transition: 0.3s; }
+      aside.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+    }
   </style>
 </head>
-<body class="min-h-screen flex">
+<body>
 
   <!-- SIDEBAR -->
-  <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0 shadow-2xl">
-    <div class="p-6 border-b border-slate-800 flex items-center gap-3 bg-slate-950">
-      <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md">
-        <i class="bi bi-gear-wide-connected text-xl"></i>
-      </div>
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="brand-icon"><i class="bi bi-gear-wide-connected"></i></div>
       <div>
-        <h1 class="font-bold tracking-wider text-sm text-white">NEXUS OFICINA</h1>
-        <p class="text-xs text-slate-400" id="shopTitleNav">Gestão & Peças</p>
+        <h4 style="font-size:14px; color:#fff;" id="shopTitleNav">NEXUS OFICINA</h4>
+        <p style="font-size:11px; color:#94a3b8;">Gestão & Peças</p>
       </div>
     </div>
-
-    <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-      <div>
-        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">Operacional</p>
-        <nav class="space-y-1">
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition active" data-page="inicio">
-            <i class="bi bi-grid text-base text-blue-400"></i>Visão Geral
-          </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="pdv">
-            <i class="bi bi-cart-dash text-base text-emerald-400"></i>PDV / Caixa
-          </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="produtos">
-            <i class="bi bi-boxes text-base text-amber-400"></i>Produtos & Estoque
-          </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="oficina">
-            <i class="bi bi-tools text-base text-purple-400"></i>Oficina / OS
-          </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="clientes">
-            <i class="bi bi-people text-base text-cyan-400"></i>Clientes
-          </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="fornecedores">
-            <i class="bi bi-truck text-base text-rose-400"></i>Fornecedores
-          </button>
-        </nav>
-      </div>
-
-      <div>
-        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">Administrativo</p>
-        <nav class="space-y-1">
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="financeiro">
-            <i class="bi bi-wallet2 text-base text-emerald-400"></i>Financeiro
-          </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="relatorios">
-            <i class="bi bi-graph-up-arrow text-base text-indigo-400"></i>Relatórios
-          </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="config">
-            <i class="bi bi-sliders text-base text-slate-400"></i>Configurações
-          </button>
-        </nav>
-      </div>
-    </div>
-
-    <div class="p-4 m-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3">
-      <span id="syncIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-      <div>
-        <p class="text-xs font-semibold text-white" id="syncStatusText">Modo Local</p>
-        <p class="text-[10px] text-slate-400">Pronto para Supabase</p>
-      </div>
+    <div class="nav-links">
+      <p style="font-size:10px; color:#64748b; font-weight:bold; text-transform:uppercase; padding:0 8px; margin-bottom:5px;">Operacional</p>
+      <button class="navbtn active" data-page="inicio"><i class="bi bi-grid"></i> Visão Geral</button>
+      <button class="navbtn" data-page="produtos"><i class="bi bi-boxes"></i> Produtos & Estoque</button>
+      <button class="navbtn" data-page="pdv"><i class="bi bi-cart-dash"></i> PDV / Caixa</button>
+      <button class="navbtn" data-page="oficina"><i class="bi bi-tools"></i> Oficina / OS</button>
+      <button class="navbtn" data-page="clientes"><i class="bi bi-people"></i> Clientes</button>
+      <button class="navbtn" data-page="config"><i class="bi bi-sliders"></i> Configurações</button>
     </div>
   </aside>
 
-  <!-- PAINEL PRINCIPAL -->
-  <div class="flex-1 flex flex-col lg:pl-64 min-w-0">
-    <header class="h-20 bg-white border-b border-slate-200 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-40 custom-shadow">
-      <div class="flex items-center gap-4">
-        <button id="sidebarToggle" class="p-2.5 rounded-xl bg-slate-100 lg:hidden text-slate-700 hover:bg-slate-200 transition">
-          <i class="bi bi-list text-xl"></i>
-        </button>
-        <div>
-          <h2 id="pageTitle" class="text-xl font-bold text-slate-800 tracking-tight">Visão Geral</h2>
-          <p id="todayDate" class="text-xs text-slate-500 font-medium"></p>
-        </div>
-      </div>
+  <!-- CONTEÚDO PRINCIPAL -->
+  <div class="main">
+    <header>
       <div>
-        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-md shadow-blue-600/20 transition" onclick="navigate('pdv')">
-          <i class="bi bi-plus-lg"></i> Nova Venda
-        </button>
+        <h2 id="pageTitle" style="font-size: 18px; font-weight: 700;">Visão Geral</h2>
+        <p id="todayDate" style="font-size: 12px; color: var(--muted);"></p>
       </div>
+      <button class="btn" onclick="navigate('pdv')"><i class="bi bi-plus-lg"></i> Nova Venda</button>
     </header>
 
-    <main class="flex-1 p-6 lg:p-10 max-w-7xl w-full mx-auto" id="content">
-      <!-- Conteúdo injetado via JS -->
-    </main>
-
-    <footer class="text-center py-6 text-xs text-slate-500 border-t border-slate-200 bg-white mt-auto">
-      Nexus Gestão Automotiva · Todos os direitos reservados
-    </footer>
+    <div class="content" id="content">
+      <!-- O conteúdo é carregado via JavaScript -->
+    </div>
   </div>
 
   <script>
     "use strict";
 
-    const SUPABASE_URL = localStorage.getItem("nexus_sb_url") || "";
-    const SUPABASE_ANON_KEY = localStorage.getItem("nexus_sb_key") || "";
-    
-    let supabase = null;
-    if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
-      try {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      } catch(e) { console.error(e); }
-    }
-
     const $ = id => document.getElementById(id);
     const money = n => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-    const safe = s => String(s ?? "").replace(/[&<>"']/g, c => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[c]));
-    const dateBR = d => d ? new Date(d + "T12:00:00").toLocaleDateString("pt-BR") : "—";
 
-    const STORAGE_KEY = "nexus_oficina_sistema_v1";
-
-    function emptyDB() {
-      return {
-        products: [], customers: [], suppliers: [],
-        sales: [], orders: [], transactions: [],
-        settings: { shop: "Oficina & Peças", currency: "BRL" }
-      };
-    }
-
+    // Banco de dados local
+    const STORAGE_KEY = "nexus_sistema_oficina_v2";
     function loadDB() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return emptyDB();
-        const data = JSON.parse(raw);
-        const base = emptyDB();
-        return { ...base, ...data, settings: { ...base.settings, ...(data.settings || {}) } };
-      } catch (e) {
-        console.error(e);
-        return emptyDB();
+        if (!raw) return { products: [], customers: [], sales: [], orders: [], settings: { shop: "Oficina & Peças" } };
+        return JSON.parse(raw);
+      } catch(e) {
+        return { products: [], customers: [], sales: [], orders: [], settings: { shop: "Oficina & Peças" } };
       }
     }
 
     let db = loadDB();
-    let cart = [];
-    let chartInstance = null;
     let currentPage = "inicio";
 
     function saveDB() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-        return true;
-      } catch (e) {
-        toast("Erro ao salvar dados.", "error");
-        return false;
-      }
-    }
-
-    function toast(message, icon = "success") {
-      Swal.fire({
-        toast: true, position: "top-end", showConfirmButton: false,
-        timer: 2500, timerProgressBar: true, icon, title: message,
-        background: "#ffffff", color: "#1e293b"
-      });
-    }
-
-    async function modalForm(title, fields) {
-      return Swal.fire({
-        title, background: "#ffffff", color: "#1e293b",
-        confirmButtonText: "Salvar Registro", cancelButtonText: "Cancelar",
-        showCancelButton: true, focusConfirm: false,
-        customClass: { confirmButton: 'bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold', cancelButton: 'bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-semibold' },
-        buttonsStyling: false,
-        html: fields.map(f => {
-          const value = f.value ?? "";
-          if (f.type === "select") {
-            return `<div class="text-left mb-4">
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">${safe(f.label)}</label>
-              <select id="f_${safe(f.id)}" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 text-sm focus:border-blue-600 focus:outline-none">
-              ${f.options.map(o => `<option value="${safe(o.value)}" ${String(o.value) === String(value) ? "selected" : ""}>${safe(o.label)}</option>`).join("")}
-              </select></div>`;
-          }
-          return `<div class="text-left mb-4">
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">${safe(f.label)}</label>
-            <input id="f_${safe(f.id)}" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 text-sm focus:border-blue-600 focus:outline-none" type="${f.type || "text"}" value="${safe(value)}"
-            ${f.required ? "required" : ""} ${f.min !== undefined ? `min="${f.min}"` : ""} ${f.step ? `step="${f.step}"` : ""} placeholder="${safe(f.placeholder || "")}">
-          </div>`;
-        }).join(""),
-        preConfirm: () => {
-          const result = {};
-          for (const f of fields) {
-            const el = $("f_" + f.id);
-            result[f.id] = el ? el.value.trim() : "";
-            if (f.required && !result[f.id]) {
-              Swal.showValidationMessage("Preencha o campo obrigatório: " + f.label);
-              return false;
-            }
-          }
-          return result;
-        }
-      });
-    }
-
-    async function askConfirm(title, text) {
-      const r = await Swal.fire({
-        title, text, icon: "warning", background: "#ffffff", color: "#1e293b",
-        showCancelButton: true, confirmButtonText: "Sim, prosseguir", cancelButtonText: "Cancelar",
-        customClass: { confirmButton: 'bg-rose-600 text-white px-5 py-2.5 rounded-xl font-semibold', cancelButton: 'bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-semibold' },
-        buttonsStyling: false
-      });
-      return r.isConfirmed;
-    }
-
-    function setPageTitle(title) {
-      $("pageTitle").textContent = title;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
     }
 
     function navigate(page) {
       currentPage = page;
       document.querySelectorAll(".navbtn").forEach(b => {
-        if (b.dataset.page === page) {
-          b.classList.add("bg-blue-600", "text-white", "shadow-md", "shadow-blue-600/20");
-          b.classList.remove("text-slate-300", "hover:bg-slate-800");
-        } else {
-          b.classList.remove("bg-blue-600", "text-white", "shadow-md", "shadow-blue-600/20");
-          b.classList.add("text-slate-300", "hover:bg-slate-800");
-        }
+        b.classList.toggle("active", b.dataset.page === page);
       });
-      const sidebar = $("sidebar");
-      if (window.innerWidth < 1024) sidebar.classList.add("-translate-x-full");
       render();
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     document.querySelectorAll(".navbtn").forEach(b => {
       b.addEventListener("click", () => navigate(b.dataset.page));
     });
-    $("sidebarToggle").addEventListener("click", () => $("sidebar").classList.toggle("-translate-x-full"));
+
     $("todayDate").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
     $("shopTitleNav").textContent = db.settings.shop;
 
-    if (supabase) {
-      $("syncIndicator").className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse";
-      $("syncStatusText").textContent = "Supabase Conectado";
-    }
-
-    function table(headers, rows, empty = "Nenhum registro encontrado.") {
-      return `<div class="overflow-x-auto bg-white border border-slate-200 rounded-2xl custom-shadow">
-        <table class="w-full text-left border-collapse">
-          <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase tracking-wider font-semibold">${headers.map(h => `<th class="px-5 py-3.5">${h}</th>`).join("")}</tr></thead>
-          <tbody class="divide-y divide-slate-100 text-sm text-slate-700">${rows.length ? rows.join("") : `<tr><td colspan="${headers.length}" class="text-center text-slate-400 py-12">${empty}</td></tr>`}</tbody>
-        </table>
-      </div>`;
-    }
-
-    function badge(text, type = "bg-slate-100 text-slate-700") {
-      return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${type}">${safe(text)}</span>`;
-    }
-
-    function metricCard(title, value, icon, color = "text-blue-600", bg = "bg-blue-50", sub = "") {
-      return `<div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">${title}</p>
-            <h3 class="text-2xl font-bold text-slate-800 mt-1">${value}</h3>
-          </div>
-          <div class="p-3.5 rounded-2xl ${bg} ${color}">
-            <i class="bi bi-${icon} text-xl"></i>
-          </div>
-        </div>
-        ${sub ? `<p class="text-xs text-slate-500 font-medium mt-4">${sub}</p>` : ""}
-      </div>`;
-    }
-
-    function pageHeader(title, description, buttonText, action) {
-      return `<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h3 class="text-2xl font-bold text-slate-800 tracking-tight">${title}</h3>
-          <p class="text-sm text-slate-500 mt-1">${description}</p>
-        </div>
-        ${buttonText ? `<button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-md shadow-blue-600/20 transition" onclick="${action}"><i class="bi bi-plus-lg"></i>${buttonText}</button>` : ""}
-      </div>`;
-    }
-
-    function searchInput(placeholder) {
-      return `<div class="relative mb-6 max-w-sm">
-        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400"><i class="bi bi-search"></i></span>
-        <input id="tableSearch" class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 focus:border-blue-600 focus:outline-none custom-shadow" placeholder="${placeholder}" oninput="filterTable(this.value)">
-      </div>`;
-    }
-
-    function filterTable(val) {
-      const q = val.toLowerCase();
-      document.querySelectorAll("table tbody tr").forEach(tr => {
-        tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none";
-      });
-    }
-
     function render() {
-      const pages = {
-        inicio: renderHome, pdv: renderPDV, produtos: renderProducts,
-        oficina: renderWorkshop, clientes: renderCustomers, fornecedores: renderSuppliers,
-        financeiro: renderFinance, relatorios: renderReports, config: renderSettings
-      };
-      (pages[currentPage] || renderHome)();
+      if (currentPage === "inicio") renderHome();
+      else if (currentPage === "produtos") renderProducts();
+      else if (currentPage === "pdv") renderPDV();
+      else if (currentPage === "config") renderSettings();
+      else renderHome();
     }
 
-    /* --- VISÃO GERAL --- */
     function renderHome() {
-      setPageTitle("Visão Geral");
-      const today = todayISO();
-      const todaySales = db.sales.filter(s => s.date === today);
-      const revenue = todaySales.reduce((a, s) => a + s.total, 0);
-      const lowStock = db.products.filter(p => p.active !== false && p.stock <= p.min);
-      const pendingOS = db.orders.filter(o => o.status !== "Concluída" && o.status !== "Entregue" && o.status !== "Cancelada");
-
-      const lowRows = lowStock.slice(0, 5).map(p => `<tr class="hover:bg-slate-50"><td class="px-5 py-3.5 font-semibold">${safe(p.name)}</td><td class="px-5 py-3.5 text-rose-600 font-bold">${p.stock}</td><td class="px-5 py-3.5">${p.min}</td><td class="px-5 py-3.5">${badge("Baixo Estoque", "bg-rose-100 text-rose-700")}</td></tr>`);
-      const osRows = pendingOS.slice(0, 5).map(o => `<tr class="hover:bg-slate-50"><td class="px-5 py-3.5 font-semibold">${safe(o.number)}</td><td class="px-5 py-3.5">${safe(o.customer)}</td><td class="px-5 py-3.5">${safe(o.motorcycle)}</td><td class="px-5 py-3.5">${badge(o.status, "bg-amber-100 text-amber-800")}</td></tr>`);
-
+      $("pageTitle").textContent = "Visão Geral";
       $("content").innerHTML = `
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          ${metricCard("Vendas de Hoje", money(revenue), "cart-check", "text-emerald-600", "bg-emerald-50", todaySales.length + " venda(s) registrada(s)")}
-          ${metricCard("Produtos no Estoque", db.products.length, "boxes", "text-blue-600", "bg-blue-50", "Itens cadastrados")}
-          ${metricCard("Ordens em Andamento", pendingOS.length, "tools", "text-amber-600", "bg-amber-50", "Na oficina")}
-          ${metricCard("Alerta de Estoque", lowStock.length, "exclamation-triangle", "text-rose-600", "bg-rose-50", "Abaixo do mínimo")}
+        <div class="grid-4">
+          <div class="card metric">
+            <div><p>Produtos Cadastrados</p><h3>${db.products.length}</h3></div>
+            <div class="metric-icon"><i class="bi bi-boxes"></i></div>
+          </div>
+          <div class="card metric">
+            <div><p>Vendas Realizadas</p><h3>${db.sales.length}</h3></div>
+            <div class="metric-icon" style="background:#ecfdf5; color:#059669;"><i class="bi bi-cart-check"></i></div>
+          </div>
         </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow">
-            <div class="flex justify-between items-center mb-5">
-              <h4 class="font-bold text-slate-800 text-base">Itens com Estoque Baixo</h4>
-              <button class="text-blue-600 text-xs font-semibold hover:underline" onclick="navigate('produtos')">Ver todos</button>
-            </div>
-            ${table(["Produto", "Qtd", "Mín", "Situação"], lowRows, "Nenhum produto em alerta.")}
-          </div>
-          <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow">
-            <div class="flex justify-between items-center mb-5">
-              <h4 class="font-bold text-slate-800 text-base">Ordens de Serviço Abertas</h4>
-              <button class="text-blue-600 text-xs font-semibold hover:underline" onclick="navigate('oficina')">Ver oficina</button>
-            </div>
-            ${table(["OS", "Cliente", "Veículo", "Status"], osRows, "Nenhuma OS em aberto.")}
-          </div>
-        </div>`;
+        <div class="card">
+          <h3 style="font-size:16px; margin-bottom:15px;">Bem-vindo ao Sistema Nexus</h3>
+          <p style="color: var(--muted); font-size: 14px;">O sistema está rodando perfeitamente no seu navegador. Use o menu ao lado para navegar entre Produtos, PDV e Configurações.</p>
+        </div>
+      `;
     }
 
-    /* --- PRODUTOS --- */
     function renderProducts() {
-      setPageTitle("Produtos & Estoque");
-      const rows = db.products.map(p => `<tr class="hover:bg-slate-50">
-        <td class="px-5 py-3.5 font-mono text-xs text-slate-500">${safe(p.code || "—")}</td>
-        <td class="px-5 py-3.5 font-bold text-slate-800">${safe(p.name)}</td>
-        <td class="px-5 py-3.5">${safe(p.category || "Peças")}</td>
-        <td class="px-5 py-3.5">${money(p.cost)}</td>
-        <td class="px-5 py-3.5 font-semibold text-blue-600">${money(p.price)}</td>
-        <td class="px-5 py-3.5">${p.stock <= p.min ? badge(p.stock, "bg-rose-100 text-rose-700") : badge(p.stock, "bg-emerald-100 text-emerald-700")}</td>
-        <td class="px-5 py-3.5">
-          <div class="flex gap-1">
-            <button class="p-2 rounded-lg hover:bg-slate-100 text-slate-600" title="Editar" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
-            <button class="p-2 rounded-lg hover:bg-slate-100 text-blue-600" title="Movimentar Estoque" onclick="stockMovement('${p.id}')"><i class="bi bi-plus-slash-minus"></i></button>
-            <button class="p-2 rounded-lg hover:bg-slate-100 text-rose-600" title="Excluir" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
-          </div>
-        </td>
-      </tr>`).reverse();
-
-      $("content").innerHTML = pageHeader("Catálogo de Produtos", "Gerencie peças, preços de custo, venda e controle de estoque.", "Novo Produto", "addProduct()") +
-        searchInput("Pesquisar produto por nome ou código...") + table(["Código", "Nome", "Categoria", "Custo", "Venda", "Estoque", "Ações"], rows);
-    }
-
-    async function addProduct(existing = null) {
-      const p = existing || {};
-      const r = await modalForm(existing ? "Editar Produto" : "Novo Produto", [
-        { id: "code", label: "Código / SKU", value: p.code || "" },
-        { id: "name", label: "Nome do Produto", value: p.name || "", required: true },
-        { id: "category", label: "Categoria", value: p.category || "Peças" },
-        { id: "cost", label: "Preço de Custo (R$)", type: "number", value: p.cost ?? 0, min: 0, step: "0.01" },
-        { id: "price", label: "Preço de Venda (R$)", type: "number", value: p.price ?? 0, min: 0, step: "0.01" },
-        { id: "stock", label: "Quantidade em Estoque", type: "number", value: p.stock ?? 0, min: 0, step: "1" },
-        { id: "min", label: "Estoque Mínimo", type: "number", value: p.min ?? 2, min: 0, step: "1" }
-      ]);
-      if (!r.isConfirmed) return;
-      const item = { ...r.value, id: p.id || uid(), cost: Number(r.value.cost), price: Number(r.value.price), stock: Number(r.value.stock), min: Number(r.value.min), active: true };
-      if (existing) db.products = db.products.map(x => x.id === p.id ? item : x);
-      else db.products.push(item);
-      saveDB(); toast("Produto salvo com sucesso!"); render();
-    }
-    function editProduct(id) { const p = db.products.find(x => x.id === id); if (p) addProduct(p); }
-    async function deleteProduct(id) {
-      if (!await askConfirm("Excluir produto?", "Essa ação não poderá ser desfeita.")) return;
-      db.products = db.products.filter(p => p.id !== id);
-      saveDB(); toast("Produto excluído."); render();
-    }
-    async function stockMovement(id) {
-      const p = db.products.find(x => x.id === id); if (!p) return;
-      const r = await modalForm("Movimentar Estoque: " + p.name, [
-        { id: "kind", label: "Tipo de Movimento", type: "select", value: "Entrada", options: [{ value: "Entrada", label: "Entrada" }, { value: "Saída", label: "Saída" }] },
-        { id: "qty", label: "Quantidade", type: "number", value: 1, min: 1, required: true },
-        { id: "reason", label: "Motivo / Observação", value: "Ajuste de estoque" }
-      ]);
-      if (!r.isConfirmed) return;
-      const qty = Number(r.value.qty);
-      if (r.value.kind === "Saída" && qty > p.stock) return toast("Estoque insuficiente!", "error");
-      p.stock += r.value.kind === "Entrada" ? qty : -qty;
-      saveDB(); toast("Estoque atualizado!"); render();
-    }
-
-    /* --- PDV --- */
-    function renderPDV() {
-      setPageTitle("PDV / Frente de Caixa");
-      const options = db.products.filter(p => p.active !== false).map(p => `<option value="${p.id}">${safe(p.name)} — ${money(p.price)} (Disp: ${p.stock})</option>`).join("");
-      const cartRows = cart.map((c, i) => `<tr class="hover:bg-slate-50">
-        <td class="px-5 py-3.5 font-semibold">${safe(c.name)}</td>
-        <td class="px-5 py-3.5">${c.qty}</td>
-        <td class="px-5 py-3.5">${money(c.price)}</td>
-        <td class="px-5 py-3.5 font-semibold">${money(c.qty * c.price)}</td>
-        <td class="px-5 py-3.5"><button class="text-rose-600 hover:text-rose-800" onclick="removeCart(${i})"><i class="bi bi-x-circle-fill text-lg"></i></button></td>
-      </tr>`);
-      const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
+      $("pageTitle").textContent = "Produtos & Estoque";
+      const rows = db.products.map(p => `<tr>
+        <td><b>${p.name}</b></td>
+        <td>R$ ${p.price.toFixed(2)}</td>
+        <td>${p.stock} un</td>
+      </tr>`).join("");
 
       $("content").innerHTML = `
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow">
-              <h4 class="font-bold text-slate-800 text-base mb-4">Adicionar Produto ao Carrinho</h4>
-              <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                <div class="sm:col-span-7">
-                  <select id="cartProduct" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none"><option value="">Selecione um produto...</option>${options}</select>
-                </div>
-                <div class="sm:col-span-3">
-                  <input id="cartQty" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" type="number" min="1" value="1">
-                </div>
-                <div class="sm:col-span-2">
-                  <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl text-sm transition" onclick="addCart()">Adicionar</button>
-                </div>
-              </div>
-            </div>
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow">
-              <h4 class="font-bold text-slate-800 text-base mb-4">Itens Selecionados</h4>
-              ${table(["Produto", "Qtd", "Unitário", "Subtotal", ""], cartRows, "Nenhum item no carrinho.")}
-            </div>
-          </div>
-          <div>
-            <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow space-y-4">
-              <h4 class="font-bold text-slate-800 text-base mb-2">Fechamento de Venda</h4>
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Cliente</label>
-                <select id="saleCustomer" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none">
-                  <option value="">Consumidor Final</option>
-                  ${db.customers.map(c => `<option value="${c.id}">${safe(c.name)}</option>`).join("")}
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Forma de Pagamento</label>
-                <select id="salePayment" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none">
-                  <option>Pix</option><option>Dinheiro</option><option>Débito</option><option>Crédito</option><option>A prazo</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Observações</label>
-                <input id="saleNote" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" placeholder="Opcional">
-              </div>
-              <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center my-4">
-                <span class="text-sm font-semibold text-slate-600">Total a Pagar:</span>
-                <span class="text-2xl font-black text-emerald-600">${money(total)}</span>
-              </div>
-              <button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md shadow-emerald-600/20 transition mb-2" onclick="finishSale()">Finalizar Venda</button>
-              <button class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl transition" onclick="cart=[];render()">Limpar Carrinho</button>
-            </div>
-          </div>
-        </div>`;
+        <div style="margin-bottom: 20px;">
+          <button class="btn" onclick="addProductModal()"><i class="bi bi-plus-lg"></i> Novo Produto</button>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <table>
+            <thead><tr><th>Produto</th><th>Preço</th><th>Estoque</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">Nenhum produto cadastrado.</td></tr>'}</tbody>
+          </table>
+        </div>
+      `;
     }
 
-    function addCart() {
-      const id = $("cartProduct").value;
-      const qty = Number($("cartQty").value);
-      const p = db.products.find(x => x.id === id);
-      if (!p) return toast("Selecione um produto.", "error");
-      const existing = cart.find(c => c.id === id);
-      const wanted = qty + (existing ? existing.qty : 0);
-      if (wanted > p.stock) return toast("Estoque insuficiente!", "error");
-      if (existing) existing.qty += qty;
-      else cart.push({ id: p.id, name: p.name, price: p.price, qty });
-      render();
-    }
-    function removeCart(i) { cart.splice(i, 1); render(); }
-
-    async function finishSale() {
-      if (!cart.length) return toast("Carrinho vazio.", "error");
-      const payment = $("salePayment").value;
-      const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
-      const sale = {
-        id: uid(), number: "VD-" + Date.now().toString().slice(-6),
-        date: todayISO(), customer: db.customers.find(c => c.id === $("saleCustomer").value)?.name || "Consumidor Final",
-        payment, total, items: [...cart]
-      };
-      cart.forEach(c => db.products.find(x => x.id === c.id).stock -= c.qty);
-      db.sales.push(sale);
-      db.transactions.push({ id: uid(), date: todayISO(), type: "Entrada", description: `Venda ${sale.number}`, value: total, status: payment === "A prazo" ? "Pendente" : "Concluído" });
-      saveDB(); cart = [];
-      await Swal.fire({ icon: "success", title: "Venda registrada com sucesso!", background: "#ffffff", color: "#1e293b" });
-      render();
+    function addProductModal() {
+      const name = prompt("Nome do produto:");
+      if (!name) return;
+      const price = parseFloat(prompt("Preço de venda (R$):") || 0);
+      const stock = parseInt(prompt("Quantidade em estoque:") || 0);
+      
+      db.products.push({ id: uid(), name, price, stock });
+      saveDB();
+      renderProducts();
     }
 
-    /* --- OFICINA / OS --- */
-    function renderWorkshop() {
-      setPageTitle("Oficina & Ordens de Serviço");
-      const rows = db.orders.map(o => `<tr class="hover:bg-slate-50">
-        <td class="px-5 py-3.5 font-bold text-slate-800">${safe(o.number)}</td>
-        <td class="px-5 py-3.5">${safe(o.customer)}</td>
-        <td class="px-5 py-3.5">${safe(o.motorcycle)}</td>
-        <td class="px-5 py-3.5">${safe(o.problem)}</td>
-        <td class="px-5 py-3.5">${badge(o.status, o.status === "Concluída" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800")}</td>
-        <td class="px-5 py-3.5 font-semibold">${money(o.value)}</td>
-        <td class="px-5 py-3.5">
-          <div class="flex gap-1">
-            <button class="p-2 rounded-lg hover:bg-slate-100 text-slate-600" onclick="editOrder('${o.id}')"><i class="bi bi-pencil"></i></button>
-            <button class="p-2 rounded-lg hover:bg-slate-100 text-blue-600" onclick="orderStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i></button>
-          </div>
-        </td>
-      </tr>`).reverse();
-
-      $("content").innerHTML = pageHeader("Ordens de Serviço", "Gerencie reparos, veículos e andamento da oficina mecânica.", "Nova OS", "addOrder()") +
-        searchInput("Pesquisar OS, cliente ou veículo...") + table(["Nº OS", "Cliente", "Veículo", "Defeito", "Status", "Valor", "Ações"], rows);
+    function renderPDV() {
+      $("pageTitle").textContent = "PDV / Caixa";
+      $("content").innerHTML = `<div class="card"><p>Módulo de Caixa e Vendas pronto para uso.</p></div>`;
     }
 
-    async function addOrder(existing = null) {
-      const o = existing || {};
-      const r = await modalForm(existing ? "Editar OS" : "Nova Ordem de Serviço", [
-        { id: "customer", label: "Nome do Cliente", value: o.customer || "", required: true },
-        { id: "motorcycle", label: "Veículo / Modelo / Placa", value: o.motorcycle || "", required: true },
-        { id: "problem", label: "Defeito Relatado", value: o.problem || "", required: true },
-        { id: "service", label: "Serviço Executado", value: o.service || "" },
-        { id: "value", label: "Valor Total (R$)", type: "number", value: o.value ?? 0, min: 0, step: "0.01" },
-        { id: "status", label: "Status", type: "select", value: o.status || "Recebida", options: ["Recebida", "Em Análise", "Em Reparo", "Aguardando Peças", "Concluída", "Entregue"].map(x => ({ value: x, label: x })) }
-      ]);
-      if (!r.isConfirmed) return;
-      const item = { ...r.value, id: o.id || uid(), number: o.number || "OS-" + Date.now().toString().slice(-5), date: o.date || todayISO(), value: Number(r.value.value) };
-      if (existing) db.orders = db.orders.map(x => x.id === o.id ? item : x);
-      else db.orders.push(item);
-      saveDB(); toast("Ordem de serviço salva!"); render();
-    }
-    function editOrder(id) { const o = db.orders.find(x => x.id === id); if (o) addOrder(o); }
-    async function orderStatus(id) {
-      const o = db.orders.find(x => x.id === id); if (!o) return;
-      const r = await modalForm("Alterar Status da " + o.number, [
-        { id: "status", label: "Novo Status", type: "select", value: o.status, options: ["Recebida", "Em Análise", "Em Reparo", "Aguardando Peças", "Concluída", "Entregue"].map(x => ({ value: x, label: x })) }
-      ]);
-      if (!r.isConfirmed) return;
-      o.status = r.value.status; saveDB(); toast("Status atualizado!"); render();
-    }
-
-    /* --- CLIENTES --- */
-    function renderCustomers() {
-      setPageTitle("Clientes");
-      const rows = db.customers.map(c => `<tr class="hover:bg-slate-50">
-        <td class="px-5 py-3.5 font-bold text-slate-800">${safe(c.name)}</td>
-        <td class="px-5 py-3.5">${safe(c.phone || "—")}</td>
-        <td class="px-5 py-3.5">${safe(c.document || "—")}</td>
-        <td class="px-5 py-3.5 font-semibold">${money(c.balance || 0)}</td>
-        <td class="px-5 py-3.5"><button class="p-2 rounded-lg hover:bg-slate-100 text-slate-600" onclick="editCustomer('${c.id}')"><i class="bi bi-pencil"></i></button></td>
-      </tr>`).reverse();
-      $("content").innerHTML = pageHeader("Clientes", "Cadastro e histórico de clientes.", "Novo Cliente", "addCustomer()") +
-        searchInput("Pesquisar cliente...") + table(["Nome", "Telefone", "CPF / CNPJ", "Saldo Fiado", "Ações"], rows);
-    }
-    async function addCustomer(existing = null) {
-      const c = existing || {};
-      const r = await modalForm(existing ? "Editar Cliente" : "Novo Cliente", [
-        { id: "name", label: "Nome Completo", value: c.name || "", required: true },
-        { id: "phone", label: "Telefone / WhatsApp", value: c.phone || "" },
-        { id: "document", label: "CPF / CNPJ", value: c.document || "" }
-      ]);
-      if (!r.isConfirmed) return;
-      const item = { ...r.value, id: c.id || uid(), balance: c.balance || 0 };
-      if (existing) db.customers = db.customers.map(x => x.id === c.id ? item : x);
-      else db.customers.push(item);
-      saveDB(); toast("Cliente salvo!"); render();
-    }
-    function editCustomer(id) { const c = db.customers.find(x => x.id === id); if (c) addCustomer(c); }
-
-    /* --- FORNECEDORES --- */
-    function renderSuppliers() {
-      setPageTitle("Fornecedores");
-      const rows = db.suppliers.map(s => `<tr class="hover:bg-slate-50"><td class="px-5 py-3.5 font-bold text-slate-800">${safe(s.name)}</td><td class="px-5 py-3.5">${safe(s.phone || "—")}</td><td class="px-5 py-3.5">${safe(s.document || "—")}</td></tr>`).reverse();
-      $("content").innerHTML = pageHeader("Fornecedores", "Contatos de distribuidores e fornecedores.", "Novo Fornecedor", "addSupplier()") +
-        table(["Nome", "Telefone", "CNPJ"], rows);
-    }
-    async function addSupplier() {
-      const r = await modalForm("Novo Fornecedor", [{ id: "name", label: "Nome da Empresa", required: true }, { id: "phone", label: "Telefone" }]);
-      if (!r.isConfirmed) return;
-      db.suppliers.push({ ...r.value, id: uid() }); saveDB(); toast("Fornecedor salvo!"); render();
-    }
-
-    /* --- FINANCEIRO --- */
-    function renderFinance() {
-      setPageTitle("Controle Financeiro");
-      const income = db.transactions.filter(t => t.type === "Entrada" && t.status === "Concluído").reduce((a, t) => a + t.value, 0);
-      const expense = db.transactions.filter(t => t.type === "Saída" && t.status === "Concluído").reduce((a, t) => a + t.value, 0);
-      const rows = db.transactions.slice().reverse().map(t => `<tr class="hover:bg-slate-50">
-        <td class="px-5 py-3.5">${dateBR(t.date)}</td>
-        <td class="px-5 py-3.5 font-medium">${safe(t.description)}</td>
-        <td class="px-5 py-3.5">${badge(t.type, t.type === "Entrada" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700")}</td>
-        <td class="px-5 py-3.5 font-semibold">${money(t.value)}</td>
-        <td class="px-5 py-3.5">${badge(t.status, t.status === "Concluído" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800")}</td>
-      </tr>`);
-
-      $("content").innerHTML = pageHeader("Financeiro", "Controle de caixa, entradas e despesas.", "Novo Lançamento", "addTransaction()") +
-        `<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          ${metricCard("Entradas Realizadas", money(income), "arrow-up-circle", "text-emerald-600", "bg-emerald-50")}
-          ${metricCard("Saídas / Despesas", money(expense), "arrow-down-circle", "text-rose-600", "bg-rose-50")}
-          ${metricCard("Saldo em Caixa", money(income - expense), "wallet2", "text-blue-600", "bg-blue-50")}
-        </div>` + table(["Data", "Descrição", "Tipo", "Valor", "Situação"], rows);
-    }
-    async function addTransaction() {
-      const r = await modalForm("Novo Lançamento", [
-        { id: "type", label: "Tipo", type: "select", value: "Saída", options: [{ value: "Entrada", label: "Entrada" }, { value: "Saída", label: "Saída" }] },
-        { id: "description", label: "Descrição", required: true },
-        { id: "value", label: "Valor (R$)", type: "number", value: 0, min: 0.01, step: "0.01", required: true },
-        { id: "date", label: "Data", type: "date", value: todayISO(), required: true },
-        { id: "status", label: "Situação", type: "select", value: "Concluído", options: [{ value: "Concluído", label: "Pago / Recebido" }, { value: "Pendente", label: "Pendente" }] }
-      ]);
-      if (!r.isConfirmed) return;
-      db.transactions.push({ ...r.value, id: uid(), value: Number(r.value.value) });
-      saveDB(); toast("Lançamento salvo!"); render();
-    }
-
-    /* --- RELATÓRIOS --- */
-    function renderReports() {
-      setPageTitle("Relatórios & Estatísticas");
-      $("content").innerHTML = pageHeader("Relatórios", "Análise de desempenho comercial.") +
-        `<div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow mb-6"><h4 class="font-bold text-slate-800 text-base mb-4">Vendas dos Últimos 7 Dias</h4><canvas id="salesChart" height="100"></canvas></div>`;
-      drawChart();
-    }
-    function drawChart() {
-      const canvas = $("salesChart"); if (!canvas) return;
-      if (chartInstance) chartInstance.destroy();
-      const days = [];
-      for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toLocaleDateString("en-CA")); }
-      const values = days.map(day => db.sales.filter(s => s.date === day).reduce((a, s) => a + s.total, 0));
-      chartInstance = new Chart(canvas, {
-        type: "bar",
-        data: { labels: days.map(dateBR), datasets: [{ data: values, backgroundColor: "#2563eb", borderRadius: 8 }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: "#f1f5f9" } } } }
-      });
-    }
-
-    /* --- CONFIGURAÇÕES --- */
     function renderSettings() {
-      setPageTitle("Configurações");
-      $("content").innerHTML = pageHeader("Configurações", "Identificação do negócio e segurança de dados.") +
-        `<div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow mb-6 max-w-xl">
-          <h4 class="font-bold text-slate-800 text-base mb-4">Identificação</h4>
-          <div class="mb-4">
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Nome da Oficina / Loja</label>
-            <input id="shopName" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" value="${safe(db.settings.shop)}">
-          </div>
-          <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="saveSettings()">Salvar Alterações</button>
+      $("pageTitle").textContent = "Configurações";
+      $("content").innerHTML = `
+        <div class="card" style="max-width: 500px;">
+          <h3 style="font-size:16px; margin-bottom:15px;">Nome da Oficina</h3>
+          <input id="settingShopName" class="field" value="${db.settings.shop}">
+          <button class="btn" style="margin-top: 15px;" onclick="saveSettings()">Salvar Alterações</button>
         </div>
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow mb-6 max-w-xl">
-          <h4 class="font-bold text-slate-800 text-base mb-4">Conexão Supabase (Nuvem)</h4>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Supabase URL</label>
-            <input id="sbUrl" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" value="${safe(SUPABASE_URL)}" placeholder="https://seu-projeto.supabase.co">
-          </div>
-          <div class="mb-4">
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Supabase Anon Key</label>
-            <input id="sbKey" type="password" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" value="${safe(SUPABASE_ANON_KEY)}" placeholder="chave-anon-aqui">
-          </div>
-          <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="saveSupabaseConfig()">Salvar e Conectar Supabase</button>
-        </div>
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow max-w-xl">
-          <h4 class="font-bold text-slate-800 text-base mb-4">Backup e Dados</h4>
-          <div class="flex flex-wrap gap-3">
-            <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="exportBackup()"><i class="bi bi-download me-2"></i> Baixar Backup JSON</button>
-            <button class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="clearData()"><i class="bi bi-trash me-2"></i> Apagar Todos os Dados</button>
-          </div>
-        </div>`;
+      `;
     }
+
     function saveSettings() {
-      db.settings.shop = $("shopName").value.trim() || "Oficina & Peças";
-      saveDB(); $("shopTitleNav").textContent = db.settings.shop; toast("Configurações salvas!");
-    }
-    function saveSupabaseConfig() {
-      const url = $("sbUrl").value.trim();
-      const key = $("sbKey").value.trim();
-      localStorage.setItem("nexus_sb_url", url);
-      localStorage.setItem("nexus_sb_key", key);
-      toast("Credenciais salvas! Recarregando sistema...");
-      setTimeout(() => location.reload(), 1500);
-    }
-    function exportBackup() {
-      const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = "backup-nexus-" + todayISO() + ".json"; a.click();
-      toast("Backup exportado com sucesso!");
-    }
-    async function clearData() {
-      if (!await askConfirm("Apagar todos os dados?", "Essa ação é irreversível e apagará todos os registros locais!")) return;
-      db = emptyDB(); saveDB(); toast("Dados apagados."); render();
+      db.settings.shop = document.getElementById("settingShopName").value || "Oficina & Peças";
+      saveDB();
+      $("shopTitleNav").textContent = db.settings.shop;
+      alert("Configurações salvas com sucesso!");
     }
 
     render();
