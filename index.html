@@ -13,7 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Supabase JS Client (Pronto para conectar) -->
+  <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -26,7 +26,7 @@
 </head>
 <body class="min-h-screen flex">
 
-  <!-- SIDEBAR EXCLUSIVA -->
+  <!-- SIDEBAR -->
   <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0 shadow-2xl">
     <div class="p-6 border-b border-slate-800 flex items-center gap-3 bg-slate-950">
       <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md">
@@ -119,16 +119,14 @@
   <script>
     "use strict";
 
-    /* ==========================================================
-       CONFIGURAÇÃO DO SUPABASE (PRONTO PARA PREENCHER)
-       Para ativar, basta colocar a URL e a Anon Key do seu projeto.
-    ========================================================== */
     const SUPABASE_URL = localStorage.getItem("nexus_sb_url") || "";
     const SUPABASE_ANON_KEY = localStorage.getItem("nexus_sb_key") || "";
     
     let supabase = null;
     if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      } catch(e) { console.error(e); }
     }
 
     const $ = id => document.getElementById(id);
@@ -168,16 +166,9 @@
     let chartInstance = null;
     let currentPage = "inicio";
 
-    // Função central de salvamento (Preparada para enviar dados ao Supabase futuramente)
-    async function saveDB() {
+    function saveDB() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-        
-        // Exemplo de gancho para o Supabase (se configurado)
-        if (supabase) {
-          // Aqui você poderá sincronizar as tabelas em background, ex:
-          // await supabase.from('app_data').upsert({ id: 1, payload: db });
-        }
         return true;
       } catch (e) {
         toast("Erro ao salvar dados.", "error");
