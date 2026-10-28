@@ -64,7 +64,7 @@
     /* Modal Flutuante Customizado */
     .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
     .modal-overlay.active { display: flex; }
-    .modal-box { background: #fff; border-radius: 12px; width: 100%; max-width: 450px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .modal-box { background: #fff; border-radius: 12px; width: 100%; max-width: 600px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .modal-header h3 { font-size: 18px; font-weight: 700; }
   </style>
@@ -138,7 +138,7 @@
       } catch(e) { console.error(e); }
     }
 
-    const STORAGE_KEY = "nexus_sistema_oficina_v5";
+    const STORAGE_KEY = "nexus_sistema_oficina_v6";
     function loadDB() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -154,6 +154,7 @@
     let db = loadDB();
     let cart = [];
     let currentPage = "inicio";
+    let historySearchFilter = "";
 
     function saveDB() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
@@ -209,6 +210,7 @@
     function renderHome() {
       $("pageTitle").textContent = "Visão Geral";
       const totalSales = db.sales.reduce((a, b) => a + b.total, 0);
+      const uniquePlacas = [...new Set(db.history.map(h => h.plate))].length;
       $("content").innerHTML = `
         <div class="grid-4">
           <div class="card metric">
@@ -224,7 +226,7 @@
             <div class="metric-icon" style="background:#fef3c7; color:#d97706;"><i class="bi bi-tools"></i></div>
           </div>
           <div class="card metric">
-            <div><p>Histórico / Veículos</p><h3>${db.history.length}</h3></div>
+            <div><p>Veículos Atendidos</p><h3>${uniquePlacas}</h3></div>
             <div class="metric-icon" style="background:#e0f2fe; color:#0284c7;"><i class="bi bi-clock-history"></i></div>
           </div>
         </div>
@@ -380,7 +382,11 @@
     function renderWorkshop() {
       $("pageTitle").textContent = "Oficina / Ordens de Serviço";
       const rows = db.orders.map(o => `<tr>
-        <td><b>${o.number}</b></td><td>${o.customer}</td><td>${o.vehicle}</td><td>${o.problem}</td>
+        <td><b>${o.number}</b></td>
+        <td>${o.customer}</td>
+        <td>${o.vehicle}</td>
+        <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700;">${o.plate}</code></td>
+        <td>${o.problem}</td>
         <td><span class="badge badge-warn">${o.status}</span></td>
         <td>${money(o.value)}</td>
         <td>
@@ -394,8 +400,8 @@
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Nº OS</th><th>Cliente</th><th>Veículo / Placa</th><th>Defeito</th><th>Status</th><th>Valor</th><th>Ação</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">Nenhuma OS aberta.</td></tr>'}</tbody>
+            <thead><tr><th>Nº OS</th><th>Cliente</th><th>Veículo</th><th>Placa</th><th>Defeito</th><th>Status</th><th>Valor</th><th>Ação</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--muted);">Nenhuma OS aberta.</td></tr>'}</tbody>
           </table>
         </div>
       `;
@@ -404,7 +410,8 @@
     function openOrderModal() {
       openModal("Nova Ordem de Serviço", `
         <div class="mb-3"><label class="label">Nome do Cliente</label><input id="osCustomer" class="field" placeholder="Ex: João Silva"></div>
-        <div class="mb-3"><label class="label">Veículo e Placa</label><input id="osVehicle" class="field" placeholder="Ex: Honda Titan 160 - ABC1D23"></div>
+        <div class="mb-3"><label class="label">Modelo do Veículo</label><input id="osVehicle" class="field" placeholder="Ex: Honda Titan 160"></div>
+        <div class="mb-3"><label class="label">Placa do Veículo</label><input id="osPlate" class="field" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
         <div class="mb-3"><label class="label">Defeito Relatado / Serviço</label><input id="osProblem" class="field" placeholder="Ex: Troca de óleo e relação"></div>
         <div class="mb-3"><label class="label">Valor Estimado (R$)</label><input id="osValue" type="number" step="0.01" class="field" value="0.00"></div>
         <button class="btn" style="width:100%; justify-content:center;" onclick="saveOrder()">Abrir OS</button>
@@ -414,17 +421,18 @@
     function saveOrder() {
       const customer = $("osCustomer").value.trim();
       const vehicle = $("osVehicle").value.trim();
+      const plate = $("osPlate").value.trim().toUpperCase();
       const problem = $("osProblem").value.trim();
       const value = parseFloat($("osValue").value) || 0;
 
-      if (!customer || !vehicle) return alert("Preencha o cliente e o veículo/placa.");
+      if (!customer || !vehicle || !plate) return alert("Preencha o cliente, o veículo e a placa.");
 
       const number = "OS-" + Math.floor(1000 + Math.random() * 9000);
-      db.orders.push({ id: uid(), number, customer, vehicle, problem, value, status: "Em andamento", date: todayISO() });
+      db.orders.push({ id: uid(), number, customer, vehicle, plate, problem, value, status: "Em andamento", date: todayISO() });
       saveDB();
       closeModal();
 
-      sendTelegramAlert(`🔧 *Nova OS Aberta (${number})*\n• Cliente: *${customer}*\n• Veículo: *${vehicle}*\n• Defeito: _${problem}_`);
+      sendTelegramAlert(`🔧 *Nova OS Aberta (${number})*\n• Cliente: *${customer}*\n• Veículo: *${vehicle}* (${plate})\n• Defeito: _${problem}_`);
       renderWorkshop();
     }
 
@@ -433,45 +441,99 @@
       if (!order) return;
       order.status = "Concluída";
 
-      // Salva automaticamente no Histórico de Manutenções do Veículo
       db.history.push({
         id: uid(),
         date: todayISO(),
         number: order.number,
         customer: order.customer,
         vehicle: order.vehicle,
+        plate: order.plate,
         service: order.problem,
         value: order.value
       });
 
       saveDB();
-      sendTelegramAlert(`✅ *OS ${order.number} Concluída!*\n• Veículo: *${order.vehicle}*\n• Serviço: _${order.service || order.problem}_`);
+      sendTelegramAlert(`✅ *OS ${order.number} Concluída!*\n• Veículo: *${order.vehicle}* (${order.plate})\n• Serviço: _${order.service}_`);
       renderWorkshop();
     }
 
-    /* --- HISTÓRICO DE MANUTENÇÕES --- */
+    /* --- HISTÓRICO DE MANUTENÇÕES (COM BUSCA E MODAL DE PLACA) --- */
     function renderHistory() {
       $("pageTitle").textContent = "Histórico de Manutenções por Veículo";
-      
-      const rows = db.history.map(h => `<tr>
-        <td><b>${h.date}</b></td>
-        <td><code>${h.vehicle}</code></td>
-        <td>${h.customer}</td>
-        <td>${h.service}</td>
-        <td>${money(h.value)}</td>
+
+      // Agrupa por Placa única
+      const platesMap = {};
+      db.history.forEach(h => {
+        const p = h.plate || "SEM-PLACA";
+        if (!platesMap[p]) {
+          platesMap[p] = { plate: p, vehicle: h.vehicle, customer: h.customer, visits: [] };
+        }
+        platesMap[p].visits.push(h);
+      });
+
+      const vehiclesList = Object.values(platesMap);
+      const filtered = vehiclesList.filter(v => 
+        v.plate.toLowerCase().includes(historySearchFilter.toLowerCase()) || 
+        v.vehicle.toLowerCase().includes(historySearchFilter.toLowerCase()) ||
+        v.customer.toLowerCase().includes(historySearchFilter.toLowerCase())
+      );
+
+      const rows = filtered.map(v => `<tr>
+        <td><code style="background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:6px; font-weight:700;">${v.plate}</code></td>
+        <td><b>${v.vehicle}</b></td>
+        <td>${v.customer}</td>
+        <td><span class="badge badge-ok">${v.visits.length} visita(s)</span></td>
+        <td><button class="btn btn-sm" onclick="openVehicleHistoryModal('${v.plate}')"><i class="bi bi-eye"></i> Ver Prontuário</button></td>
       </tr>`).join("");
 
       $("content").innerHTML = `
-        <div class="card" style="margin-bottom:20px; background:#f1f5f9;">
-          <p style="font-size:13px; color:var(--muted);"><i class="bi bi-info-circle"><b> Nota:</b> Quando você conclui uma Ordem de Serviço na aba Oficina, o serviço vai automaticamente para este histórico vinculado à placa/veículo.</i></p>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="mb-3" style="margin-bottom:0;">
+            <label class="label">Pesquisar Veículo por Placa, Modelo ou Cliente</label>
+            <input id="historySearchInput" class="field" placeholder="Ex: ABC-1D23 ou Titan" value="${historySearchFilter}" oninput="filterHistory(this.value)">
+          </div>
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Data</th><th>Veículo / Placa</th><th>Cliente</th><th>Serviço Realizado</th><th>Valor</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum histórico registrado ainda. Conclua uma OS para gerar registros.</td></tr>'}</tbody>
+            <thead><tr><th>Placa</th><th>Veículo</th><th>Último Cliente</th><th>Total de Passagens</th><th>Ação</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum veículo encontrado no histórico.</td></tr>'}</tbody>
           </table>
         </div>
       `;
+    }
+
+    function filterHistory(val) {
+      historySearchFilter = val;
+    }
+
+    function openVehicleHistoryModal(plate) {
+      const records = db.history.filter(h => h.plate === plate);
+      if (!records.length) return;
+
+      const vehicleName = records[0].vehicle;
+      const customerName = records[0].customer;
+
+      const itemsHtml = records.map(r => `
+        <div style="border-bottom: 1px solid var(--border); padding: 12px 0;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="font-size:12px; font-weight:600; color:var(--muted);">Data: ${r.date} (${r.number})</span>
+            <span style="font-weight:bold; color:var(--success);">${money(r.value)}</span>
+          </div>
+          <p style="font-size:14px;"><b>Serviço:</b> ${r.service}</p>
+          <p style="font-size:12px; color:var(--muted); margin-top:2px;">Cliente responsável: ${r.customer}</p>
+        </div>
+      `).join("");
+
+      openModal(`Prontuário da Placa: ${plate}`, `
+        <div style="margin-bottom: 15px;">
+          <p style="font-size: 14px;"><b>Veículo:</b> ${vehicleName}</p>
+          <p style="font-size: 13px; color: var(--muted);">Total de OS executadas: ${records.length}</p>
+        </div>
+        <div style="max-height: 350px; overflow-y: auto;">
+          ${itemsHtml}
+        </div>
+        <button class="btn btn-secondary" style="width:100%; justify-content:center; margin-top:20px;" onclick="closeModal()">Fechar</button>
+      `);
     }
 
     /* --- CLIENTES --- */
