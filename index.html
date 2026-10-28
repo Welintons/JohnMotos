@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nexus Oficina & Peças | Gestão Avançada</title>
+  <title>John Motos | Gestão Avançada</title>
   <!-- Ícones -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <!-- Supabase Client -->
@@ -74,10 +74,10 @@
   <!-- SIDEBAR -->
   <aside id="sidebar">
     <div class="brand">
-      <div class="brand-icon"><i class="bi bi-gear-wide-connected"></i></div>
+      <div class="brand-icon"><i class="bi bi-bicycle"></i></div>
       <div>
-        <h4 style="font-size:14px; color:#fff;" id="shopTitleNav">NEXUS OFICINA</h4>
-        <p style="font-size:11px; color:#94a3b8;" id="syncStatusText">Conectando Nuvem...</p>
+        <h4 style="font-size:14px; color:#fff;">JOHN MOTOS</h4>
+        <p style="font-size:11px; color:#34d399;" id="syncStatusText">Conectado na Nuvem</p>
       </div>
     </div>
     <div class="nav-links">
@@ -88,7 +88,6 @@
       <button class="navbtn" data-page="oficina"><i class="bi bi-tools"></i> Oficina / OS</button>
       <button class="navbtn" data-page="historico"><i class="bi bi-clock-history"></i> Histórico / Veículos</button>
       <button class="navbtn" data-page="clientes"><i class="bi bi-people"></i> Clientes</button>
-      <button class="navbtn" data-page="config"><i class="bi bi-sliders"></i> Configurações</button>
     </div>
   </aside>
 
@@ -124,19 +123,18 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-    let SB_URL = localStorage.getItem("nexus_sb_url") || "";
-    let SB_KEY = localStorage.getItem("nexus_sb_key") || "";
+    // Credenciais Fixas e Travadas do Supabase (John Motos)
+    const SB_URL = "https://twzzayvfxodwzxtwbyqq.supabase.co";
+    const SB_KEY = "Sb_publishable_zCBCr9gs149bTGmHfmeV0A_96dPiSAo";
 
     let supabaseClient = null;
     let tgTemplates = {};
     let globalTelegramToken = "";
     let globalTelegramChatId = "";
 
-    if (SB_URL && SB_KEY) {
-      try {
-        supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-      } catch(e) { console.error(e); }
-    }
+    try {
+      supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+    } catch(e) { console.error(e); }
 
     let db = {
       products: [],
@@ -144,7 +142,7 @@
       sales: [],
       orders: [],
       history: [],
-      settings: { shop: "Nexus Oficina & Peças" }
+      settings: { shop: "John Motos" }
     };
 
     let cart = [];
@@ -152,7 +150,7 @@
     let historySearchFilter = "";
 
     async function initSystem() {
-      if (supabaseClient && SB_URL) {
+      if (supabaseClient) {
         await loadDataFromSupabase();
       } else {
         loadLocalFallback();
@@ -162,13 +160,12 @@
     }
 
     function loadLocalFallback() {
-      const raw = localStorage.getItem("nexus_cache_db");
+      const raw = localStorage.getItem("john_motos_cache");
       if (raw) {
         try { db = JSON.parse(raw); } catch(e) {}
       }
       $("syncStatusText").textContent = "Modo Local / Cache";
       $("syncStatusText").style.color = "#f59e0b";
-      $("shopTitleNav").textContent = db.settings.shop;
     }
 
     async function loadDataFromSupabase() {
@@ -190,17 +187,15 @@
         if (sRes.data) db.sales = sRes.data;
         
         if (setRes.data) {
-          db.settings.shop = setRes.data.shop_name || "Nexus Oficina & Peças";
           globalTelegramToken = setRes.data.telegram_token || "";
           globalTelegramChatId = setRes.data.telegram_chat_id || "";
-          $("shopTitleNav").textContent = db.settings.shop;
         }
 
         if (tRes.data) {
           tRes.data.forEach(t => { tgTemplates[t.key] = t.template; });
         }
 
-        $("syncStatusText").textContent = "Supabase Conectado";
+        $("syncStatusText").textContent = "Conectado na Nuvem";
         $("syncStatusText").style.color = "#34d399";
       } catch (e) {
         console.error("Erro ao sincronizar com Supabase:", e);
@@ -209,7 +204,7 @@
     }
 
     function saveCache() {
-      localStorage.setItem("nexus_cache_db", JSON.stringify(db));
+      localStorage.setItem("john_motos_cache", JSON.stringify(db));
     }
 
     async function sendTelegramTemplate(key, dataObj) {
@@ -217,11 +212,11 @@
       
       let templateStr = tgTemplates[key];
       if (!templateStr) {
-        if (key === 'nova_venda') templateStr = "🛒 *Nova Venda!*\n• Total: *{total}*";
+        if (key === 'nova_venda') templateStr = "🛒 *Nova Venda (John Motos)*\n• Total: *{total}*";
         else if (key === 'nova_os') templateStr = "🔧 *Nova OS ({number})*\n• Veículo: *{vehicle}* ({plate})";
         else if (key === 'estoque_baixo') templateStr = "⚠️ *Estoque Baixo!*\n• Produto: *{product_name}* ({stock} un)";
         else if (key === 'relatorio_dia') templateStr = "📊 *Relatório do Dia*\n• Faturamento: *{total_sales}*";
-        else templateStr = "🔔 *Notificação Nexus Oficina*";
+        else templateStr = "🔔 *Notificação John Motos*";
       }
 
       for (const [k, v] of Object.entries(dataObj)) {
@@ -244,7 +239,7 @@
         const now = new Date();
         if (now.getHours() === 19 && now.getMinutes() === 0) {
           const todayStr = todayISO();
-          const lastSentKey = "nexus_report_sent_" + todayStr;
+          const lastSentKey = "john_report_sent_" + todayStr;
           if (!localStorage.getItem(lastSentKey)) {
             sendDailyReport();
             localStorage.setItem(lastSentKey, "true");
@@ -288,7 +283,6 @@
       else if (currentPage === "oficina") renderWorkshop();
       else if (currentPage === "historico") renderHistory();
       else if (currentPage === "clientes") renderCustomers();
-      else if (currentPage === "config") renderSettings();
       else renderHome();
     }
 
@@ -303,7 +297,7 @@
 
     /* --- VISÃO GERAL --- */
     function renderHome() {
-      $("pageTitle").textContent = "Visão Geral";
+      $("pageTitle").textContent = "Visão Geral - John Motos";
       const totalSales = db.sales.reduce((a, b) => a + b.total, 0);
       const uniquePlacas = [...new Set(db.history.map(h => h.plate))].length;
       $("content").innerHTML = `
@@ -413,7 +407,6 @@
 
       $("content").innerHTML = `
         <div class="grid-2">
-          <!-- Coluna 1: Adicionar do Estoque ou Serviço Livre -->
           <div style="display:flex; flex-direction:column; gap:20px;">
             <div class="card" style="margin-bottom:0;">
               <h3 style="font-size:16px; margin-bottom:15px;">Adicionar Produto do Estoque</h3>
@@ -442,7 +435,6 @@
             </div>
           </div>
 
-          <!-- Coluna 2: Resumo e Pagamento -->
           <div class="card" style="height: fit-content;">
             <h3 style="font-size:16px; margin-bottom:15px;">Resumo da Venda</h3>
             <div class="mb-3">
@@ -566,8 +558,8 @@
     function openOrderModal() {
       openModal("Nova Ordem de Serviço", `
         <div class="mb-3"><label class="label">Nome do Cliente</label><input id="osCustomer" class="field" placeholder="Ex: João Silva"></div>
-        <div class="mb-3"><label class="label">Modelo do Veículo</label><input id="osVehicle" class="field" placeholder="Ex: Honda Titan 160"></div>
-        <div class="mb-3"><label class="label">Placa do Veículo</label><input id="osPlate" class="field" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
+        <div class="mb-3"><label class="label">Modelo da Moto</label><input id="osVehicle" class="field" placeholder="Ex: Honda Titan 160"></div>
+        <div class="mb-3"><label class="label">Placa da Moto</label><input id="osPlate" class="field" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
         <div class="mb-3"><label class="label">Defeito Relatado / Serviço</label><input id="osProblem" class="field" placeholder="Ex: Troca de óleo e relação"></div>
         <div class="mb-3"><label class="label">Valor Estimado (R$)</label><input id="osValue" type="number" step="0.01" class="field" value="0.00"></div>
         <button class="btn" style="width:100%; justify-content:center;" onclick="saveOrder()">Abrir OS</button>
@@ -581,7 +573,7 @@
       const problem = $("osProblem").value.trim();
       const value = parseFloat($("osValue").value) || 0;
 
-      if (!customer || !vehicle || !plate) return alert("Preencha o cliente, o veículo e a placa.");
+      if (!customer || !vehicle || !plate) return alert("Preencha o cliente, a moto e a placa.");
 
       const number = "OS-" + Math.floor(1000 + Math.random() * 9000);
       const newOrder = { id: uid(), number, customer, vehicle, plate, problem, value, status: "Em andamento", date: todayISO() };
@@ -713,7 +705,7 @@
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
             <thead><tr><th>Nome</th><th>Telefone</th><th>CPF/CNPJ</th></tr></thead>
-            </tbody>${rows || '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>'}</tbody>
+            <tbody>${rows || '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>'}</tbody>
           </table>
         </div>
       `;
@@ -744,59 +736,6 @@
 
       closeModal();
       renderCustomers();
-    }
-
-    /* --- CONFIGURAÇÕES --- */
-    function renderSettings() {
-      $("pageTitle").textContent = "Configurações do Sistema";
-      $("content").innerHTML = `
-        <div class="card" style="max-width: 600px;">
-          <h3 style="font-size:16px; margin-bottom:15px;">Identificação do Negócio</h3>
-          <div class="mb-3">
-            <label class="label">Nome da Oficina / Loja</label>
-            <input id="settingShopName" class="field" value="${db.settings.shop}">
-          </div>
-          
-          <h3 style="font-size:16px; margin:25px 0 15px 0;">Conexão Supabase (Nuvem)</h3>
-          <div class="mb-3">
-            <label class="label">Supabase URL</label>
-            <input id="settingUrl" class="field" value="${SB_URL}" placeholder="https://seu-projeto.supabase.co">
-          </div>
-          <div class="mb-3">
-            <label class="label">Supabase Anon Key</label>
-            <input id="settingKey" type="password" class="field" value="${SB_KEY}" placeholder="sua-chave-anon">
-          </div>
-
-          <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button class="btn btn-success" style="flex: 1; justify-content:center;" onclick="saveAllSettings()">Salvar Configurações</button>
-          </div>
-          <p style="font-size: 11px; color: var(--muted); margin-top: 10px;">* O Chat ID e o Token do Telegram são gerenciados diretamente na tabela <code>settings</code> do Supabase.</p>
-        </div>
-      `;
-    }
-
-    async function saveAllSettings() {
-      const newShop = document.getElementById("settingShopName").value || "Nexus Oficina & Peças";
-      const newUrl = document.getElementById("settingUrl").value.trim();
-      const newKey = document.getElementById("settingKey").value.trim();
-
-      db.settings.shop = newShop;
-      localStorage.setItem("nexus_sb_url", newUrl);
-      localStorage.setItem("nexus_sb_key", newKey);
-
-      saveCache();
-
-      if (supabaseClient) {
-        try {
-          await supabaseClient
-            .from("settings")
-            .update({ shop_name: newShop })
-            .neq("id", "00000000-0000-0000-0000-000000000000");
-        } catch(e) { console.error(e); }
-      }
-
-      alert("Configurações salvas com sucesso! O sistema será recarregado.");
-      location.reload();
     }
 
     initSystem();
