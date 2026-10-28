@@ -151,7 +151,7 @@
     let customerSearchFilter = "";
     let orderSearchFilter = "";
     let historySearchFilter = "";
-    let pdvItemSearchFilter = ""; // Novo filtro de busca rápida no PDV
+    let pdvItemSearchFilter = "";
 
     async function initSystem() {
       if (supabaseClient) {
@@ -421,17 +421,15 @@
       renderProducts();
     }
 
-    /* --- PDV / CAIXA (Com Barra de Pesquisa Rápida) --- */
-       function renderPDV() {
+    /* --- PDV / CAIXA --- */
+    function renderPDV() {
       $("pageTitle").textContent = "PDV / Frente de Caixa";
       
-      // Filtra os produtos com base na digitação rápida
       const filteredProducts = db.products.filter(p => 
         p.name.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()) || 
         (p.code && p.code.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()))
       );
 
-      // Renderiza em formato de grade de cards clicáveis (em vez do <select>)
       const produtosGridHtml = filteredProducts.length > 0 ? filteredProducts.map(p => `
         <div onclick="adicionarDiretoCarrinho('${p.id}')" style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:10px; cursor:pointer; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
           <div style="font-weight:600; font-size:13px; color:var(--text);">${p.name}</div>
@@ -457,7 +455,6 @@
             <div class="card" style="margin-bottom:0;">
               <h3 style="font-size:16px; margin-bottom:15px;">Adicionar Produto do Estoque</h3>
               
-              <!-- Barra de Pesquisa Rápida no PDV -->
               <div class="mb-3">
                 <label class="label">Pesquisa Rápida de Produto</label>
                 <input id="pdvSearchInput" class="field" placeholder="🔍 Digite para filtrar peças..." value="${pdvItemSearchFilter}" oninput="pdvItemSearchFilter=this.value; renderPDV();">
@@ -509,7 +506,6 @@
         </div>
       `;
 
-      // Mantém o foco no input de busca para você continuar digitando sem perder o cursor
       const inputEl = $("pdvSearchInput");
       if (inputEl) {
         inputEl.focus();
@@ -517,7 +513,6 @@
       }
     }
 
-    // Função auxiliar para o clique direto nos cards filtrados
     function adicionarDiretoCarrinho(idProd) {
       const prod = db.products.find(p => p.id === idProd);
       const qty = parseInt($("pdvQty").value) || 1;
@@ -530,7 +525,6 @@
       
       renderPDV();
     }
-
 
     function addCustomItem() {
       const name = $("customName").value.trim();
@@ -576,7 +570,6 @@
         await supabaseClient.from("sales").insert([sale]);
       }
 
-      // Mapeia os itens do carrinho para o formato profissional do template
       const itemsFormatted = cart.map(c => `• ${c.qty}x ${c.name} — ${money(c.price * c.qty)}`).join("\n");
 
       await sendTelegramTemplate("nova_venda", { 
@@ -712,7 +705,7 @@
       renderWorkshop();
     }
 
-    /* --- HISTÓRICO DE MANUTENÇÕES (Com Botão de Excluir) --- */
+    /* --- HISTÓRICO DE MANUTENÇÕES --- */
     function renderHistory() {
       $("pageTitle").textContent = "Histórico de Manutenções por Veículo";
 
@@ -797,7 +790,6 @@
         await supabaseClient.from("history").delete().eq("id", id);
       }
 
-      // Atualiza o modal ou fecha se não houver mais registros para essa placa
       const remaining = db.history.filter(h => h.plate === plate);
       if (remaining.length > 0) {
         openVehicleHistoryModal(plate);
