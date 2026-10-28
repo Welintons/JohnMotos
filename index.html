@@ -1,13 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gestão Profissional | Oficina & Peças</title>
 
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- DaisyUI -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+  <!-- Bootstrap Icons (para ícones limpos) -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -15,178 +17,107 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    :root {
-      --bs-body-bg: #0b131e;
-      --bs-body-color: #e2e8f0;
-      --panel-bg: #131f32;
-      --border-color: #223249;
-    }
-    body {
-      background-color: var(--bs-body-bg);
-      color: var(--bs-body-color);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    }
-    /* Sidebar */
-    #sidebar {
-      width: 260px;
-      background: #0f1726;
-      border-right: 1px solid var(--border-color);
-      min-height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: 100;
-      transition: all 0.3s;
-    }
-    .brand-box {
-      padding: 20px;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .nav-link {
-      color: #94a3b8;
-      padding: 12px 20px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-radius: 8px;
-      margin: 4px 12px;
-      transition: 0.2s;
-    }
-    .nav-link:hover, .nav-link.active {
-      color: #fff;
-      background: #1e293b;
-    }
-    .nav-link.active {
-      border-left: 4px solid #3b82f6;
-    }
-    /* Main Content */
-    #main-content {
-      margin-left: 260px;
-      padding: 30px;
-    }
-    @media (max-width: 991px) {
-      #sidebar { margin-left: -260px; }
-      #sidebar.show { margin-left: 0; }
-      #main-content { margin-left: 0; padding: 20px; }
-    }
-    /* Cards & Panels */
-    .card-custom {
-      background-color: var(--panel-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-    }
-    /* Tables */
-    .table-dark-custom {
-      background-color: transparent;
-      color: #e2e8f0;
-    }
-    .table-dark-custom th {
-      background-color: #1a2a42;
-      color: #94a3b8;
-      font-weight: 600;
-      border-bottom: 1px solid var(--border-color);
-      padding: 12px;
-    }
-    .table-dark-custom td {
-      border-bottom: 1px solid var(--border-color);
-      padding: 12px;
-      vertical-align: middle;
-    }
-    .table-dark-custom tbody tr:hover {
-      background-color: #18263c;
-    }
-    /* Forms & Inputs */
-    .form-control, .form-select {
-      background-color: #0b131e;
-      border: 1px solid #334155;
-      color: #fff;
-      border-radius: 8px;
-      padding: 10px 14px;
-    }
-    .form-control:focus, .form-select:focus {
-      background-color: #0b131e;
-      border-color: #3b82f6;
-      color: #fff;
-      box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
-    }
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    /* Ajustes finos para scrollbar e fontes */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   </style>
 </head>
-<body>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex">
 
   <!-- SIDEBAR -->
-  <nav id="sidebar">
-    <div class="brand-box d-flex align-items-center gap-3">
-      <div class="bg-primary text-white p-2 rounded-3">
-        <i class="bi bi-tools fs-4"></i>
+  <aside id="sidebar" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0">
+    <!-- Brand -->
+    <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+      <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-600/30">
+        <i class="bi bi-tools text-xl"></i>
       </div>
       <div>
-        <h6 class="m-0 fw-bold text-white tracking-wide">OFICINA & PEÇAS</h6>
-        <small class="text-muted" id="shopTitleNav">Gestão Profissional</small>
+        <h1 class="font-bold tracking-wider text-sm text-white">OFICINA & PEÇAS</h1>
+        <p class="text-xs text-slate-400" id="shopTitleNav">Gestão Profissional</p>
       </div>
     </div>
 
-    <div class="py-3">
-      <small class="text-uppercase text-muted px-4 fs-7 fw-bold" style="font-size: 11px; letter-spacing: 1px;">Principal</small>
-      <div class="mt-2">
-        <a href="#" class="nav-link active" data-page="inicio"><i class="bi bi-speedometer2"></i>Visão geral</a>
-        <a href="#" class="nav-link" data-page="pdv"><i class="bi bi-cart3"></i>PDV / Vendas</a>
-        <a href="#" class="nav-link" data-page="produtos"><i class="bi bi-box-seam"></i>Produtos e estoque</a>
-        <a href="#" class="nav-link" data-page="oficina"><i class="bi bi-wrench-adjustable"></i>Oficina / OS</a>
-        <a href="#" class="nav-link" data-page="clientes"><i class="bi bi-people"></i>Clientes</a>
-        <a href="#" class="nav-link" data-page="fornecedores"><i class="bi bi-truck"></i>Fornecedores</a>
+    <!-- Navigation -->
+    <div class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+      <div>
+        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">Principal</p>
+        <nav class="space-y-1">
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition active" data-page="inicio">
+            <i class="bi bi-speedometer2 text-lg"></i>Visão geral
+          </button>
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="pdv">
+            <i class="bi bi-cart3 text-lg"></i>PDV / Vendas
+          </button>
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="produtos">
+            <i class="bi bi-box-seam text-lg"></i>Produtos e estoque
+          </button>
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="oficina">
+            <i class="bi bi-wrench-adjustable text-lg"></i>Oficina / OS
+          </button>
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="clientes">
+            <i class="bi bi-people text-lg"></i>Clientes
+          </button>
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="fornecedores">
+            <i class="bi bi-truck text-lg"></i>Fornecedores
+          </button>
+        </nav>
       </div>
 
-      <small class="text-uppercase text-muted px-4 fs-7 fw-bold mt-4 d-block" style="font-size: 11px; letter-spacing: 1px;">Gestão</small>
-      <div class="mt-2">
-        <a href="#" class="nav-link" data-page="financeiro"><i class="bi bi-wallet2"></i>Financeiro</a>
-        <a href="#" class="nav-link" data-page="relatorios"><i class="bi bi-graph-up"></i>Relatórios</a>
-        <a href="#" class="nav-link" data-page="config"><i class="bi bi-gear"></i>Configurações</a>
+      <div>
+        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">Gestão</p>
+        <nav class="space-y-1">
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="financeiro">
+            <i class="bi bi-wallet2 text-lg"></i>Financeiro
+          </button>
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="relatorios">
+            <i class="bi bi-graph-up text-lg"></i>Relatórios
+          </button>
+          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="config">
+            <i class="bi bi-gear text-lg"></i>Configurações
+          </button>
+        </nav>
       </div>
     </div>
 
-    <div class="p-3 mx-3 mt-auto card-custom">
-      <div class="d-flex align-items-center gap-2">
-        <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
-        <span class="small text-muted">Sistema Local</span>
+    <!-- Footer Sidebar -->
+    <div class="p-4 border-t border-slate-800 m-4 rounded-xl bg-slate-950/50">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-xs font-medium text-slate-300">Sistema Local Ativo</span>
       </div>
     </div>
-  </nav>
+  </aside>
 
   <!-- MAIN WRAPPER -->
-  <main id="main-content">
+  <div class="flex-1 flex flex-col lg:pl-64 min-w-0">
     <!-- TOPBAR -->
-    <header class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
-      <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle">
-          <i class="bi bi-list"></i>
+    <header class="h-20 bg-slate-900/80 backdrop-blur border-b border-slate-800 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-40">
+      <div class="flex items-center gap-4">
+        <button id="sidebarToggle" class="btn btn-square btn-ghost lg:hidden text-slate-300">
+          <i class="bi bi-list text-xl"></i>
         </button>
         <div>
-          <h4 id="pageTitle" class="fw-bold m-0 text-white">Visão geral</h4>
-          <small id="todayDate" class="text-muted"></small>
+          <h2 id="pageTitle" class="text-xl font-bold text-white tracking-tight">Visão geral</h2>
+          <p id="todayDate" class="text-xs text-slate-400"></p>
         </div>
       </div>
       <div>
-        <button class="btn btn-primary d-flex align-items-center gap-2" onclick="navigate('pdv')">
+        <button class="btn btn-primary btn-sm gap-2 shadow-lg shadow-blue-600/20" onclick="navigate('pdv')">
           <i class="bi bi-plus-lg"></i> Nova Venda
         </button>
       </div>
     </header>
 
-    <!-- CONTENT DYNAMIC INJECTION -->
-    <div id="content"></div>
+    <!-- CONTENT AREA -->
+    <main class="flex-1 p-6 lg:p-10 max-w-7xl w-full mx-auto" id="content">
+      <!-- Inserido dinamicamente -->
+    </main>
 
     <!-- FOOTER -->
-    <footer class="text-center text-muted small mt-5 pt-3 border-top border-secondary border-opacity-25">
+    <footer class="text-center py-6 text-xs text-slate-500 border-t border-slate-800/60 mt-auto">
       Sistema de Gestão Integrado · Armazenamento Local Seguro
     </footer>
-  </main>
-
-  <!-- BOOTSTRAP 5 JS BUNDLE -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </div>
 
   <script>
     "use strict";
@@ -200,7 +131,7 @@
     }[c]));
     const dateBR = d => d ? new Date(d + "T12:00:00").toLocaleDateString("pt-BR") : "—";
 
-    const STORAGE_KEY = "gestao_oficina_v2";
+    const STORAGE_KEY = "gestao_oficina_daisyui_v1";
 
     function emptyDB() {
       return {
@@ -233,7 +164,7 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
         return true;
       } catch (e) {
-        toast("Erro ao salvar dados no navegador.", "error");
+        toast("Erro ao salvar dados.", "error");
         return false;
       }
     }
@@ -242,29 +173,29 @@
       Swal.fire({
         toast: true, position: "top-end", showConfirmButton: false,
         timer: 2500, timerProgressBar: true, icon, title: message,
-        background: "#131f32", color: "#e2e8f0"
+        background: "#0f172a", color: "#f8fafc"
       });
     }
 
     async function modalForm(title, fields) {
       return Swal.fire({
-        title, background: "#131f32", color: "#e2e8f0",
+        title, background: "#0f172a", color: "#f8fafc",
         confirmButtonText: "Salvar", cancelButtonText: "Cancelar",
         showCancelButton: true, focusConfirm: false,
-        customClass: { confirmButton: 'btn btn-primary px-4', cancelButton: 'btn btn-secondary px-4' },
+        customClass: { confirmButton: 'btn btn-primary', cancelButton: 'btn btn-ghost' },
         buttonsStyling: false,
         html: fields.map(f => {
           const value = f.value ?? "";
           if (f.type === "select") {
-            return `<div class="text-start mb-3">
-              <label class="form-label text-muted small">${safe(f.label)}</label>
-              <select id="f_${safe(f.id)}" class="form-select">
+            return `<div class="form-control w-full text-left mb-3">
+              <label class="label"><span class="label-text text-slate-400">${safe(f.label)}</span></label>
+              <select id="f_${safe(f.id)}" class="select select-bordered w-full bg-slate-950 border-slate-700">
               ${f.options.map(o => `<option value="${safe(o.value)}" ${String(o.value) === String(value) ? "selected" : ""}>${safe(o.label)}</option>`).join("")}
               </select></div>`;
           }
-          return `<div class="text-start mb-3">
-            <label class="form-label text-muted small">${safe(f.label)}</label>
-            <input id="f_${safe(f.id)}" class="form-control" type="${f.type || "text"}" value="${safe(value)}"
+          return `<div class="form-control w-full text-left mb-3">
+            <label class="label"><span class="label-text text-slate-400">${safe(f.label)}</span></label>
+            <input id="f_${safe(f.id)}" class="input input-bordered w-full bg-slate-950 border-slate-700" type="${f.type || "text"}" value="${safe(value)}"
             ${f.required ? "required" : ""} ${f.min !== undefined ? `min="${f.min}"` : ""} ${f.step ? `step="${f.step}"` : ""} placeholder="${safe(f.placeholder || "")}">
           </div>`;
         }).join(""),
@@ -285,9 +216,9 @@
 
     async function askConfirm(title, text) {
       const r = await Swal.fire({
-        title, text, icon: "warning", background: "#131f32", color: "#e2e8f0",
+        title, text, icon: "warning", background: "#0f172a", color: "#f8fafc",
         showCancelButton: true, confirmButtonText: "Sim, confirmar", cancelButtonText: "Cancelar",
-        customClass: { confirmButton: 'btn btn-danger px-4', cancelButton: 'btn btn-secondary px-4' },
+        customClass: { confirmButton: 'btn btn-error', cancelButton: 'btn btn-ghost' },
         buttonsStyling: false
       });
       return r.isConfirmed;
@@ -299,68 +230,75 @@
 
     function navigate(page) {
       currentPage = page;
-      document.querySelectorAll(".nav-link").forEach(b => {
+      document.querySelectorAll(".navbtn").forEach(b => {
         b.classList.toggle("active", b.dataset.page === page);
+        if (b.dataset.page === page) {
+          b.classList.add("bg-slate-800", "text-white");
+          b.classList.remove("text-slate-400");
+        } else {
+          b.classList.remove("bg-slate-800", "text-white");
+          b.classList.add("text-slate-400");
+        }
       });
       const sidebar = $("sidebar");
-      if (window.innerWidth < 992) sidebar.classList.remove("show");
+      if (window.innerWidth < 1024) sidebar.classList.add("-translate-x-full");
       render();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    document.querySelectorAll(".nav-link").forEach(b => {
-      b.addEventListener("click", (e) => { e.preventDefault(); navigate(b.dataset.page); });
+    document.querySelectorAll(".navbtn").forEach(b => {
+      b.addEventListener("click", () => navigate(b.dataset.page));
     });
-    $("sidebarToggle").addEventListener("click", () => $("sidebar").classList.toggle("show"));
+    $("sidebarToggle").addEventListener("click", () => $("sidebar").classList.toggle("-translate-x-full"));
     $("todayDate").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
     $("shopTitleNav").textContent = db.settings.shop;
 
     function table(headers, rows, empty = "Nenhum registro encontrado.") {
-      return `<div class="table-responsive card-custom p-2"><table class="table table-dark-custom mb-0">
-      <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
-      <tbody>${rows.length ? rows.join("") : `<tr><td colspan="${headers.length}" class="text-center text-muted py-5">${empty}</td></tr>`}</tbody>
+      return `<div class="overflow-x-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-xl"><table class="table table-zebra w-full">
+      <thead><tr class="border-slate-800 text-slate-400 bg-slate-950/50">${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+      <tbody>${rows.length ? rows.join("") : `<tr><td colspan="${headers.length}" class="text-center text-slate-500 py-12">${empty}</td></tr>`}</tbody>
       </table></div>`;
     }
 
-    function badge(text, type = "bg-secondary text-light") {
-      return `<span class="badge ${type}">${safe(text)}</span>`;
+    function badge(text, type = "badge-neutral") {
+      return `<span class="badge ${type} font-medium text-xs">${safe(text)}</span>`;
     }
 
-    function metricCard(title, value, icon, color = "text-primary", sub = "") {
-      return `<div class="card card-custom p-4 h-100">
-        <div class="d-flex justify-content-between align-items-start">
+    function metricCard(title, value, icon, color = "text-blue-500", sub = "") {
+      return `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+        <div class="flex items-center justify-between">
           <div>
-            <p class="text-muted small mb-1">${title}</p>
-            <h3 class="fw-bold mb-0 text-white">${value}</h3>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">${title}</p>
+            <h3 class="text-2xl font-black text-white mt-2">${value}</h3>
           </div>
-          <div class="p-3 rounded-3 bg-opacity-10 bg-primary ${color}">
-            <i class="bi bi-${icon} fs-4"></i>
+          <div class="p-3.5 rounded-2xl bg-slate-800/80 ${color} shadow-inner">
+            <i class="bi bi-${icon} text-xl"></i>
           </div>
         </div>
-        ${sub ? `<p class="text-muted small mt-3 mb-0">${sub}</p>` : ""}
+        ${sub ? `<p class="text-xs text-slate-500 mt-4">${sub}</p>` : ""}
       </div>`;
     }
 
     function pageHeader(title, description, buttonText, action) {
-      return `<div class="d-flex flex-wrap justify-between align-items-center gap-3 mb-4">
+      return `<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h3 class="fw-bold text-white mb-1">${title}</h3>
-          <p class="text-muted small m-0">${description}</p>
+          <h3 class="text-2xl font-bold text-white tracking-tight">${title}</h3>
+          <p class="text-sm text-slate-400 mt-1">${description}</p>
         </div>
-        ${buttonText ? `<button class="btn btn-primary d-flex align-items-center gap-2" onclick="${action}"><i class="bi bi-plus-lg"></i>${buttonText}</button>` : ""}
+        ${buttonText ? `<button class="btn btn-primary btn-sm gap-2 shadow-lg shadow-blue-600/20" onclick="${action}"><i class="bi bi-plus-lg"></i>${buttonText}</button>` : ""}
       </div>`;
     }
 
     function searchInput(placeholder) {
-      return `<div class="input-group mb-4 shadow-sm" style="max-width: 400px;">
-        <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
-        <input id="tableSearch" class="form-control border-secondary" placeholder="${placeholder}" oninput="filterTable(this.value)">
+      return `<div class="relative mb-6 max-w-sm">
+        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500"><i class="bi bi-search"></i></span>
+        <input id="tableSearch" class="input input-bordered input-sm w-full pl-10 bg-slate-900 border-slate-800 focus:border-blue-500 text-slate-200" placeholder="${placeholder}" oninput="filterTable(this.value)">
       </div>`;
     }
 
     function filterTable(val) {
       const q = val.toLowerCase();
-      document.querySelectorAll("#dataTable tbody tr").forEach(tr => {
+      document.querySelectorAll("table tbody tr").forEach(tr => {
         tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none";
       });
     }
@@ -383,35 +321,31 @@
       const lowStock = db.products.filter(p => p.active !== false && p.stock <= p.min);
       const pendingOS = db.orders.filter(o => o.status !== "Concluída" && o.status !== "Entregue" && o.status !== "Cancelada");
 
-      const lowRows = lowStock.slice(0, 5).map(p => `<tr><td>${safe(p.name)}</td><td><span class="text-danger fw-bold">${p.stock}</span></td><td>${p.min}</td><td>${badge("Baixo", "bg-danger text-white")}</td></tr>`);
-      const osRows = pendingOS.slice(0, 5).map(o => `<tr><td>${safe(o.number)}</td><td>${safe(o.customer)}</td><td>${safe(o.motorcycle)}</td><td>${badge(o.status, "bg-warning text-dark")}</td></tr>`);
+      const lowRows = lowStock.slice(0, 5).map(p => `<tr><td>${safe(p.name)}</td><td><span class="text-error font-bold">${p.stock}</span></td><td>${p.min}</td><td>${badge("Baixo", "badge-error")}</td></tr>`);
+      const osRows = pendingOS.slice(0, 5).map(o => `<tr><td>${safe(o.number)}</td><td>${safe(o.customer)}</td><td>${safe(o.motorcycle)}</td><td>${badge(o.status, "badge-warning")}</td></tr>`);
 
       $("content").innerHTML = `
-        <div class="row g-4 mb-4">
-          <div class="col-sm-6 col-xl-3">${metricCard("Vendas de Hoje", money(revenue), "cart-check", "text-success", todaySales.length + " venda(s) realizada(s)")}</div>
-          <div class="col-sm-6 col-xl-3">${metricCard("Produtos no Estoque", db.products.length, "box-seam", "text-primary")}</div>
-          <div class="col-sm-6 col-xl-3">${metricCard("Ordens em Andamento", pendingOS.length, "tools", "text-warning", "Na oficina")}</div>
-          <div class="col-sm-6 col-xl-3">${metricCard("Alerta de Estoque", lowStock.length, "exclamation-triangle", "text-danger", "Itens abaixo do mínimo")}</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+          ${metricCard("Vendas de Hoje", money(revenue), "cart-check", "text-emerald-400", todaySales.length + " venda(s) registrada(s)")}
+          ${metricCard("Produtos no Estoque", db.products.length, "box-seam", "text-blue-400")}
+          ${metricCard("Ordens em Andamento", pendingOS.length, "tools", "text-amber-400", "Na oficina")}
+          ${metricCard("Alerta de Estoque", lowStock.length, "exclamation-triangle", "text-rose-400", "Itens abaixo do mínimo")}
         </div>
 
-        <div class="row g-4 mb-4">
-          <div class="col-xl-6">
-            <div class="card card-custom p-4 h-100">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold m-0 text-white">Estoque Baixo</h5>
-                <button class="btn btn-sm btn-outline-secondary" onclick="navigate('produtos')">Ver todos</button>
-              </div>
-              ${table(["Produto", "Qtd", "Mín", "Status"], lowRows, "Nenhum produto em alerta.")}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-5">
+              <h4 class="font-bold text-white text-base">Estoque Baixo</h4>
+              <button class="btn btn-ghost btn-xs text-blue-400" onclick="navigate('produtos')">Ver todos</button>
             </div>
+            ${table(["Produto", "Qtd", "Mín", "Status"], lowRows, "Nenhum produto em alerta.")}
           </div>
-          <div class="col-xl-6">
-            <div class="card card-custom p-4 h-100">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold m-0 text-white">Ordens de Serviço Abertas</h5>
-                <button class="btn btn-sm btn-outline-secondary" onclick="navigate('oficina')">Ver oficina</button>
-              </div>
-              ${table(["OS", "Cliente", "Moto", "Status"], osRows, "Nenhuma OS em aberto.")}
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+            <div class="flex justify-between items-center mb-5">
+              <h4 class="font-bold text-white text-base">Ordens de Serviço Abertas</h4>
+              <button class="btn btn-ghost btn-xs text-blue-400" onclick="navigate('oficina')">Ver oficina</button>
             </div>
+            ${table(["OS", "Cliente", "Moto", "Status"], osRows, "Nenhuma OS em aberto.")}
           </div>
         </div>`;
     }
@@ -420,24 +354,23 @@
     function renderProducts() {
       setPageTitle("Produtos e Estoque");
       const rows = db.products.map(p => `<tr>
-        <td><code>${safe(p.code || "—")}</code></td>
-        <td class="fw-bold">${safe(p.name)}</td>
+        <td><span class="font-mono text-xs text-slate-400">${safe(p.code || "—")}</span></td>
+        <td class="font-bold text-white">${safe(p.name)}</td>
         <td>${safe(p.category || "Peças")}</td>
         <td>${money(p.cost)}</td>
         <td>${money(p.price)}</td>
-        <td>${p.stock <= p.min ? badge(p.stock, "bg-danger") : badge(p.stock, "bg-success")}</td>
+        <td>${p.stock <= p.min ? badge(p.stock, "badge-error") : badge(p.stock, "badge-success")}</td>
         <td>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-secondary" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-outline-primary" onclick="stockMovement('${p.id}')"><i class="bi bi-plus-slash-minus"></i></button>
-            <button class="btn btn-outline-danger" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
+          <div class="flex gap-1">
+            <button class="btn btn-ghost btn-xs text-slate-300" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-ghost btn-xs text-blue-400" onclick="stockMovement('${p.id}')"><i class="bi bi-plus-slash-minus"></i></button>
+            <button class="btn btn-ghost btn-xs text-error" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
           </div>
         </td>
       </tr>`).reverse();
 
-      $("content").innerHTML = pageHeader("Gerenciamento de Produtos", "Cadastre peças, acessórios e controle seu estoque.", "Novo Produto", "addProduct()") +
-        searchInput("Pesquisar produto ou código...") +
-        table(["Código", "Nome", "Categoria", "Custo", "Venda", "Estoque", "Ações"], rows).replace('<table>', '<table id="dataTable" class="table table-dark-custom mb-0">');
+      $("content").innerHTML = pageHeader("Produtos e Estoque", "Gerencie peças, preços de custo, venda e quantidades.", "Novo Produto", "addProduct()") +
+        searchInput("Pesquisar produto...") + table(["Código", "Nome", "Categoria", "Custo", "Venda", "Estoque", "Ações"], rows);
     }
 
     async function addProduct(existing = null) {
@@ -482,59 +415,59 @@
       setPageTitle("PDV / Frente de Caixa");
       const options = db.products.filter(p => p.active !== false).map(p => `<option value="${p.id}">${safe(p.name)} — ${money(p.price)} (Disp: ${p.stock})</option>`).join("");
       const cartRows = cart.map((c, i) => `<tr>
-        <td>${safe(c.name)}</td><td>${c.qty}</td><td>${money(c.price)}</td><td>${money(c.qty * c.price)}</td>
-        <td><button class="btn btn-sm btn-outline-danger" onclick="removeCart(${i})"><i class="bi bi-x-lg"></i></button></td>
+        <td class="font-medium">${safe(c.name)}</td><td>${c.qty}</td><td>${money(c.price)}</td><td>${money(c.qty * c.price)}</td>
+        <td><button class="btn btn-ghost btn-xs text-error" onclick="removeCart(${i})"><i class="bi bi-x-lg"></i></button></td>
       </tr>`);
       const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
 
       $("content").innerHTML = `
-        <div class="row g-4">
-          <div class="col-lg-8">
-            <div class="card card-custom p-4 mb-4">
-              <h5 class="fw-bold mb-3 text-white">Adicionar Produtos</h5>
-              <div class="row g-3">
-                <div class="col-md-7">
-                  <select id="cartProduct" class="form-select"><option value="">Selecione um produto...</option>${options}</select>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+              <h4 class="font-bold text-white mb-4">Adicionar Produtos</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div class="sm:col-span-7">
+                  <select id="cartProduct" class="select select-bordered w-full bg-slate-950 border-slate-700 text-sm"><option value="">Selecione um produto...</option>${options}</select>
                 </div>
-                <div class="col-md-3">
-                  <input id="cartQty" class="form-control" type="number" min="1" value="1">
+                <div class="sm:col-span-3">
+                  <input id="cartQty" class="input input-bordered w-full bg-slate-950 border-slate-700 text-sm" type="number" min="1" value="1">
                 </div>
-                <div class="col-md-2">
-                  <button class="btn btn-primary w-100" onclick="addCart()">Adicionar</button>
+                <div class="sm:col-span-2">
+                  <button class="btn btn-primary w-full text-sm" onclick="addCart()">Adicionar</button>
                 </div>
               </div>
             </div>
-            <div class="card card-custom p-4">
-              <h5 class="fw-bold mb-3 text-white">Itens no Carrinho</h5>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+              <h4 class="font-bold text-white mb-4">Itens no Carrinho</h4>
               ${table(["Produto", "Qtd", "Unitário", "Subtotal", ""], cartRows, "Nenhum item adicionado.")}
             </div>
           </div>
-          <div class="col-lg-4">
-            <div class="card card-custom p-4">
-              <h5 class="fw-bold mb-3 text-white">Resumo da Venda</h5>
-              <div class="mb-3">
-                <label class="form-label text-muted small">Cliente</label>
-                <select id="saleCustomer" class="form-select">
+          <div>
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+              <h4 class="font-bold text-white mb-2">Resumo da Venda</h4>
+              <div class="form-control w-full">
+                <label class="label"><span class="label-text text-slate-400">Cliente</span></label>
+                <select id="saleCustomer" class="select select-bordered w-full bg-slate-950 border-slate-700 text-sm">
                   <option value="">Consumidor Final</option>
                   ${db.customers.map(c => `<option value="${c.id}">${safe(c.name)}</option>`).join("")}
                 </select>
               </div>
-              <div class="mb-3">
-                <label class="form-label text-muted small">Forma de Pagamento</label>
-                <select id="salePayment" class="form-select">
+              <div class="form-control w-full">
+                <label class="label"><span class="label-text text-slate-400">Forma de Pagamento</span></label>
+                <select id="salePayment" class="select select-bordered w-full bg-slate-950 border-slate-700 text-sm">
                   <option>Pix</option><option>Dinheiro</option><option>Débito</option><option>Crédito</option><option>A prazo</option>
                 </select>
               </div>
-              <div class="mb-4">
-                <label class="form-label text-muted small">Observações</label>
-                <input id="saleNote" class="form-control" placeholder="Opcional">
+              <div class="form-control w-full">
+                <label class="label"><span class="label-text text-slate-400">Observações</span></label>
+                <input id="saleNote" class="input input-bordered w-full bg-slate-950 border-slate-700 text-sm" placeholder="Opcional">
               </div>
-              <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-dark rounded-3">
-                <span class="text-muted">Total:</span>
-                <h3 class="fw-bold text-success m-0">${money(total)}</h3>
+              <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center my-4">
+                <span class="text-slate-400 text-sm">Total:</span>
+                <span class="text-2xl font-black text-emerald-400">${money(total)}</span>
               </div>
-              <button class="btn btn-success w-full py-2 fw-bold mb-2" onclick="finishSale()">Finalizar Venda</button>
-              <button class="btn btn-outline-secondary w-full" onclick="cart=[];render()">Limpar Carrinho</button>
+              <button class="btn btn-success w-full font-bold shadow-lg shadow-success/20 text-white" onclick="finishSale()">Finalizar Venda</button>
+              <button class="btn btn-ghost w-full text-slate-400" onclick="cart=[];render()">Limpar Carrinho</button>
             </div>
           </div>
         </div>`;
@@ -567,7 +500,7 @@
       db.sales.push(sale);
       db.transactions.push({ id: uid(), date: todayISO(), type: "Entrada", description: `Venda ${sale.number}`, value: total, status: payment === "A prazo" ? "Pendente" : "Concluído" });
       saveDB(); cart = [];
-      await Swal.fire({ icon: "success", title: "Venda realizada com sucesso!", background: "#131f32", color: "#e2e8f0" });
+      await Swal.fire({ icon: "success", title: "Venda realizada com sucesso!", background: "#0f172a", color: "#f8fafc" });
       render();
     }
 
@@ -575,21 +508,22 @@
     function renderWorkshop() {
       setPageTitle("Oficina / Ordens de Serviço");
       const rows = db.orders.map(o => `<tr>
-        <td><strong>${safe(o.number)}</strong></td>
+        <td class="font-bold text-white">${safe(o.number)}</td>
         <td>${safe(o.customer)}</td>
         <td>${safe(o.motorcycle)}</td>
         <td>${safe(o.problem)}</td>
-        <td>${badge(o.status, o.status === "Concluída" ? "bg-success" : "bg-warning text-dark")}</td>
+        <td>${badge(o.status, o.status === "Concluída" ? "badge-success" : "badge-warning")}</td>
         <td>${money(o.value)}</td>
         <td>
-          <button class="btn btn-sm btn-outline-secondary" onclick="editOrder('${o.id}')"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-outline-primary" onclick="orderStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i></button>
+          <div class="flex gap-1">
+            <button class="btn btn-ghost btn-xs text-slate-300" onclick="editOrder('${o.id}')"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-ghost btn-xs text-blue-400" onclick="orderStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i></button>
+          </div>
         </td>
       </tr>`).reverse();
 
       $("content").innerHTML = pageHeader("Ordens de Serviço", "Gerencie reparos, motos e andamento da oficina.", "Nova OS", "addOrder()") +
-        searchInput("Pesquisar OS, cliente ou moto...") +
-        table(["Nº OS", "Cliente", "Moto", "Defeito", "Status", "Valor", "Ações"], rows).replace('<table>', '<table id="dataTable" class="table table-dark-custom mb-0">');
+        searchInput("Pesquisar OS, cliente ou moto...") + table(["Nº OS", "Cliente", "Moto", "Defeito", "Status", "Valor", "Ações"], rows);
     }
 
     async function addOrder(existing = null) {
@@ -622,11 +556,11 @@
     function renderCustomers() {
       setPageTitle("Clientes");
       const rows = db.customers.map(c => `<tr>
-        <td><strong>${safe(c.name)}</strong></td><td>${safe(c.phone || "—")}</td><td>${safe(c.document || "—")}</td><td>${money(c.balance || 0)}</td>
-        <td><button class="btn btn-sm btn-outline-secondary" onclick="editCustomer('${c.id}')"><i class="bi bi-pencil"></i></button></td>
+        <td class="font-bold text-white">${safe(c.name)}</td><td>${safe(c.phone || "—")}</td><td>${safe(c.document || "—")}</td><td>${money(c.balance || 0)}</td>
+        <td><button class="btn btn-ghost btn-xs text-slate-300" onclick="editCustomer('${c.id}')"><i class="bi bi-pencil"></i></button></td>
       </tr>`).reverse();
       $("content").innerHTML = pageHeader("Clientes", "Cadastro de clientes.", "Novo Cliente", "addCustomer()") +
-        searchInput("Pesquisar cliente...") + table(["Nome", "Telefone", "CPF", "Saldo Fiado", "Ações"], rows).replace('<table>', '<table id="dataTable" class="table table-dark-custom mb-0">');
+        searchInput("Pesquisar cliente...") + table(["Nome", "Telefone", "CPF", "Saldo Fiado", "Ações"], rows);
     }
     async function addCustomer(existing = null) {
       const c = existing || {};
@@ -646,7 +580,7 @@
     /* --- FORNECEDORES --- */
     function renderSuppliers() {
       setPageTitle("Fornecedores");
-      const rows = db.suppliers.map(s => `<tr><td><strong>${safe(s.name)}</strong></td><td>${safe(s.phone || "—")}</td><td>${safe(s.document || "—")}</td></tr>`).reverse();
+      const rows = db.suppliers.map(s => `<tr><td class="font-bold text-white">${safe(s.name)}</td><td>${safe(s.phone || "—")}</td><td>${safe(s.document || "—")}</td></tr>`).reverse();
       $("content").innerHTML = pageHeader("Fornecedores", "Contatos de fornecedores de peças.", "Novo Fornecedor", "addSupplier()") +
         table(["Nome", "Telefone", "CNPJ"], rows);
     }
@@ -663,15 +597,15 @@
       const expense = db.transactions.filter(t => t.type === "Saída" && t.status === "Concluído").reduce((a, t) => a + t.value, 0);
       const rows = db.transactions.slice().reverse().map(t => `<tr>
         <td>${dateBR(t.date)}</td><td>${safe(t.description)}</td>
-        <td>${badge(t.type, t.type === "Entrada" ? "bg-success" : "bg-danger")}</td>
-        <td>${money(t.value)}</td><td>${badge(t.status, t.status === "Concluído" ? "bg-success" : "bg-warning text-dark")}</td>
+        <td>${badge(t.type, t.type === "Entrada" ? "badge-success" : "badge-error")}</td>
+        <td>${money(t.value)}</td><td>${badge(t.status, t.status === "Concluído" ? "badge-success" : "badge-warning")}</td>
       </tr>`);
 
       $("content").innerHTML = pageHeader("Controle Financeiro", "Entradas e despesas.", "Novo Lançamento", "addTransaction()") +
-        `<div class="row g-4 mb-4">
-          <div class="col-md-4">${metricCard("Entradas Realizadas", money(income), "arrow-up-circle", "text-success")}</div>
-          <div class="col-md-4">${metricCard("Saídas / Despesas", money(expense), "arrow-down-circle", "text-danger")}</div>
-          <div class="col-md-4">${metricCard("Saldo em Caixa", money(income - expense), "wallet2", "text-primary")}</div>
+        `<div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+          ${metricCard("Entradas Realizadas", money(income), "arrow-up-circle", "text-emerald-400")}
+          ${metricCard("Saídas / Despesas", money(expense), "arrow-down-circle", "text-rose-400")}
+          ${metricCard("Saldo em Caixa", money(income - expense), "wallet2", "text-blue-400")}
         </div>` + table(["Data", "Descrição", "Tipo", "Valor", "Status"], rows);
     }
     async function addTransaction() {
@@ -691,7 +625,7 @@
     function renderReports() {
       setPageTitle("Relatórios e Estatísticas");
       $("content").innerHTML = pageHeader("Relatórios", "Análise de desempenho.") +
-        `<div class="card card-custom p-4 mb-4"><h5 class="fw-bold text-white mb-3">Vendas dos Últimos Dias</h5><canvas id="salesChart" height="100"></canvas></div>`;
+        `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl mb-6"><h4 class="font-bold text-white mb-4">Vendas dos Últimos Dias</h4><canvas id="salesChart" height="100"></canvas></div>`;
       drawChart();
     }
     function drawChart() {
@@ -702,8 +636,8 @@
       const values = days.map(day => db.sales.filter(s => s.date === day).reduce((a, s) => a + s.total, 0));
       chartInstance = new Chart(canvas, {
         type: "bar",
-        data: { labels: days.map(dateBR), datasets: [{ data: values, backgroundColor: "#3b82f6", borderRadius: 6 }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#94a3b8" }, grid: { display: false } }, y: { ticks: { color: "#94a3b8" }, grid: { color: "#223249" } } } }
+        data: { labels: days.map(dateBR), datasets: [{ data: values, backgroundColor: "#3b82f6", borderRadius: 8 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#94a3b8" }, grid: { display: false } }, y: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } } } }
       });
     }
 
@@ -711,16 +645,20 @@
     function renderSettings() {
       setPageTitle("Configurações");
       $("content").innerHTML = pageHeader("Configurações", "Gerencie os dados e backup.") +
-        `<div class="card card-custom p-4 mb-4">
-          <h5 class="fw-bold text-white mb-3">Identificação da Empresa</h5>
-          <label class="form-label text-muted small">Nome da Oficina / Loja</label>
-          <input id="shopName" class="form-control mb-3" value="${safe(db.settings.shop)}">
-          <button class="btn btn-primary" onclick="saveSettings()">Salvar Alterações</button>
+        `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl mb-6 max-w-xl">
+          <h4 class="font-bold text-white mb-4">Identificação da Empresa</h4>
+          <div class="form-control w-full mb-4">
+            <label class="label"><span class="label-text text-slate-400">Nome da Oficina / Loja</span></label>
+            <input id="shopName" class="input input-bordered w-full bg-slate-950 border-slate-700" value="${safe(db.settings.shop)}">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveSettings()">Salvar Alterações</button>
         </div>
-        <div class="card card-custom p-4">
-          <h5 class="fw-bold text-white mb-3">Backup e Segurança</h5>
-          <button class="btn btn-outline-light me-2" onclick="exportBackup()"><i class="bi bi-download"></i> Baixar Backup JSON</button>
-          <button class="btn btn-outline-danger" onclick="clearData()"><i class="bi bi-trash"></i> Apagar Todos os Dados</button>
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl max-w-xl">
+          <h4 class="font-bold text-white mb-4">Backup e Segurança</h4>
+          <div class="flex flex-wrap gap-3">
+            <button class="btn btn-outline btn-sm gap-2" onclick="exportBackup()"><i class="bi bi-download"></i> Baixar Backup JSON</button>
+            <button class="btn btn-error btn-outline btn-sm gap-2" onclick="clearData()"><i class="bi bi-trash"></i> Apagar Todos os Dados</button>
+          </div>
         </div>`;
     }
     function saveSettings() {
