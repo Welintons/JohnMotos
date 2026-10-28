@@ -78,7 +78,7 @@
       <div class="brand-icon"><i class="bi bi-bicycle"></i></div>
       <div>
         <h4 style="font-size:14px; color:#fff;">JOHN MOTOS</h4>
-        <p style="font-size:11px; color:#34d399;" id="syncStatusText">Conectando...</p>
+        <p style="font-size:11px; color:#f59e0b;" id="syncStatusText">Verificando...</p>
       </div>
     </div>
     <div class="nav-links">
@@ -89,6 +89,9 @@
       <button class="navbtn" data-page="oficina"><i class="bi bi-tools"></i> Oficina / OS</button>
       <button class="navbtn" data-page="historico"><i class="bi bi-clock-history"></i> Histórico / Veículos</button>
       <button class="navbtn" data-page="clientes"><i class="bi bi-people"></i> Clientes</button>
+      
+      <p style="font-size:10px; color:#64748b; font-weight:bold; text-transform:uppercase; padding:15px 8px 5px; margin-bottom:5px;">Sistema</p>
+      <button class="navbtn" data-page="config_supabase"><i class="bi bi-cloud-check"></i> Configurar Supabase</button>
     </div>
   </aside>
 
@@ -99,7 +102,10 @@
         <h2 id="pageTitle" style="font-size: 18px; font-weight: 700;">Visão Geral</h2>
         <p id="todayDate" style="font-size: 12px; color: var(--muted);"></p>
       </div>
-      <button class="btn" onclick="navigate('pdv')"><i class="bi bi-plus-lg"></i> Nova Venda</button>
+      <div style="display: flex; gap: 15px; align-items: center;">
+        <span id="headerStatusBadge" class="badge badge-warn" style="font-size: 12px; padding: 6px 12px;">Verificando Conexão...</span>
+        <button class="btn" onclick="navigate('pdv')"><i class="bi bi-plus-lg"></i> Nova Venda</button>
+      </div>
     </header>
 
     <div class="content" id="content"></div>
@@ -124,18 +130,23 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-    // Credenciais atualizadas com a primeira chave informada
-    const SB_URL = "https://twzzayvfxodwzxtwbyqq.supabase.co";
-    const SB_KEY = "Sb_publishable_zCBCr9gs149bTGmHfmeV0A_96dPiSAo";
+    // Recupera URL e Key salvas manualmente ou usa valores vazios para configurar
+    let SB_URL = localStorage.getItem("jm_supabase_url") || "";
+    let SB_KEY = localStorage.getItem("jm_supabase_key") || "";
 
     let supabaseClient = null;
     let tgTemplates = {};
     let globalTelegramToken = "";
     let globalTelegramChatId = "";
 
-    try {
-      supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-    } catch(e) { console.error(e); }
+    function initSupabaseClient() {
+      supabaseClient = null;
+      if (SB_URL && SB_KEY) {
+        try {
+          supabaseClient = window.supabase.createClient(SB_URL.trim(), SB_KEY.trim());
+        } catch(e) { console.error("Erro ao iniciar Supabase:", e); }
+      }
+    }
 
     let db = {
       products: [],
@@ -155,22 +166,25 @@
     let pdvItemSearchFilter = "";
 
     async function initSystem() {
+      initSupabaseClient();
       if (supabaseClient) {
         await loadDataFromSupabase();
       } else {
-        loadLocalFallback();
+        loadLocalFallback("Supabase não configurado. Adicione URL e Key.");
       }
       initDailyReportCron();
       render();
     }
 
-    function loadLocalFallback() {
+    function loadLocalFallback(msg = "Modo Local / Cache") {
       const raw = localStorage.getItem("john_motos_cache");
       if (raw) {
         try { db = JSON.parse(raw); } catch(e) {}
       }
-      $("syncStatusText").textContent = "Modo Local / Cache";
+      $("syncStatusText").textContent = msg;
       $("syncStatusText").style.color = "#f59e0b";
+      $("headerStatusBadgeclassName").className = "badge badge-warn";
+      $("headerStatusBadge").textContent = "⚠️ " + msg;
     }
 
     async function loadDataFromSupabase() {
@@ -184,6 +198,10 @@
           supabaseClient.from("settings").select("*").limit(1).single(),
           supabaseClient.from("telegram_templates").select("*")
         ]);
+
+        if (pRes.error || cRes.error || oRes.error) {
+          throw new Error("Erro de acesso às tabelas do Supabase.");
+        }
 
         if (pRes.data) db.products = pRes.data;
         if (cRes.data) db.customers = cRes.data;
@@ -200,11 +218,13 @@
           tRes.data.forEach(t => { tgTemplates[t.key] = t.template; });
         }
 
-        $("syncStatusText").textContent = "Conectado na Nuvem";
+        $("syncStatusText").textContent = "Conectado na Nuvem ✅";
         $("syncStatusText").style.color = "#34d399";
+        $("headerStatusBadge").className = "badge badge-ok";
+        $("headerStatusBadge").innerHTML = '<i class="bi bi-cloud-check-fill"></i> Conectado ao Supabase';
       } catch (e) {
         console.error("Erro ao sincronizar com Supabase:", e);
-        loadLocalFallback();
+        loadLocalFallback("Erro na Conexão / RLS");
       }
     }
 
@@ -293,6 +313,7 @@
       else if (currentPage === "oficina") renderWorkshop();
       else if (currentPage === "historico") renderHistory();
       else if (currentPage === "clientes") renderCustomers();
+      else if (currentPage === "config_supabase") renderConfigSupabase();
       else renderHome();
     }
 
@@ -303,6 +324,61 @@
     }
     function closeModal() {
       $("appModal").classList.remove("active");
+    }
+
+    /* --- CONFIGURAÇÃO MANUAL DO SUPABASE --- */
+    function renderConfigSupabase() {
+      $("pageTitle").textContent = "Configurações de Conexão com o Supabase";
+      $("content").innerHTML = `
+        <div class="card" style="max-width: 600px; margin: 0 auto;">
+          <h3 style="font-size: 18px; margin-bottom: 15px;"><i class="bi bi-cloud-arrow-up"></i> Credenciais do Banco de Dados</h3>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Insira abaixo a URL do seu projeto Supabase e a sua Chave de Acesso (Key / Anon). O app testará a conexão imediatamente ao salvar.</p>
+          
+          <div class="mb-3">
+            <label class="label">Project URL (Supabase)</label>
+            <input id="inputSbUrl" class="field" value="${SB_URL}" placeholder="https://seu-projeto.supabase.co">
+          </div>
+
+          <div class="mb-3">
+            <label class="label">API Key / Anon Public Key</label>
+            <input id="inputSbKey" class="field" value="${SB_KEY}" placeholder="sb_publishable_... ou eyJ...">
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button class="btn" style="flex: 1; justify-content: center;" onclick="salvarCredenciaisSupabase()"><i class="bi bi-check-lg"></i> Salvar e Testar Conexão</button>
+            <button class="btn btn-danger" onclick="limparCredenciaisSupabase()"><i class="bi bi-trash"></i> Desconectar</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function salvarCredenciaisSupabase() {
+      const url = $("inputSbUrl").value.trim();
+      const key = $("inputSbKey").value.trim();
+
+      if (!url || !key) {
+        alert("Preencha tanto a URL quanto a Key do Supabase.");
+        return;
+      }
+
+      localStorage.setItem("jm_supabase_url", url);
+      localStorage.setItem("jm_supabase_key", key);
+
+      SB_URL = url;
+      SB_KEY = key;
+
+      alert("Credenciais salvas! Testando conexão com o Supabase...");
+      initSystem();
+    }
+
+    function limparCredenciaisSupabase() {
+      if (!confirm("Deseja remover as credenciais do Supabase e voltar ao modo local?")) return;
+      localStorage.removeItem("jm_supabase_url");
+      localStorage.removeItem("jm_supabase_key");
+      SB_URL = "";
+      SB_KEY = "";
+      initSystem();
+      alert("Credenciais removidas.");
     }
 
     /* --- VISÃO GERAL --- */
