@@ -13,6 +13,8 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Supabase JS Client (Pronto para conectar) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
@@ -24,7 +26,7 @@
 </head>
 <body class="min-h-screen flex">
 
-  <!-- SIDEBAR EXCLUSIVA (TEMA CLARO) -->
+  <!-- SIDEBAR EXCLUSIVA -->
   <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0 shadow-2xl">
     <div class="p-6 border-b border-slate-800 flex items-center gap-3 bg-slate-950">
       <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md">
@@ -78,10 +80,10 @@
     </div>
 
     <div class="p-4 m-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3">
-      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span id="syncIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
       <div>
-        <p class="text-xs font-semibold text-white">Banco Local Ativo</p>
-        <p class="text-[10px] text-slate-400">Sincronizado na máquina</p>
+        <p class="text-xs font-semibold text-white" id="syncStatusText">Modo Local</p>
+        <p class="text-[10px] text-slate-400">Pronto para Supabase</p>
       </div>
     </div>
   </aside>
@@ -116,6 +118,18 @@
 
   <script>
     "use strict";
+
+    /* ==========================================================
+       CONFIGURAÇÃO DO SUPABASE (PRONTO PARA PREENCHER)
+       Para ativar, basta colocar a URL e a Anon Key do seu projeto.
+    ========================================================== */
+    const SUPABASE_URL = localStorage.getItem("nexus_sb_url") || "";
+    const SUPABASE_ANON_KEY = localStorage.getItem("nexus_sb_key") || "";
+    
+    let supabase = null;
+    if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
     const $ = id => document.getElementById(id);
     const money = n => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -154,9 +168,16 @@
     let chartInstance = null;
     let currentPage = "inicio";
 
-    function saveDB() {
+    // Função central de salvamento (Preparada para enviar dados ao Supabase futuramente)
+    async function saveDB() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        
+        // Exemplo de gancho para o Supabase (se configurado)
+        if (supabase) {
+          // Aqui você poderá sincronizar as tabelas em background, ex:
+          // await supabase.from('app_data').upsert({ id: 1, payload: db });
+        }
         return true;
       } catch (e) {
         toast("Erro ao salvar dados.", "error");
@@ -246,6 +267,11 @@
     $("sidebarToggle").addEventListener("click", () => $("sidebar").classList.toggle("-translate-x-full"));
     $("todayDate").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
     $("shopTitleNav").textContent = db.settings.shop;
+
+    if (supabase) {
+      $("syncIndicator").className = "w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse";
+      $("syncStatusText").textContent = "Supabase Conectado";
+    }
 
     function table(headers, rows, empty = "Nenhum registro encontrado.") {
       return `<div class="overflow-x-auto bg-white border border-slate-200 rounded-2xl custom-shadow">
@@ -657,6 +683,18 @@
           </div>
           <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="saveSettings()">Salvar Alterações</button>
         </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow mb-6 max-w-xl">
+          <h4 class="font-bold text-slate-800 text-base mb-4">Conexão Supabase (Nuvem)</h4>
+          <div class="mb-3">
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Supabase URL</label>
+            <input id="sbUrl" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" value="${safe(SUPABASE_URL)}" placeholder="https://seu-projeto.supabase.co">
+          </div>
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Supabase Anon Key</label>
+            <input id="sbKey" type="password" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" value="${safe(SUPABASE_ANON_KEY)}" placeholder="chave-anon-aqui">
+          </div>
+          <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="saveSupabaseConfig()">Salvar e Conectar Supabase</button>
+        </div>
         <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow max-w-xl">
           <h4 class="font-bold text-slate-800 text-base mb-4">Backup e Dados</h4>
           <div class="flex flex-wrap gap-3">
@@ -668,6 +706,14 @@
     function saveSettings() {
       db.settings.shop = $("shopName").value.trim() || "Oficina & Peças";
       saveDB(); $("shopTitleNav").textContent = db.settings.shop; toast("Configurações salvas!");
+    }
+    function saveSupabaseConfig() {
+      const url = $("sbUrl").value.trim();
+      const key = $("sbKey").value.trim();
+      localStorage.setItem("nexus_sb_url", url);
+      localStorage.setItem("nexus_sb_key", key);
+      toast("Credenciais salvas! Recarregando sistema...");
+      setTimeout(() => location.reload(), 1500);
     }
     function exportBackup() {
       const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
