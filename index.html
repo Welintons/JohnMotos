@@ -12,7 +12,7 @@
     :root {
       --bg: #f8fafc; --sidebar: #0f172a; --card: #ffffff;
       --text: #1e293b; --muted: #64748b; --primary: #2563eb;
-      --border: #e2e8f0; --success: #059669; --danger: #dc2626;
+      --border: #e2e8f0; --success: #059669; --danger: #dc2626; --warning: #d97706;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
@@ -50,8 +50,9 @@
     .btn:hover { opacity: 0.9; }
     .btn-success { background: var(--success); }
     .btn-danger { background: var(--danger); }
+    .btn-warning { background: var(--warning); color: #fff; }
     .btn-secondary { background: #64748b; }
-    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
     .field { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; background: #fff; margin-top: 5px; }
     .field:focus { border-color: var(--primary); }
     .label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
@@ -123,11 +124,7 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-    // URL Fixa do Supabase
     const SB_URL = "https://twzzayvfxodwzxtwbyqq.supabase.co";
-    
-    // Aqui usamos o valor que estava funcionando quando você configurava manualmente:
-    // (Caso você tenha salvado a chave anon 'eyJ...' no navegador anteriormente, ele puxa dela de forma segura)
     const SB_KEY = localStorage.getItem("nexus_sb_key") || "Sb_publishable_zCBCr9gs149bTGmHfmeV0A_96dPiSAo";
 
     let supabaseClient = null;
@@ -333,7 +330,10 @@
         <td><b>${p.name}</b></td>
         <td>${money(p.price)}</td>
         <td>${p.stock} un</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button></td>
+        <td>
+          <button class="btn btn-warning btn-sm" onclick="openProductModal('${p.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
+        </td>
       </tr>`).join("");
 
       $("content").innerHTML = `
@@ -354,30 +354,41 @@
       return "PEC-" + String(count).padStart(3, '0');
     }
 
-    function openProductModal() {
-      const nextCode = generateProductCode();
-      openModal("Novo Produto", `
-        <div class="mb-3"><label class="label">Código Automático</label><input id="pCode" class="field" value="${nextCode}" disabled></div>
-        <div class="mb-3"><label class="label">Nome do Produto</label><input id="pName" class="field" placeholder="Ex: Pastilha de Freio CG 150"></div>
-        <div class="mb-3"><label class="label">Preço de Venda (R$)</label><input id="pPrice" type="number" step="0.01" class="field" value="0.00"></div>
-        <div class="mb-3"><label class="label">Quantidade em Estoque</label><input id="pStock" type="number" class="field" value="10"></div>
-        <button class="btn" style="width:100%; justify-content:center;" onclick="saveProduct()">Salvar Produto</button>
+    function openProductModal(id = null) {
+      const p = id ? db.products.find(x => x.id === id) : null;
+      openModal(p ? "Editar Produto" : "Novo Produto", `
+        <div class="mb-3"><label class="label">Código</label><input id="pCode" class="field" value="${p ? p.code : generateProductCode()}" disabled></div>
+        <div class="mb-3"><label class="label">Nome do Produto</label><input id="pName" class="field" value="${p ? p.name : ''}" placeholder="Ex: Pastilha de Freio CG 150"></div>
+        <div class="mb-3"><label class="label">Preço de Venda (R$)</label><input id="pPrice" type="number" step="0.01" class="field" value="${p ? p.price : '0.00'}"></div>
+        <div class="mb-3"><label class="label">Quantidade em Estoque</label><input id="pStock" type="number" class="field" value="${p ? p.stock : '10'}"></div>
+        <button class="btn" style="width:100%; justify-content:center;" onclick="saveProduct('${id || ''}')">Salvar Produto</button>
       `);
     }
 
-    async function saveProduct() {
+    async function saveProduct(id) {
       const code = $("pCode").value;
       const name = $("pName").value.trim();
       const price = parseFloat($("pPrice").value) || 0;
       const stock = parseInt($("pStock").value) || 0;
 
       if (!name) return alert("Digite o nome do produto.");
-      const newProd = { id: uid(), code, name, price, stock };
-      db.products.push(newProd);
-      saveCache();
 
-      if (supabaseClient) {
-        await supabaseClient.from("products").insert([newProd]);
+      if (id) {
+        const prod = db.products.find(x => x.id === id);
+        if (prod) {
+          prod.name = name; prod.price = price; prod.stock = stock;
+          saveCache();
+          if (supabaseClient) {
+            await supabaseClient.from("products").update({ name, price, stock }).eq("id", id);
+          }
+        }
+      } else {
+        const newProd = { id: uid(), code, name, price, stock };
+        db.products.push(newProd);
+        saveCache();
+        if (supabaseClient) {
+          await supabaseClient.from("products").insert([newProd]);
+        }
       }
 
       closeModal();
@@ -478,14 +489,7 @@
       if (!name) return alert("Digite a descrição do serviço/item livre.");
       if (isNaN(price) || price <= 0) return alert("Digite um valor válido.");
 
-      cart.push({
-        id: uid(),
-        name: name,
-        price: price,
-        qty: 1,
-        isCustom: true
-      });
-
+      cart.push({ id: uid(), name: name, price: price, qty: 1, isCustom: true });
       renderPDV();
     }
 
@@ -541,7 +545,8 @@
         <td><span class="badge badge-warn">${o.status}</span></td>
         <td>${money(o.value)}</td>
         <td>
-          ${o.status === 'Em andamento' ? `<button class="btn btn-success btn-sm" onclick="finishOrder('${o.id}')"><i class="bi bi-check-lg"></i> Concluir</button>` : '<span style="color:var(--success); font-weight:600;">Finalizada</span>'}
+          <button class="btn btn-warning btn-sm" onclick="openOrderModal('${o.id}')"><i class="bi bi-pencil"></i></button>
+          ${o.status === 'Em andamento' ? `<button class="btn btn-success btn-sm" onclick="finishOrder('${o.id}')"><i class="bi bi-check-lg"></i></button>` : '<span style="color:var(--success); font-weight:600;">Ok</span>'}
         </td>
       </tr>`).join("");
 
@@ -558,18 +563,19 @@
       `;
     }
 
-    function openOrderModal() {
-      openModal("Nova Ordem de Serviço", `
-        <div class="mb-3"><label class="label">Nome do Cliente</label><input id="osCustomer" class="field" placeholder="Ex: João Silva"></div>
-        <div class="mb-3"><label class="label">Modelo da Moto</label><input id="osVehicle" class="field" placeholder="Ex: Honda Titan 160"></div>
-        <div class="mb-3"><label class="label">Placa da Moto</label><input id="osPlate" class="field" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
-        <div class="mb-3"><label class="label">Defeito Relatado / Serviço</label><input id="osProblem" class="field" placeholder="Ex: Troca de óleo e relação"></div>
-        <div class="mb-3"><label class="label">Valor Estimado (R$)</label><input id="osValue" type="number" step="0.01" class="field" value="0.00"></div>
-        <button class="btn" style="width:100%; justify-content:center;" onclick="saveOrder()">Abrir OS</button>
+    function openOrderModal(id = null) {
+      const o = id ? db.orders.find(x => x.id === id) : null;
+      openModal(o ? "Editar OS" : "Nova Ordem de Serviço", `
+        <div class="mb-3"><label class="label">Nome do Cliente</label><input id="osCustomer" class="field" value="${o ? o.customer : ''}" placeholder="Ex: João Silva"></div>
+        <div class="mb-3"><label class="label">Modelo da Moto</label><input id="osVehicle" class="field" value="${o ? o.vehicle : ''}" placeholder="Ex: Honda Titan 160"></div>
+        <div class="mb-3"><label class="label">Placa da Moto</label><input id="osPlate" class="field" value="${o ? o.plate : ''}" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
+        <div class="mb-3"><label class="label">Defeito Relatado / Serviço</label><input id="osProblem" class="field" value="${o ? o.problem : ''}" placeholder="Ex: Troca de óleo e relação"></div>
+        <div class="mb-3"><label class="label">Valor Estimado (R$)</label><input id="osValue" type="number" step="0.01" class="field" value="${o ? o.value : '0.00'}"></div>
+        <button class="btn" style="width:100%; justify-content:center;" onclick="saveOrder('${id || ''}')">${o ? 'Salvar Alterações' : 'Abrir OS'}</button>
       `);
     }
 
-    async function saveOrder() {
+    async function saveOrder(id) {
       const customer = $("osCustomer").value.trim();
       const vehicle = $("osVehicle").value.trim();
       const plate = $("osPlate").value.trim().toUpperCase();
@@ -578,18 +584,27 @@
 
       if (!customer || !vehicle || !plate) return alert("Preencha o cliente, a moto e a placa.");
 
-      const number = "OS-" + Math.floor(1000 + Math.random() * 9000);
-      const newOrder = { id: uid(), number, customer, vehicle, plate, problem, value, status: "Em andamento", date: todayISO() };
-      
-      db.orders.push(newOrder);
-      saveCache();
-
-      if (supabaseClient) {
-        await supabaseClient.from("orders").insert([newOrder]);
+      if (id) {
+        const order = db.orders.find(x => x.id === id);
+        if (order) {
+          order.customer = customer; order.vehicle = vehicle; order.plate = plate; order.problem = problem; order.value = value;
+          saveCache();
+          if (supabaseClient) {
+            await supabaseClient.from("orders").update({ customer, vehicle, plate, problem, value }).eq("id", id);
+          }
+        }
+      } else {
+        const number = "OS-" + Math.floor(1000 + Math.random() * 9000);
+        const newOrder = { id: uid(), number, customer, vehicle, plate, problem, value, status: "Em andamento", date: todayISO() };
+        db.orders.push(newOrder);
+        saveCache();
+        if (supabaseClient) {
+          await supabaseClient.from("orders").insert([newOrder]);
+        }
+        await sendTelegramTemplate("nova_os", { number, customer, vehicle, plate, problem });
       }
 
       closeModal();
-      await sendTelegramTemplate("nova_os", { number, customer, vehicle, plate, problem });
       renderWorkshop();
     }
 
@@ -699,7 +714,14 @@
     /* --- CLIENTES --- */
     function renderCustomers() {
       $("pageTitle").textContent = "Clientes";
-      const rows = db.customers.map(c => `<tr><td><b>${c.name}</b></td><td>${c.phone || "—"}</td><td>${c.doc || "—"}</td></tr>`).join("");
+      const rows = db.customers.map(c => `<tr>
+        <td><b>${c.name}</b></td>
+        <td>${c.phone || "—"}</td>
+        <td><code style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:700;">${c.plate || "—"}</code></td>
+        <td>
+          <button class="btn btn-warning btn-sm" onclick="openCustomerModal('${c.id}')"><i class="bi bi-pencil"></i></button>
+        </td>
+      </tr>`).join("");
 
       $("content").innerHTML = `
         <div style="margin-bottom: 20px;">
@@ -707,34 +729,46 @@
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Nome</th><th>Telefone</th><th>CPF/CNPJ</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>'}</tbody>
+            <thead><tr><th>Nome</th><th>Telefone</th><th>Placa da Moto</th><th>Ação</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>'}</tbody>
           </table>
         </div>
       `;
     }
 
-    function openCustomerModal() {
-      openModal("Novo Cliente", `
-        <div class="mb-3"><label class="label">Nome Completo</label><input id="cName" class="field" placeholder="Ex: Maria Souza"></div>
-        <div class="mb-3"><label class="label">Telefone / WhatsApp</label><input id="cPhone" class="field" placeholder="(88) 99999-9999"></div>
-        <div class="mb-3"><label class="label">CPF ou CNPJ</label><input id="cDoc" class="field" placeholder="000.000.000-00"></div>
-        <button class="btn" style="width:100%; justify-content:center;" onclick="saveCustomer()">Salvar Cliente</button>
+    function openCustomerModal(id = null) {
+      const c = id ? db.customers.find(x => x.id === id) : null;
+      openModal(c ? "Editar Cliente" : "Novo Cliente", `
+        <div class="mb-3"><label class="label">Nome Completo</label><input id="cName" class="field" value="${c ? c.name : ''}" placeholder="Ex: Maria Souza"></div>
+        <div class="mb-3"><label class="label">Telefone / WhatsApp</label><input id="cPhone" class="field" value="${c ? c.phone || '' : ''}" placeholder="(88) 99999-9999"></div>
+        <div class="mb-3"><label class="label">Placa da Moto</label><input id="cPlate" class="field" value="${c ? c.plate || '' : ''}" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
+        <button class="btn" style="width:100%; justify-content:center;" onclick="saveCustomer('${id || ''}')">${c ? 'Salvar Alterações' : 'Salvar Cliente'}</button>
       `);
     }
 
-    async function saveCustomer() {
+    async function saveCustomer(id) {
       const name = $("cName").value.trim();
       const phone = $("cPhone").value.trim();
-      const doc = $("cDoc").value.trim();
+      const plate = $("cPlate").value.trim().toUpperCase();
 
       if (!name) return alert("Digite o nome do cliente.");
-      const newCust = { id: uid(), name, phone, doc };
-      db.customers.push(newCust);
-      saveCache();
 
-      if (supabaseClient) {
-        await supabaseClient.from("customers").insert([newCust]);
+      if (id) {
+        const cust = db.customers.find(x => x.id === id);
+        if (cust) {
+          cust.name = name; cust.phone = phone; cust.plate = plate;
+          saveCache();
+          if (supabaseClient) {
+            await supabaseClient.from("customers").update({ name, phone, plate }).eq("id", id);
+          }
+        }
+      } else {
+        const newCust = { id: uid(), name, phone, plate };
+        db.customers.push(newCust);
+        saveCache();
+        if (supabaseClient) {
+          await supabaseClient.from("customers").insert([newCust]);
+        }
       }
 
       closeModal();
