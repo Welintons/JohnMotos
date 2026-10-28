@@ -8,7 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Leitor de Código de Barras via Câmera (Opcional) -->
+  <!-- Leitor de Câmera (Opcional) -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root {
@@ -145,7 +145,7 @@
       sales: [],
       orders: [],
       history: [],
-      settings: { shop: "John Motos" }
+      settings: { shop_name: "John Motos" }
     };
 
     let cart = [];
@@ -162,7 +162,6 @@
       } else {
         loadLocalFallback();
       }
-      initDailyReportCron();
       render();
     }
 
@@ -177,14 +176,13 @@
 
     async function loadDataFromSupabase() {
       try {
-        const [pRes, cRes, oRes, hRes, sRes, setRes, tRes] = await Promise.all([
+        const [pRes, cRes, oRes, hRes, sRes, setRes] = await Promise.all([
           supabaseClient.from("products").select("*"),
           supabaseClient.from("customers").select("*"),
           supabaseClient.from("orders").select("*"),
           supabaseClient.from("history").select("*"),
           supabaseClient.from("sales").select("*"),
-          supabaseClient.from("settings").select("*").limit(1).single(),
-          supabaseClient.from("telegram_templates").select("*")
+          supabaseClient.from("settings").select("*").limit(1).maybeSingle()
         ]);
 
         if (pRes.data) db.products = pRes.data;
@@ -196,10 +194,6 @@
         if (setRes.data) {
           globalTelegramToken = setRes.data.telegram_token || "";
           globalTelegramChatId = setRes.data.telegram_chat_id || "";
-        }
-
-        if (tRes.data) {
-          tRes.data.forEach(t => { tgTemplates[t.key] = t.template; });
         }
 
         $("syncStatusText").textContent = "Conectado na Nuvem";
@@ -217,14 +211,10 @@
     async function sendTelegramTemplate(key, dataObj) {
       if (!globalTelegramToken || !globalTelegramChatId) return;
       
-      let templateStr = tgTemplates[key];
-      if (!templateStr) {
-        if (key === 'nova_venda') templateStr = "📋 *REGISTRO DE VENDA • JOHN MOTOS*\n──────────────────────────\n*Itens / Serviços:*\n{items}\n──────────────────────────\n💳 *Pagamento:* {payment}\n💰 *Valor Total:* *{total}*\n──────────────────────────\n✅ *Transação concluída com sucesso*";
-        else if (key === 'nova_os') templateStr = "🔧 *NOVA OS ABERTA* 📋\n━━━━━━━━━━━━━━━━━━\n🆔 *OS:* #{number}\n👤 *Cliente:* {customer}\n🏍️ *Moto:* {vehicle}\n🏷️ *Placa:* `{plate}`\n🛠️ *Serviço/Defeito:* {problem}\n━━━━━━━━━━━━━━━━━━\n⏳ *Status:* Em andamento na oficina.";
-        else if (key === 'estoque_baixo') templateStr = "⚠️ *ALERTA DE ESTOQUE BAIXO* 🛑\n━━━━━━━━━━━━━━━━━━\n📦 *Peça/Produto:* {product_name}\n📉 *Quantidade Restante:* *{stock} unidades*\n━━━━━━━━━━━━━━━━━━\n💡 *Dica:* Hora de repor no fornecedor!";
-        else if (key === 'relatorio_dia') templateStr = "📊 *RESUMO DO DIÁRIO • JOHN MOTOS* 🌙\n📅 {date}\n━━━━━━━━━━━━━━━━━━\n💰 *Total no Caixa:* *{total_sales}*\n• Pix: {pix_total}\n• Dinheiro: {cash_total}\n• Outros/Cartão: {card_total}\n━━━━━━━━━━━━━━━━━━\n📝 *Movimento:*\n• Vendas: {count_sales}\n• OS Concluídas: {count_orders}\n• Motos na oficina: {pending_orders}\n━━━━━━━━━━━━━━━━━━\n⚠️ *Peças acabando (Repor):*\n{low_stock_items}\n━━━━━━━━━━━━━━━━━━\n👍 *Expediente encerrado por hoje!*";
-        else templateStr = "🔔 *Notificação John Motos*";
-      }
+      let templateStr = "🔔 *Notificação John Motos*";
+      if (key === 'nova_venda') templateStr = "📋 *REGISTRO DE VENDA • JOHN MOTOS*\n──────────────────────────\n*Itens / Serviços:*\n{items}\n──────────────────────────\n💳 *Pagamento:* {payment}\n💰 *Valor Total:* *{total}*\n──────────────────────────\n✅ *Transação concluída com sucesso*";
+      else if (key === 'nova_os') templateStr = "🔧 *NOVA OS ABERTA* 📋\n━━━━━━━━━━━━━━━━━━\n🆔 *OS:* #{number}\n👤 *Cliente:* {customer}\n🏍️ *Moto:* {vehicle}\n🏷️ *Placa:* `{plate}`\n🛠️ *Serviço/Defeito:* {problem}\n━━━━━━━━━━━━━━━━━━\n⏳ *Status:* Em andamento na oficina.";
+      else if (key === 'estoque_baixo') templateStr = "⚠️ *ALERTA DE ESTOQUE BAIXO* 🛑\n━━━━━━━━━━━━━━━━━━\n📦 *Peça/Produto:* {product_name}\n📉 *Quantidade Restante:* *{stock} unidades*\n━━━━━━━━━━━━━━━━━━\n💡 *Dica:* Hora de repor no fornecedor!";
 
       for (const [k, v] of Object.entries(dataObj)) {
         templateStr = templateStr.replaceAll(`{${k}}`, v);
@@ -239,39 +229,6 @@
       } catch (e) {
         console.error("Erro ao enviar Telegram:", e);
       }
-    }
-
-    function initDailyReportCron() {
-      setInterval(() => {
-        const now = new Date();
-        if (now.getHours() === 19 && now.getMinutes() === 0) {
-          const todayStr = todayISO();
-          const lastSentKey = "john_report_sent_" + todayStr;
-          if (!localStorage.getItem(lastSentKey)) {
-            sendDailyReport();
-            localStorage.setItem(lastSentKey, "true");
-          }
-        }
-      }, 30000);
-    }
-
-    async function sendDailyReport() {
-      const today = todayISO();
-      const todaySales = db.sales.filter(s => s.date === today);
-      const todayOrders = db.orders.filter(o => o.date === today);
-      const totalRevenue = todaySales.reduce((a, b) => a + Number(b.total), 0);
-
-      await sendTelegramTemplate("relatorio_dia", {
-        date: new Date().toLocaleDateString("pt-BR"),
-        total_sales: money(totalRevenue),
-        pix_total: "R$ 0,00",
-        cash_total: "R$ 0,00",
-        card_total: "R$ 0,00",
-        count_sales: todaySales.length,
-        count_orders: todayOrders.length,
-        pending_orders: db.orders.filter(o => o.status === 'Em andamento').length,
-        low_stock_items: "Nenhum no momento"
-      });
     }
 
     function navigate(page) {
@@ -315,7 +272,7 @@
     /* --- VISÃO GERAL --- */
     function renderHome() {
       $("pageTitle").textContent = "Visão Geral - John Motos";
-      const totalSales = db.sales.reduce((a, b) => a + b.total, 0);
+      const totalSales = db.sales.reduce((a, b) => a + Number(b.total), 0);
       const uniquePlacas = [...new Set(db.history.map(h => h.plate))].length;
       $("content").innerHTML = `
         <div class="grid-4">
@@ -383,7 +340,6 @@
           </div>
         </div>
 
-        <!-- Leitor de Câmera Oculto até ser ativado -->
         <div id="readerContainer" style="display:none; margin-bottom:15px;">
           <div id="reader" style="width:100%; border-radius:8px; overflow:hidden;"></div>
           <button type="button" class="btn btn-danger btn-sm" style="margin-top:8px; width:100%;" onclick="stopBarcodeScanner()">Fechar Câmera</button>
@@ -395,7 +351,6 @@
         <button class="btn" style="width:100%; justify-content:center;" onclick="saveProduct('${id || ''}')">Salvar Produto</button>
       `);
 
-      // Foca automaticamente no campo de código para o leitor USB funcionar na hora
       setTimeout(() => {
         const inputCode = $("pCode");
         if (inputCode) inputCode.focus();
@@ -414,7 +369,7 @@
           $("pCode").value = decodedText;
           stopBarcodeScanner();
         },
-        (errorMessage) => { /* Ignora erros de frame contínuo */ }
+        (errorMessage) => {}
       ).catch(err => {
         alert("Erro ao iniciar a câmera: " + err);
       });
@@ -566,7 +521,6 @@
       }
     }
 
-    // Atalho inteligente: se o usuário bipar o código exato no PDV, ele adiciona direto ao carrinho!
     function verificarBipePDV(val) {
       pdvItemSearchFilter = val;
       const exactMatch = db.products.find(p => p.code && p.code.toLowerCase() === val.trim().toLowerCase());
@@ -622,13 +576,13 @@
               await sendTelegramTemplate("estoque_baixo", { product_name: p.name, stock: p.stock });
             }
             if (supabaseClient) {
-              await supabaseClient.from("products").update({ stock: p.stock }).eq("id", p.id);
+              await supabaseClient.from("products").update({ stock: p.stock }).eq("id", c.id);
             }
           }
         }
       }
 
-      const sale = { id: uid(), date: todayISO(), total, payment, items: [...cart] };
+      const sale = { id: uid(), date: todayISO(), total, payment, items: cart };
       db.sales.push(sale);
       saveCache();
 
@@ -637,12 +591,7 @@
       }
 
       const itemsFormatted = cart.map(c => `• ${c.qty}x ${c.name} — ${money(c.price * c.qty)}`).join("\n");
-
-      await sendTelegramTemplate("nova_venda", { 
-        items: itemsFormatted,
-        total: money(total), 
-        payment 
-      });
+      await sendTelegramTemplate("nova_venda", { items: itemsFormatted, total: money(total), payment });
 
       cart = [];
       pdvItemSearchFilter = "";
@@ -821,7 +770,7 @@
 
       const vehicleName = records[0].vehicle;
       const itemsHtml = records.map(r => `
-        <div style="border-bottom: 1px solid var(--border); padding: 12px 0; display:flex; justify-content:space-between; align-items:center;" id="hist-row-${r.id}">
+        <div style="border-bottom: 1px solid var(--border); padding: 12px 0; display:flex; justify-content:space-between; align-items:center;">
           <div>
             <div style="display:flex; gap:10px; margin-bottom:4px;">
               <span style="font-size:12px; font-weight:600; color:var(--muted);">Data: ${r.date} (${r.number})</span>
@@ -830,7 +779,7 @@
             <p style="font-size:14px;"><b>Serviço:</b> ${r.service}</p>
             <p style="font-size:12px; color:var(--muted); margin-top:2px;">Cliente responsável: ${r.customer}</p>
           </div>
-          <button class="btn btn-danger btn-sm" onclick="deleteHistoryRecord('${r.id}', '${plate}')" title="Excluir este registro"><i class="bi bi-trash"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteHistoryRecord('${r.id}', '${plate}')"><i class="bi bi-trash"></i></button>
         </div>
       `).join("");
 
@@ -847,8 +796,7 @@
     }
 
     async function deleteHistoryRecord(id, plate) {
-      if (!confirm("Deseja realmente excluir este registro do histórico da moto?")) return;
-
+      if (!confirm("Deseja realmente excluir este registro?")) return;
       db.history = db.history.filter(h => h.id !== id);
       saveCache();
 
@@ -870,14 +818,13 @@
       $("pageTitle").textContent = "Clientes";
       const filtered = db.customers.filter(c => 
         c.name.toLowerCase().includes(customerSearchFilter.toLowerCase()) || 
-        (c.plate && c.plate.toLowerCase().includes(customerSearchFilter.toLowerCase())) ||
         (c.phone && c.phone.toLowerCase().includes(customerSearchFilter.toLowerCase()))
       );
 
       const rows = filtered.map(c => `<tr>
         <td><b>${c.name}</b></td>
         <td>${c.phone || "—"}</td>
-        <td><code style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:700;">${c.plate || "—"}</code></td>
+        <td>${c.doc || "—"}</td>
         <td>
           <button class="btn btn-warning btn-sm" onclick="openCustomerModal('${c.id}')"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')"><i class="bi bi-trash"></i></button>
@@ -887,11 +834,11 @@
       $("content").innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
           <button class="btn" onclick="openCustomerModal()"><i class="bi bi-plus-lg"></i> Novo Cliente</button>
-          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar cliente ou placa..." value="${customerSearchFilter}" oninput="customerSearchFilter=this.value; renderCustomers();">
+          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar cliente..." value="${customerSearchFilter}" oninput="customerSearchFilter=this.value; renderCustomers();">
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Nome</th><th>Telefone</th><th>Placa da Moto</th><th>Ações</th></tr></thead>
+            <thead><tr><th>Nome</th><th>Telefone</th><th>Documento</th><th>Ações</th></tr></thead>
             <tbody>${rows || '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente encontrado.</td></tr>'}</tbody>
           </table>
         </div>
@@ -903,7 +850,7 @@
       openModal(c ? "Editar Cliente" : "Novo Cliente", `
         <div class="mb-3"><label class="label">Nome Completo</label><input id="cName" class="field" value="${c ? c.name : ''}" placeholder="Ex: Maria Souza"></div>
         <div class="mb-3"><label class="label">Telefone / WhatsApp</label><input id="cPhone" class="field" value="${c ? c.phone || '' : ''}" placeholder="(88) 99999-9999"></div>
-        <div class="mb-3"><label class="label">Placa da Moto</label><input id="cPlate" class="field" value="${c ? c.plate || '' : ''}" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
+        <div class="mb-3"><label class="label">Documento / CPF</label><input id="cDoc" class="field" value="${c ? c.doc || '' : ''}" placeholder="000.000.000-00"></div>
         <button class="btn" style="width:100%; justify-content:center;" onclick="saveCustomer('${id || ''}')">${c ? 'Salvar Alterações' : 'Salvar Cliente'}</button>
       `);
     }
@@ -911,21 +858,21 @@
     async function saveCustomer(id) {
       const name = $("cName").value.trim();
       const phone = $("cPhone").value.trim();
-      const plate = $("cPlate").value.trim().toUpperCase();
+      const doc = $("cDoc").value.trim();
 
       if (!name) return alert("Digite o nome do cliente.");
 
       if (id) {
         const cust = db.customers.find(x => x.id === id);
         if (cust) {
-          cust.name = name; cust.phone = phone; cust.plate = plate;
+          cust.name = name; cust.phone = phone; cust.doc = doc;
           saveCache();
           if (supabaseClient) {
-            await supabaseClient.from("customers").update({ name, phone, plate }).eq("id", id);
+            await supabaseClient.from("customers").update({ name, phone, doc }).eq("id", id);
           }
         }
       } else {
-        const newCust = { id: uid(), name, phone, plate };
+        const newCust = { id: uid(), name, phone, doc };
         db.customers.push(newCust);
         saveCache();
         if (supabaseClient) {
