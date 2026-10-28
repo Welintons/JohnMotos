@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Nexus Oficina & Peças | Gestão</title>
+  <title>Nexus Oficina & Peças | Gestão Avançada</title>
   <!-- Ícones -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
       --bg: #f8fafc; --sidebar: #0f172a; --card: #ffffff;
       --text: #1e293b; --muted: #64748b; --primary: #2563eb;
-      --border: #e2e8f0;
+      --border: #e2e8f0; --success: #059669; --danger: #dc2626;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
     
     /* Sidebar */
-    aside { width: 260px; background: var(--sidebar); color: #cbd5e1; display: flex; flex-direction: column; position: fixed; inset: y 0; height: 100vh; z-index: 50; }
+    aside { width: 260px; background: var(--sidebar); color: #cbd5e1; display: flex; flex-direction: column; position: fixed; inset: 0 auto 0 0; height: 100vh; z-index: 50; }
     .brand { padding: 20px; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
     .brand-icon { background: var(--primary); color: white; padding: 10px; border-radius: 10px; font-size: 18px; }
     .nav-links { padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex: 1; }
@@ -32,6 +34,7 @@
     /* Cards & Tabelas */
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
     .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
     .metric { display: flex; justify-content: space-between; align-items: flex-start; }
     .metric h3 { font-size: 24px; font-weight: 700; color: var(--text); margin-top: 5px; }
     .metric p { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
@@ -45,14 +48,17 @@
     /* Formulários e Botões */
     .btn { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
     .btn:hover { opacity: 0.9; }
+    .btn-success { background: var(--success); }
+    .btn-danger { background: var(--danger); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
     .field { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; background: #fff; margin-top: 5px; }
     .field:focus { border-color: var(--primary); }
+    .label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .mb-3 { margin-bottom: 15px; }
     
-    @media(max-width: 768px) {
-      aside { transform: translateX(-100%); transition: 0.3s; }
-      aside.open { transform: translateX(0); }
-      .main { margin-left: 0; }
-    }
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+    .badge-ok { background: #d1fae5; color: #065f46; }
+    .badge-warn { background: #fef3c7; color: #92400e; }
   </style>
 </head>
 <body>
@@ -63,7 +69,7 @@
       <div class="brand-icon"><i class="bi bi-gear-wide-connected"></i></div>
       <div>
         <h4 style="font-size:14px; color:#fff;" id="shopTitleNav">NEXUS OFICINA</h4>
-        <p style="font-size:11px; color:#94a3b8;">Gestão & Peças</p>
+        <p style="font-size:11px; color:#94a3b8;" id="syncStatusText">Modo Local</p>
       </div>
     </div>
     <div class="nav-links">
@@ -87,9 +93,7 @@
       <button class="btn" onclick="navigate('pdv')"><i class="bi bi-plus-lg"></i> Nova Venda</button>
     </header>
 
-    <div class="content" id="content">
-      <!-- O conteúdo é carregado via JavaScript -->
-    </div>
+    <div class="content" id="content"></div>
   </div>
 
   <script>
@@ -100,8 +104,23 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
+    // Carregamento de Configurações Externas (Supabase & Telegram)
+    let SB_URL = localStorage.getItem("nexus_sb_url") || "";
+    let SB_KEY = localStorage.getItem("nexus_sb_key") || "";
+    let TG_TOKEN = localStorage.getItem("nexus_tg_token") || "";
+    let TG_CHAT = localStorage.getItem("nexus_tg_chat") || "";
+
+    let supabaseClient = null;
+    if (SB_URL && SB_KEY && window.supabase) {
+      try {
+        supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+        $("syncStatusText").textContent = "Supabase Conectado";
+        $("syncStatusText").style.color = "#34d399";
+      } catch(e) { console.error(e); }
+    }
+
     // Banco de dados local
-    const STORAGE_KEY = "nexus_sistema_oficina_v2";
+    const STORAGE_KEY = "nexus_sistema_oficina_v3";
     function loadDB() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -113,10 +132,25 @@
     }
 
     let db = loadDB();
+    let cart = [];
     let currentPage = "inicio";
 
     function saveDB() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+    }
+
+    // Função para enviar alerta no Telegram do John
+    async function sendTelegramAlert(text) {
+      if (!TG_TOKEN || !TG_CHAT) return;
+      try {
+        await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: TG_CHAT, text: text, parse_mode: "Markdown" })
+        });
+      } catch (e) {
+        console.error("Erro ao enviar Telegram:", e);
+      }
     }
 
     function navigate(page) {
@@ -138,36 +172,47 @@
       if (currentPage === "inicio") renderHome();
       else if (currentPage === "produtos") renderProducts();
       else if (currentPage === "pdv") renderPDV();
+      else if (currentPage === "oficina") renderWorkshop();
+      else if (currentPage === "clientes") renderCustomers();
       else if (currentPage === "config") renderSettings();
       else renderHome();
     }
 
+    /* --- VISÃO GERAL --- */
     function renderHome() {
       $("pageTitle").textContent = "Visão Geral";
+      const totalSales = db.sales.reduce((a, b) => a + b.total, 0);
       $("content").innerHTML = `
         <div class="grid-4">
           <div class="card metric">
-            <div><p>Produtos Cadastrados</p><h3>${db.products.length}</h3></div>
+            <div><p>Produtos</p><h3>${db.products.length}</h3></div>
             <div class="metric-icon"><i class="bi bi-boxes"></i></div>
           </div>
           <div class="card metric">
-            <div><p>Vendas Realizadas</p><h3>${db.sales.length}</h3></div>
-            <div class="metric-icon" style="background:#ecfdf5; color:#059669;"><i class="bi bi-cart-check"></i></div>
+            <div><p>Faturamento Total</p><h3>${money(totalSales)}</h3></div>
+            <div class="metric-icon" style="background:#ecfdf5; color:#059669;"><p></p><i class="bi bi-cash-stack"></i></div>
           </div>
-        </div>
-        <div class="card">
-          <h3 style="font-size:16px; margin-bottom:15px;">Bem-vindo ao Sistema Nexus</h3>
-          <p style="color: var(--muted); font-size: 14px;">O sistema está rodando perfeitamente no seu navegador. Use o menu ao lado para navegar entre Produtos, PDV e Configurações.</p>
+          <div class="card metric">
+            <div><p>Ordens de Serviço</p><h3>${db.orders.length}</h3></div>
+            <div class="metric-icon" style="background:#fef3c7; color:#d97706;"><i class="bi bi-tools"></i></div>
+          </div>
+          <div class="card metric">
+            <div><p>Clientes</p><h3>${db.customers.length}</h3></div>
+            <div class="metric-icon" style="background:#e0f2fe; color:#0284c7;"><i class="bi bi-people"></i></div>
+          </div>
         </div>
       `;
     }
 
+    /* --- PRODUTOS & ESTOQUE --- */
     function renderProducts() {
       $("pageTitle").textContent = "Produtos & Estoque";
       const rows = db.products.map(p => `<tr>
+        <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:600;">${p.code || "—"}</code></td>
         <td><b>${p.name}</b></td>
-        <td>R$ ${p.price.toFixed(2)}</td>
+        <td>${money(p.price)}</td>
         <td>${p.stock} un</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button></td>
       </tr>`).join("");
 
       $("content").innerHTML = `
@@ -176,11 +221,16 @@
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Produto</th><th>Preço</th><th>Estoque</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">Nenhum produto cadastrado.</td></tr>'}</tbody>
+            <thead><tr><th>Código</th><th>Produto</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum produto cadastrado.</td></tr>'}</tbody>
           </table>
         </div>
       `;
+    }
+
+    function generateProductCode() {
+      const count = db.products.length + 1;
+      return "PEC-" + String(count).padStart(3, '0');
     }
 
     function addProductModal() {
@@ -188,33 +238,215 @@
       if (!name) return;
       const price = parseFloat(prompt("Preço de venda (R$):") || 0);
       const stock = parseInt(prompt("Quantidade em estoque:") || 0);
+      const code = generateProductCode();
       
-      db.products.push({ id: uid(), name, price, stock });
+      db.products.push({ id: uid(), code, name, price, stock });
       saveDB();
       renderProducts();
     }
 
-    function renderPDV() {
-      $("pageTitle").textContent = "PDV / Caixa";
-      $("content").innerHTML = `<div class="card"><p>Módulo de Caixa e Vendas pronto para uso.</p></div>`;
+    function deleteProduct(id) {
+      if (!confirm("Deseja excluir este produto?")) return;
+      db.products = db.products.filter(p => p.id !== id);
+      saveDB();
+      renderProducts();
     }
 
-    function renderSettings() {
-      $("pageTitle").textContent = "Configurações";
+    /* --- PDV / CAIXA --- */
+    function renderPDV() {
+      $("pageTitle").textContent = "PDV / Frente de Caixa";
+      const options = db.products.map(p => `<option value="${p.id}">${p.name} — ${money(p.price)} (Estoque: ${p.stock})</option>`).join("");
+      const cartRows = cart.map((c, i) => `<tr>
+        <td><b>${c.name}</b></td><td>${c.qty}</td><td>${money(c.price)}</td><td>${money(c.qty * c.price)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">X</button></td>
+      </tr>`).join("");
+      const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
+
       $("content").innerHTML = `
-        <div class="card" style="max-width: 500px;">
-          <h3 style="font-size:16px; margin-bottom:15px;">Nome da Oficina</h3>
-          <input id="settingShopName" class="field" value="${db.settings.shop}">
-          <button class="btn" style="margin-top: 15px;" onclick="saveSettings()">Salvar Alterações</button>
+        <div class="grid-2">
+          <div class="card">
+            <h3 style="font-size:16px; margin-bottom:15px;">Adicionar ao Carrinho</h3>
+            <div class="mb-3">
+              <label class="label">Selecionar Produto</label>
+              <select id="pdvProduct" class="field">${options}</select>
+            </div>
+            <div class="mb-3">
+              <label class="label">Quantidade</label>
+              <input id="pdvQty" type="number" class="field" value="1" min="1">
+            </div>
+            <button class="btn" onclick="addToCart()"><i class="bi bi-cart-plus"></i> Adicionar Item</button>
+          </div>
+          <div class="card">
+            <h3 style="font-size:16px; margin-bottom:15px;">Resumo da Venda</h3>
+            <div class="mb-3">
+              <label class="label">Forma de Pagamento</label>
+              <select id="pdvPayment" class="field"><option>Pix</option><option>Dinheiro</option><option>Débito</option><option>Crédito</option></select>
+            </div>
+            <div style="font-size: 20px; font-weight: bold; margin: 15px 0;">Total: <span style="color: var(--success);">${money(total)}</span></div>
+            <button class="btn btn-success" style="width:100%; justify-content:center;" onclick="finishSale()">Finalizar Venda</button>
+          </div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <table>
+            <thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th></th></tr></thead>
+            <tbody>${cartRows || '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">Carrinho vazio</td></tr>'}</tbody>
+          </table>
         </div>
       `;
     }
 
-    function saveSettings() {
-      db.settings.shop = document.getElementById("settingShopName").value || "Oficina & Peças";
+    function addToCart() {
+      const prodId = $("pdvProduct").value;
+      const qty = parseInt($("pdvQty").value) || 1;
+      const prod = db.products.find(p => p.id === prodId);
+      if (!prod) return alert("Selecione um produto.");
+      if (prod.stock < qty) return alert("Estoque insuficiente!");
+
+      const existing = cart.find(c => c.id === prodId);
+      if (existing) existing.qty += qty;
+      else cart.push({ id: prod.id, name: prod.name, price: prod.price, qty });
+      renderPDV();
+    }
+
+    function removeCart(index) {
+      cart.splice(index, 1);
+      renderPDV();
+    }
+
+    function finishSale() {
+      if (!cart.length) return alert("Carrinho vazio!");
+      const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
+      const payment = $("pdvPayment").value;
+
+      cart.forEach(c => {
+        const p = db.products.find(x => x.id === c.id);
+        if (p) p.stock -= c.qty;
+      });
+
+      const sale = { id: uid(), date: todayISO(), total, payment, items: [...cart] };
+      db.sales.push(sale);
       saveDB();
-      $("shopTitleNav").textContent = db.settings.shop;
-      alert("Configurações salvas com sucesso!");
+
+      // Envia alerta automático para o Telegram do John
+      sendTelegramAlert(`🛒 *Nova Venda Realizada!*\n• Total: *${money(total)}*\n• Pagamento: *${payment}*`);
+
+      cart = [];
+      alert("Venda finalizada com sucesso!");
+      renderPDV();
+    }
+
+    /* --- OFICINA / OS --- */
+    function renderWorkshop() {
+      $("pageTitle").textContent = "Oficina / Ordens de Serviço";
+      const rows = db.orders.map(o => `<tr>
+        <td><b>${o.number}</b></td><td>${o.customer}</td><td>${o.vehicle}</td><td>${o.problem}</td>
+        <td><span class="badge badge-warn">${o.status}</span></td>
+        <td>${money(o.value)}</td>
+      </tr>`).join("");
+
+      $("content").innerHTML = `
+        <div style="margin-bottom: 20px;">
+          <button class="btn" onclick="addOrderModal()"><i class="bi bi-plus-lg"></i> Nova OS</button>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <table>
+            <thead><tr><th>Nº OS</th><th>Cliente</th><th>Veículo</th><th>Defeito</th><th>Status</th><th>Valor</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--muted);">Nenhuma OS aberta.</td></tr>'}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function addOrderModal() {
+      const customer = prompt("Nome do Cliente:");
+      if (!customer) return;
+      const vehicle = prompt("Veículo / Placa:");
+      const problem = prompt("Defeito relatado:");
+      const value = parseFloat(prompt("Valor estimado (R$):") || 0);
+
+      const number = "OS-" + Math.floor(1000 + Math.random() * 9000);
+      db.orders.push({ id: uid(), number, customer, vehicle, problem, value, status: "Em andamento" });
+      saveDB();
+
+      sendTelegramAlert(`🔧 *Nova OS Aberta (${number})*\n• Cliente: *${customer}*\n• Veículo: *${vehicle}*\n• Defeito: _${problem}_`);
+      renderWorkshop();
+    }
+
+    /* --- CLIENTES --- */
+    function renderCustomers() {
+      $("pageTitle").textContent = "Clientes";
+      const rows = db.customers.map(c => `<tr><td><b>${c.name}</b></td><td>${c.phone || "—"}</td><td>${c.doc || "—"}</td></tr>`).join("");
+
+      $("content").innerHTML = `
+        <div style="margin-bottom: 20px;">
+          <button class="btn" onclick="addCustomerModal()"><i class="bi bi-plus-lg"></i> Novo Cliente</button>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <table>
+            <thead><tr><th>Nome</th><th>Telefone</th><th>CPF/CNPJ</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>'}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function addCustomerModal() {
+      const name = prompt("Nome do Cliente:");
+      if (!name) return;
+      const phone = prompt("Telefone / WhatsApp:");
+      const doc = prompt("CPF ou CNPJ:");
+
+      db.customers.push({ id: uid(), name, phone, doc });
+      saveDB();
+      renderCustomers();
+    }
+
+    /* --- CONFIGURAÇÕES (SUPABASE & TELEGRAM) --- */
+    function renderSettings() {
+      $("pageTitle").textContent = "Configurações do Sistema";
+      $("content").innerHTML = `
+        <div class="card" style="max-width: 600px;">
+          <h3 style="font-size:16px; margin-bottom:15px;">Identificação do Negócio</h3>
+          <div class="mb-3">
+            <label class="label">Nome da Oficina / Loja</label>
+            <input id="settingShopName" class="field" value="${db.settings.shop}">
+          </div>
+          
+          <h3 style="font-size:16px; margin:25px 0 15px 0;">Conexão Supabase (Nuvem)</h3>
+          <div class="mb-3">
+            <label class="label">Supabase URL</label>
+            <input id="settingUrl" class="field" value="${SB_URL}" placeholder="https://seu-projeto.supabase.co">
+          </div>
+          <div class="mb-3">
+            <label class="label">Supabase Anon Key</label>
+            <input id="settingKey" type="password" class="field" value="${SB_KEY}" placeholder="sua-chave-anon">
+          </div>
+
+          <h3 style="font-size:16px; margin:25px 0 15px 0;">Configuração do Telegram do John</h3>
+          <div class="mb-3">
+            <label class="label">Token da API do Bot</label>
+            <input id="settingTgToken" type="password" class="field" value="${TG_TOKEN}" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ">
+          </div>
+          <div class="mb-3">
+            <label class="label">Chat ID do Telegram</label>
+            <input id="settingTgChat" class="field" value="${TG_CHAT}" placeholder="-100123456789 ou seu ID numérico">
+          </div>
+
+          <button class="btn btn-success" style="margin-top: 15px;" onclick="saveAllSettings()">Salvar Todas as Configurações</button>
+        </div>
+      `;
+    }
+
+    function saveAllSettings() {
+      db.settings.shop = document.getElementById("settingShopName").value || "Oficina & Peças";
+      localStorage.setItem("nexus_sb_url", document.getElementById("settingUrl").value.trim());
+      localStorage.setItem("nexus_sb_key", document.getElementById("settingKey").value.trim());
+      localStorage.setItem("nexus_tg_token", document.getElementById("settingTgToken").value.trim());
+      localStorage.setItem("nexus_tg_chat", document.getElementById("settingTgChat").value.trim());
+
+      saveDB();
+      alert("Configurações salvas com sucesso! O sistema será recarregado.");
+      location.reload();
     }
 
     render();
