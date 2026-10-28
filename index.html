@@ -124,20 +124,20 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-    // Credenciais Supabase Padrão (podem ser alteradas nas configurações)
-    let SB_URL = localStorage.getItem("nexus_sb_url") || "https://seu-projeto.supabase.co";
-    let SB_KEY = localStorage.getItem("nexus_sb_key") || "sua-anon-key";
-    let TG_CHAT = localStorage.getItem("nexus_tg_chat") || "";
+    let SB_URL = localStorage.getItem("nexus_sb_url") || "";
+    let SB_KEY = localStorage.getItem("nexus_sb_key") || "";
 
     let supabaseClient = null;
     let tgTemplates = {};
     let globalTelegramToken = "";
+    let globalTelegramChatId = "";
 
-    try {
-      supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-    } catch(e) { console.error(e); }
+    if (SB_URL && SB_KEY) {
+      try {
+        supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+      } catch(e) { console.error(e); }
+    }
 
-    // Banco de dados local em memória cache sincronizado
     let db = {
       products: [],
       customers: [],
@@ -151,9 +151,8 @@
     let currentPage = "inicio";
     let historySearchFilter = "";
 
-    // Inicialização ao carregar a página
     async function initSystem() {
-      if (supabaseClient && SB_URL !== "https://seu-projeto.supabase.co") {
+      if (supabaseClient && SB_URL) {
         await loadDataFromSupabase();
       } else {
         loadLocalFallback();
@@ -193,6 +192,7 @@
         if (setRes.data) {
           db.settings.shop = setRes.data.shop_name || "Nexus Oficina & Peças";
           globalTelegramToken = setRes.data.telegram_token || "";
+          globalTelegramChatId = setRes.data.telegram_chat_id || "";
           $("shopTitleNav").textContent = db.settings.shop;
         }
 
@@ -212,42 +212,71 @@
       localStorage.setItem("nexus_cache_db", JSON.stringify(db));
     }
 
-    // Motor de Disparo do Telegram baseado nos templates do Supabase
+    // Envio do Telegram puxando Token e Chat ID direto do Supabase
     async function sendTelegramTemplate(key, dataObj) {
-      if (!globalTelegramToken || !TG_CHAT) return;
+      if (!globalTelegramToken || !globalTelegramChatId) {
+        console.warn("Telegram não enviado: Token ou Chat ID não configurados no Supabase.");
+        return;
+      }
+      
       let templateStr = tgTemplates[key];
-      if (!templateStr) return;
+      if (!templateStr) {
+        if (key === 'nova_venda') templateStr = "🛒 *Nova Venda!*\n• Total: *{total}*";
+        else if (key === 'nova_os') templateStr = "🔧 *Nova OS ({number})*\n• Veículo: *{vehicle}* ({plate})";
+        else if (key === 'estoque_baixo') templateStr = "⚠️ *Estoque Baixo!*\n• Produto: *{product_name}* ({stock} un)";
+        else if (key === 'relatorio_dia') templateStr = "📊 *Relatório do Dia*\n• Faturamento: *{total_sales}*";
+        else templateStr = "🔔 *Notificação Nexus Oficina*";
+      }
 
-      // Substitui as chaves dinâmicas ex: {total}, {customer}, etc.
       for (const [k, v] of Object.entries(dataObj)) {
         templateStr = templateStr.replaceAll(`{${k}}`, v);
       }
 
       try {
-        await fetch(`https://api.telegram.org/bot${globalTelegramToken}/sendMessage`, {
+        const res = await fetch(`https://api.telegram.org/bot${globalTelegramToken}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: TG_CHAT, text: templateStr, parse_mode: "Markdown" })
+          body: JSON.stringify({ chat_id: globalTelegramChatId, text: templateStr, parse_mode: "Markdown" })
         });
+        const json = await res.json();
+        if (!json.ok) console.error("Erro Telegram API:", json.description);
       } catch (e) {
-        console.error("Erro ao enviar mensagem Telegram:", e);
+        console.error("Erro de rede ao enviar Telegram:", e);
       }
     }
 
-    // Agendamento do Relatório automático das 19:00
+    // Botão de Teste Manual do Telegram via Supabase
+    async function testTelegramConnection() {
+      const chatIDInput = $("settingTgChat").value.trim();
+      if (!chatIDInput) return alert("Digite o Chat ID direto no campo do Supabase para testar.");
+      if (!globalTelegramToken) return alert("Token do bot não carregado.");
+
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${globalTelegramToken}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatIDInput, text: "🟢 *Teste Bem-Sucedido!*\nO Nexus Oficina está conectado via Supabase!", parse_mode: "Markdown" })
+        });
+        const data = await res.json();
+        if (data.ok) alert("Mensagem de teste enviada com sucesso!");
+        else alert("Erro do Telegram: " + data.description);
+      } catch(e) {
+        alert("Erro de conexão.");
+      }
+    }
+
     function initDailyReportCron() {
       setInterval(() => {
         const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        const todayStr = todayISO();
-        const lastSentKey = "nexus_report_sent_" + todayStr;
-
-        if (hours === 19 && minutes === 0 && !localStorage.getItem(lastSentKey)) {
-          sendDailyReport();
-          localStorage.setItem(lastSentKey, "true");
+        if (now.getHours() === 19 && now.getMinutes() === 0) {
+          const todayStr = todayISO();
+          const lastSentKey = "nexus_report_sent_" + todayStr;
+          if (!localStorage.getItem(lastSentKey)) {
+            sendDailyReport();
+            localStorage.setItem(lastSentKey, "true");
+          }
         }
-      }, 30000); // Verifica a cada 30 segundos
+      }, 30000);
     }
 
     async function sendDailyReport() {
@@ -466,7 +495,6 @@
         if (p) {
           p.stock -= c.qty;
           if (p.stock <= 2) {
-            // Notificação Automática: Estoque Baixo
             await sendTelegramTemplate("estoque_baixo", { product_name: p.name, stock: p.stock });
           }
           if (supabaseClient) {
@@ -483,7 +511,6 @@
         await supabaseClient.from("sales").insert([sale]);
       }
 
-      // Notificação Automática: Nova Venda
       await sendTelegramTemplate("nova_venda", { total: money(total), payment });
 
       cart = [];
@@ -551,8 +578,6 @@
       }
 
       closeModal();
-
-      // Notificação Automática: Nova OS
       await sendTelegramTemplate("nova_os", { number, customer, vehicle, plate, problem });
       renderWorkshop();
     }
@@ -726,13 +751,16 @@
             <input id="settingKey" type="password" class="field" value="${SB_KEY}" placeholder="sua-chave-anon">
           </div>
 
-          <h3 style="font-size:16px; margin:25px 0 15px 0;">Configuração do Telegram</h3>
-          <div class="mb-3">
-            <label class="label">Chat ID do Telegram (Configurado no navegador)</label>
-            <input id="settingTgChat" class="field" value="${TG_CHAT}" placeholder="-100123456789 ou seu ID numérico">
+          <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button class="btn btn-success" style="flex: 1; justify-content:center;" onclick="saveAllSettings()">Salvar Configurações</button>
+            <button class="btn btn-secondary" onclick="testTelegramConnection()"><i class="bi bi-telegram"></i> Testar Mensagem</button>
           </div>
+          <p style="font-size: 11px; color: var(--muted); margin-top: 10px;">* O Chat ID e o Token do Telegram são gerenciados diretamente na tabela <code>settings</code> do Supabase.</p>
+        </div>
 
-          <button class="btn btn-success" style="margin-top: 15px;" onclick="saveAllSettings()">Salvar Todas as Configurações</button>
+        <div class="card" style="max-width: 600px; display: none;">
+          <!-- Campo oculto apenas para compatibilidade do botão de teste -->
+          <input id="settingTgChat" value="${globalTelegramChatId}">
         </div>
       `;
     }
@@ -741,12 +769,10 @@
       const newShop = document.getElementById("settingShopName").value || "Nexus Oficina & Peças";
       const newUrl = document.getElementById("settingUrl").value.trim();
       const newKey = document.getElementById("settingKey").value.trim();
-      const newChat = document.getElementById("settingTgChat").value.trim();
 
       db.settings.shop = newShop;
       localStorage.setItem("nexus_sb_url", newUrl);
       localStorage.setItem("nexus_sb_key", newKey);
-      localStorage.setItem("nexus_tg_chat", newChat);
 
       saveCache();
 
@@ -763,7 +789,7 @@
       location.reload();
     }
 
-    // Inicializa o sistema ao abrir o arquivo
+    // Inicializa o sistema ao abrir
     initSystem();
   </script>
 </body>
