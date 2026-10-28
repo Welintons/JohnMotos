@@ -8,6 +8,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Leitor de Código de Barras via Câmara (HTML5-QRCode) -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root {
       --bg: #f8fafc; --sidebar: #0f172a; --card: #ffffff;
@@ -130,7 +132,6 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-    // Recupera URL e Key salvas manualmente ou usa valores vazios para configurar
     let SB_URL = localStorage.getItem("jm_supabase_url") || "";
     let SB_KEY = localStorage.getItem("jm_supabase_key") || "";
 
@@ -138,6 +139,7 @@
     let tgTemplates = {};
     let globalTelegramToken = "";
     let globalTelegramChatId = "";
+    let html5QrCodeScanner = null;
 
     function initSupabaseClient() {
       supabaseClient = null;
@@ -183,7 +185,7 @@
       }
       $("syncStatusText").textContent = msg;
       $("syncStatusText").style.color = "#f59e0b";
-      $("headerStatusBadgeclassName").className = "badge badge-warn";
+      $("headerStatusBadge").className = "badge badge-warn";
       $("headerStatusBadge").textContent = "⚠️ " + msg;
     }
 
@@ -322,7 +324,12 @@
       $("modalBody").innerHTML = htmlContent;
       $("appModal").classList.add("active");
     }
-    function closeModal() {
+    
+    async function closeModal() {
+      if (html5QrCodeScanner) {
+        try { await html5QrCodeScanner.stop(); } catch(e) {}
+        html5QrCodeScanner = null;
+      }
       $("appModal").classList.remove("active");
     }
 
@@ -332,7 +339,7 @@
       $("content").innerHTML = `
         <div class="card" style="max-width: 600px; margin: 0 auto;">
           <h3 style="font-size: 18px; margin-bottom: 15px;"><i class="bi bi-cloud-arrow-up"></i> Credenciais do Banco de Dados</h3>
-          <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Insira abaixo a URL do seu projeto Supabase e a sua Chave de Acesso (Key / Anon). O app testará a conexão imediatamente ao salvar.</p>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Insira abaixo a URL do seu projeto Supabase e a sua Chave de Acesso (Key / Anon).</p>
           
           <div class="mb-3">
             <label class="label">Project URL (Supabase)</label>
@@ -408,12 +415,12 @@
       `;
     }
 
-    /* --- PRODUTOS & ESTOQUE --- */
+    /* --- PRODUTOS & ESTOQUE COM LEITOR DE CÂMARA E API EXTERNA --- */
     function renderProducts() {
       $("pageTitle").textContent = "Produtos & Estoque";
       const filtered = db.products.filter(p => 
         p.name.toLowerCase().includes(productSearchFilter.toLowerCase()) || 
-        p.code.toLowerCase().includes(productSearchFilter.toLowerCase())
+        (p.code && p.code.toLowerCase().includes(productSearchFilter.toLowerCase()))
       );
 
       const rows = filtered.map(p => `<tr>
@@ -449,7 +456,18 @@
     function openProductModal(id = null) {
       const p = id ? db.products.find(x => x.id === id) : null;
       openModal(p ? "Editar Produto" : "Novo Produto", `
-        <div class="mb-3"><label class="label">Código</label><input id="pCode" class="field" value="${p ? p.code : generateProductCode()}" disabled></div>
+        <div class="mb-3">
+          <label class="label">Código de Barras / EAN</label>
+          <div style="display:flex; gap:10px;">
+            <input id="pCode" class="field" value="${p ? (p.code || '') : generateProductCode()}" style="margin-top:0;" placeholder="Digite ou escaneie...">
+            <button type="button" class="btn btn-secondary" onclick="iniciarLeitorCamara()" title="Escanear com a câmara"><i class="bi bi-camera-fill"></i> Ler</button>
+            <button type="button" class="btn" onclick="consultarCodigoAPI()" title="Consultar na API"><i class="bi bi-search"></i> Buscar</button>
+          </div>
+        </div>
+        
+        <!-- Div onde a câmara vai aparecer ao escanear -->
+        <div id="reader" style="width: 100%; margin-bottom: 15px;"></div>
+
         <div class="mb-3"><label class="label">Nome do Produto</label><input id="pName" class="field" value="${p ? p.name : ''}" placeholder="Ex: Pastilha de Freio CG 150"></div>
         <div class="mb-3"><label class="label">Preço de Venda (R$)</label><input id="pPrice" type="number" step="0.01" class="field" value="${p ? p.price : '0.00'}"></div>
         <div class="mb-3"><label class="label">Quantidade em Estoque</label><input id="pStock" type="number" class="field" value="${p ? p.stock : '10'}"></div>
@@ -457,8 +475,70 @@
       `);
     }
 
+    // Função para ligar a câmara e ler o código de barras
+    function iniciarLeitorCamara() {
+      const readerDiv = $("reader");
+      if (!readerDiv) return;
+      readerDiv.innerHTML = "";
+
+      html5QrCodeScanner = new Html5Qrcode("reader");
+      html5QrCodeScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 100 } },
+        (decodedText, decodedResult) => {
+          $("pCode").value = decodedText;
+          html5QrCodeScanner.stop().catch(err => {});
+          readerDiv.innerHTML = "";
+          // Tenta buscar automaticamente ao ler pela câmara
+          consultarCodigoAPI();
+        },
+        (errorMessage) => {}
+      ).catch(err => {
+        alert("Erro ao aceder à câmara: " + err);
+      });
+    }
+
+    // Função que consulta a API gratuita de produtos pelo código de barras
+    async function consultarCodigoAPI() {
+      const code = $("pCode").value.trim();
+      if (!code) {
+        alert("Digite ou escaneie um código de barras primeiro.");
+        return;
+      }
+
+      // Se for um código interno nosso (ex: PEC-001), a API externa não vai ter
+      if (code.startsWith("PEC-")) {
+        alert("Este é um código interno gerado pelo sistema.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`);
+        const data = await response.json();
+
+        if (data.status === 1 && data.product) {
+          const nomeProduto = data.product.product_name || data.product.brands || "";
+          if (nomeProduto) {
+            $("pName").value = nomeProduto;
+            alert("Produto encontrado e preenchido com sucesso!");
+          } else {
+            alert("Produto encontrado na base, mas sem nome registado.");
+          }
+        } else {
+          alert("Produto não encontrado na base de dados pública.");
+        }
+      } catch (e) {
+        console.error("Erro ao consultar API:", e);
+        alert("Erro ao conectar com o serviço de consulta de códigos de barras.");
+      }
+    }
+
     async function saveProduct(id) {
-      const code = $("pCode").value;
+      if (html5QrCodeScanner) {
+        try { await html5QrCodeScanner.stop(); } catch(e) {}
+      }
+      
+      const code = $("pCode").value.trim();
       const name = $("pName").value.trim();
       const price = parseFloat($("pPrice").value) || 0;
       const stock = parseInt($("pStock").value) || 0;
@@ -468,10 +548,10 @@
       if (id) {
         const prod = db.products.find(x => x.id === id);
         if (prod) {
-          prod.name = name; prod.price = price; prod.stock = stock;
+          prod.code = code; prod.name = name; prod.price = price; prod.stock = stock;
           saveCache();
           if (supabaseClient) {
-            await supabaseClient.from("products").update({ name, price, stock }).eq("id", id);
+            await supabaseClient.from("products").update({ code, name, price, stock }).eq("id", id);
           }
         }
       } else {
@@ -888,7 +968,7 @@
       const rows = filtered.map(c => `<tr>
         <td><b>${c.name}</b></td>
         <td>${c.phone || "—"}</td>
-        <td><code style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:700;">${c.plate || "—"}</code></td>
+        <td><code style="background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:6px; font-weight:700;">${c.plate || "—"}</code></td>
         <td>
           <button class="btn btn-warning btn-sm" onclick="openCustomerModal('${c.id}')"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')"><i class="bi bi-trash"></i></button>
