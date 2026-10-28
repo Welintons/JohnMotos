@@ -422,7 +422,7 @@
     }
 
     /* --- PDV / CAIXA (Com Barra de Pesquisa Rápida) --- */
-    function renderPDV() {
+       function renderPDV() {
       $("pageTitle").textContent = "PDV / Frente de Caixa";
       
       // Filtra os produtos com base na digitação rápida
@@ -431,8 +431,17 @@
         (p.code && p.code.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()))
       );
 
-      const options = filteredProducts.map(p => `<option value="${p.id}">${p.name} — ${money(p.price)} (Estoque: ${p.stock})</option>`).join("");
-      
+      // Renderiza em formato de grade de cards clicáveis (em vez do <select>)
+      const produtosGridHtml = filteredProducts.length > 0 ? filteredProducts.map(p => `
+        <div onclick="adicionarDiretoCarrinho('${p.id}')" style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:10px; cursor:pointer; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-weight:600; font-size:13px; color:var(--text);">${p.name}</div>
+          <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px;">
+            <span style="color:var(--success); font-weight:bold;">${money(p.price)}</span>
+            <span style="color:var(--muted);">Estoque: ${p.stock}</span>
+          </div>
+        </div>
+      `).join('') : '<p style="color:var(--muted); text-align:center; grid-column:span 2; padding:15px;">Nenhum produto encontrado</p>';
+
       const cartRows = cart.map((c, i) => `<tr>
         <td><b>${c.name}</b> ${c.isCustom ? '<span class="badge badge-warn">Serviço/Livre</span>' : ''}</td>
         <td>${c.qty}</td>
@@ -455,14 +464,16 @@
               </div>
 
               <div class="mb-3">
-                <label class="label">Selecionar Produto Filtrado</label>
-                <select id="pdvProduct" class="field" size="4" style="height: 120px;">${options || '<option value="">Nenhum produto encontrado</option>'}</select>
+                <label class="label">Clique no produto para adicionar:</label>
+                <div style="max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; border: 1px solid var(--border); padding: 10px; border-radius: 8px; background: #fff;">
+                  ${produtosGridHtml}
+                </div>
               </div>
+
               <div class="mb-3">
-                <label class="label">Quantidade</label>
+                <label class="label">Quantidade Padrão</label>
                 <input id="pdvQty" type="number" class="field" value="1" min="1">
               </div>
-              <button class="btn" onclick="addToCart()"><i class="bi bi-cart-plus"></i> Adicionar Item</button>
             </div>
 
             <div class="card" style="margin-bottom:0; background:#f8fafc;">
@@ -497,7 +508,8 @@
           </table>
         </div>
       `;
-      // Mantém o foco no input de busca para agilizar a digitação contínua
+
+      // Mantém o foco no input de busca para você continuar digitando sem perder o cursor
       const inputEl = $("pdvSearchInput");
       if (inputEl) {
         inputEl.focus();
@@ -505,18 +517,20 @@
       }
     }
 
-    function addToCart() {
-      const prodId = $("pdvProduct").value;
+    // Função auxiliar para o clique direto nos cards filtrados
+    function adicionarDiretoCarrinho(idProd) {
+      const prod = db.products.find(p => p.id === idProd);
       const qty = parseInt($("pdvQty").value) || 1;
-      const prod = db.products.find(p => p.id === prodId);
-      if (!prod) return alert("Selecione um produto.");
+      if (!prod) return;
       if (prod.stock < qty) return alert("Estoque insuficiente!");
 
-      const existing = cart.find(c => c.id === prodId && !c.isCustom);
+      const existing = cart.find(c => c.id === idProd && !c.isCustom);
       if (existing) existing.qty += qty;
       else cart.push({ id: prod.id, name: prod.name, price: prod.price, qty, isCustom: false });
+      
       renderPDV();
     }
+
 
     function addCustomItem() {
       const name = $("customName").value.trim();
