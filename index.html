@@ -1,15 +1,13 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gestão Profissional | Oficina & Peças</title>
+  <title>Nexus Oficina & Peças | Gestão Avançada</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- DaisyUI -->
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <!-- Bootstrap Icons (para ícones limpos) -->
+  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -17,105 +15,102 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* Ajustes finos para scrollbar e fontes */
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f4f6f9; color: #1e293b; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex">
+<body class="min-h-screen flex">
 
-  <!-- SIDEBAR -->
-  <aside id="sidebar" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0">
-    <!-- Brand -->
-    <div class="p-6 border-b border-slate-800 flex items-center gap-3">
-      <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-600/30">
-        <i class="bi bi-tools text-xl"></i>
+  <!-- SIDEBAR EXCLUSIVA (TEMA CLARO) -->
+  <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col fixed inset-y-0 left-0 z-50 transition-transform duration-300 -translate-x-full lg:translate-x-0 shadow-2xl">
+    <div class="p-6 border-b border-slate-800 flex items-center gap-3 bg-slate-950">
+      <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-md">
+        <i class="bi bi-gear-wide-connected text-xl"></i>
       </div>
       <div>
-        <h1 class="font-bold tracking-wider text-sm text-white">OFICINA & PEÇAS</h1>
-        <p class="text-xs text-slate-400" id="shopTitleNav">Gestão Profissional</p>
+        <h1 class="font-bold tracking-wider text-sm text-white">NEXUS OFICINA</h1>
+        <p class="text-xs text-slate-400" id="shopTitleNav">Gestão & Peças</p>
       </div>
     </div>
 
-    <!-- Navigation -->
-    <div class="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+    <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
       <div>
-        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">Principal</p>
+        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">Operacional</p>
         <nav class="space-y-1">
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition active" data-page="inicio">
-            <i class="bi bi-speedometer2 text-lg"></i>Visão geral
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition active" data-page="inicio">
+            <i class="bi bi-grid text-base text-blue-400"></i>Visão Geral
           </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="pdv">
-            <i class="bi bi-cart3 text-lg"></i>PDV / Vendas
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="pdv">
+            <i class="bi bi-cart-dash text-base text-emerald-400"></i>PDV / Caixa
           </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="produtos">
-            <i class="bi bi-box-seam text-lg"></i>Produtos e estoque
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="produtos">
+            <i class="bi bi-boxes text-base text-amber-400"></i>Produtos & Estoque
           </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="oficina">
-            <i class="bi bi-wrench-adjustable text-lg"></i>Oficina / OS
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="oficina">
+            <i class="bi bi-tools text-base text-purple-400"></i>Oficina / OS
           </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="clientes">
-            <i class="bi bi-people text-lg"></i>Clientes
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="clientes">
+            <i class="bi bi-people text-base text-cyan-400"></i>Clientes
           </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="fornecedores">
-            <i class="bi bi-truck text-lg"></i>Fornecedores
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="fornecedores">
+            <i class="bi bi-truck text-base text-rose-400"></i>Fornecedores
           </button>
         </nav>
       </div>
 
       <div>
-        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">Gestão</p>
+        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-3 mb-2">Administrativo</p>
         <nav class="space-y-1">
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="financeiro">
-            <i class="bi bi-wallet2 text-lg"></i>Financeiro
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="financeiro">
+            <i class="bi bi-wallet2 text-base text-emerald-400"></i>Financeiro
           </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="relatorios">
-            <i class="bi bi-graph-up text-lg"></i>Relatórios
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="relatorios">
+            <i class="bi bi-graph-up-arrow text-base text-indigo-400"></i>Relatórios
           </button>
-          <button class="navbtn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800/60 transition" data-page="config">
-            <i class="bi bi-gear text-lg"></i>Configurações
+          <button class="navbtn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition" data-page="config">
+            <i class="bi bi-sliders text-base text-slate-400"></i>Configurações
           </button>
         </nav>
       </div>
     </div>
 
-    <!-- Footer Sidebar -->
-    <div class="p-4 border-t border-slate-800 m-4 rounded-xl bg-slate-950/50">
-      <div class="flex items-center gap-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="text-xs font-medium text-slate-300">Sistema Local Ativo</span>
+    <div class="p-4 m-4 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-3">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <div>
+        <p class="text-xs font-semibold text-white">Banco Local Ativo</p>
+        <p class="text-[10px] text-slate-400">Sincronizado na máquina</p>
       </div>
     </div>
   </aside>
 
-  <!-- MAIN WRAPPER -->
+  <!-- PAINEL PRINCIPAL -->
   <div class="flex-1 flex flex-col lg:pl-64 min-w-0">
-    <!-- TOPBAR -->
-    <header class="h-20 bg-slate-900/80 backdrop-blur border-b border-slate-800 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-40">
+    <header class="h-20 bg-white border-b border-slate-200 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-40 custom-shadow">
       <div class="flex items-center gap-4">
-        <button id="sidebarToggle" class="btn btn-square btn-ghost lg:hidden text-slate-300">
+        <button id="sidebarToggle" class="p-2.5 rounded-xl bg-slate-100 lg:hidden text-slate-700 hover:bg-slate-200 transition">
           <i class="bi bi-list text-xl"></i>
         </button>
         <div>
-          <h2 id="pageTitle" class="text-xl font-bold text-white tracking-tight">Visão geral</h2>
-          <p id="todayDate" class="text-xs text-slate-400"></p>
+          <h2 id="pageTitle" class="text-xl font-bold text-slate-800 tracking-tight">Visão Geral</h2>
+          <p id="todayDate" class="text-xs text-slate-500 font-medium"></p>
         </div>
       </div>
       <div>
-        <button class="btn btn-primary btn-sm gap-2 shadow-lg shadow-blue-600/20" onclick="navigate('pdv')">
+        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-md shadow-blue-600/20 transition" onclick="navigate('pdv')">
           <i class="bi bi-plus-lg"></i> Nova Venda
         </button>
       </div>
     </header>
 
-    <!-- CONTENT AREA -->
     <main class="flex-1 p-6 lg:p-10 max-w-7xl w-full mx-auto" id="content">
-      <!-- Inserido dinamicamente -->
+      <!-- Conteúdo injetado via JS -->
     </main>
 
-    <!-- FOOTER -->
-    <footer class="text-center py-6 text-xs text-slate-500 border-t border-slate-800/60 mt-auto">
-      Sistema de Gestão Integrado · Armazenamento Local Seguro
+    <footer class="text-center py-6 text-xs text-slate-500 border-t border-slate-200 bg-white mt-auto">
+      Nexus Gestão Automotiva · Todos os direitos reservados
     </footer>
   </div>
 
@@ -131,7 +126,7 @@
     }[c]));
     const dateBR = d => d ? new Date(d + "T12:00:00").toLocaleDateString("pt-BR") : "—";
 
-    const STORAGE_KEY = "gestao_oficina_daisyui_v1";
+    const STORAGE_KEY = "nexus_oficina_sistema_v1";
 
     function emptyDB() {
       return {
@@ -173,29 +168,29 @@
       Swal.fire({
         toast: true, position: "top-end", showConfirmButton: false,
         timer: 2500, timerProgressBar: true, icon, title: message,
-        background: "#0f172a", color: "#f8fafc"
+        background: "#ffffff", color: "#1e293b"
       });
     }
 
     async function modalForm(title, fields) {
       return Swal.fire({
-        title, background: "#0f172a", color: "#f8fafc",
-        confirmButtonText: "Salvar", cancelButtonText: "Cancelar",
+        title, background: "#ffffff", color: "#1e293b",
+        confirmButtonText: "Salvar Registro", cancelButtonText: "Cancelar",
         showCancelButton: true, focusConfirm: false,
-        customClass: { confirmButton: 'btn btn-primary', cancelButton: 'btn btn-ghost' },
+        customClass: { confirmButton: 'bg-blue-600 text-white px-5 py-2.5 rounded-xl font-semibold', cancelButton: 'bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-semibold' },
         buttonsStyling: false,
         html: fields.map(f => {
           const value = f.value ?? "";
           if (f.type === "select") {
-            return `<div class="form-control w-full text-left mb-3">
-              <label class="label"><span class="label-text text-slate-400">${safe(f.label)}</span></label>
-              <select id="f_${safe(f.id)}" class="select select-bordered w-full bg-slate-950 border-slate-700">
+            return `<div class="text-left mb-4">
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">${safe(f.label)}</label>
+              <select id="f_${safe(f.id)}" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 text-sm focus:border-blue-600 focus:outline-none">
               ${f.options.map(o => `<option value="${safe(o.value)}" ${String(o.value) === String(value) ? "selected" : ""}>${safe(o.label)}</option>`).join("")}
               </select></div>`;
           }
-          return `<div class="form-control w-full text-left mb-3">
-            <label class="label"><span class="label-text text-slate-400">${safe(f.label)}</span></label>
-            <input id="f_${safe(f.id)}" class="input input-bordered w-full bg-slate-950 border-slate-700" type="${f.type || "text"}" value="${safe(value)}"
+          return `<div class="text-left mb-4">
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">${safe(f.label)}</label>
+            <input id="f_${safe(f.id)}" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 text-sm focus:border-blue-600 focus:outline-none" type="${f.type || "text"}" value="${safe(value)}"
             ${f.required ? "required" : ""} ${f.min !== undefined ? `min="${f.min}"` : ""} ${f.step ? `step="${f.step}"` : ""} placeholder="${safe(f.placeholder || "")}">
           </div>`;
         }).join(""),
@@ -205,7 +200,7 @@
             const el = $("f_" + f.id);
             result[f.id] = el ? el.value.trim() : "";
             if (f.required && !result[f.id]) {
-              Swal.showValidationMessage("Preencha o campo: " + f.label);
+              Swal.showValidationMessage("Preencha o campo obrigatório: " + f.label);
               return false;
             }
           }
@@ -216,9 +211,9 @@
 
     async function askConfirm(title, text) {
       const r = await Swal.fire({
-        title, text, icon: "warning", background: "#0f172a", color: "#f8fafc",
-        showCancelButton: true, confirmButtonText: "Sim, confirmar", cancelButtonText: "Cancelar",
-        customClass: { confirmButton: 'btn btn-error', cancelButton: 'btn btn-ghost' },
+        title, text, icon: "warning", background: "#ffffff", color: "#1e293b",
+        showCancelButton: true, confirmButtonText: "Sim, prosseguir", cancelButtonText: "Cancelar",
+        customClass: { confirmButton: 'bg-rose-600 text-white px-5 py-2.5 rounded-xl font-semibold', cancelButton: 'bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-semibold' },
         buttonsStyling: false
       });
       return r.isConfirmed;
@@ -231,13 +226,12 @@
     function navigate(page) {
       currentPage = page;
       document.querySelectorAll(".navbtn").forEach(b => {
-        b.classList.toggle("active", b.dataset.page === page);
         if (b.dataset.page === page) {
-          b.classList.add("bg-slate-800", "text-white");
-          b.classList.remove("text-slate-400");
+          b.classList.add("bg-blue-600", "text-white", "shadow-md", "shadow-blue-600/20");
+          b.classList.remove("text-slate-300", "hover:bg-slate-800");
         } else {
-          b.classList.remove("bg-slate-800", "text-white");
-          b.classList.add("text-slate-400");
+          b.classList.remove("bg-blue-600", "text-white", "shadow-md", "shadow-blue-600/20");
+          b.classList.add("text-slate-300", "hover:bg-slate-800");
         }
       });
       const sidebar = $("sidebar");
@@ -254,45 +248,47 @@
     $("shopTitleNav").textContent = db.settings.shop;
 
     function table(headers, rows, empty = "Nenhum registro encontrado.") {
-      return `<div class="overflow-x-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-xl"><table class="table table-zebra w-full">
-      <thead><tr class="border-slate-800 text-slate-400 bg-slate-950/50">${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
-      <tbody>${rows.length ? rows.join("") : `<tr><td colspan="${headers.length}" class="text-center text-slate-500 py-12">${empty}</td></tr>`}</tbody>
-      </table></div>`;
+      return `<div class="overflow-x-auto bg-white border border-slate-200 rounded-2xl custom-shadow">
+        <table class="w-full text-left border-collapse">
+          <thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-600 text-xs uppercase tracking-wider font-semibold">${headers.map(h => `<th class="px-5 py-3.5">${h}</th>`).join("")}</tr></thead>
+          <tbody class="divide-y divide-slate-100 text-sm text-slate-700">${rows.length ? rows.join("") : `<tr><td colspan="${headers.length}" class="text-center text-slate-400 py-12">${empty}</td></tr>`}</tbody>
+        </table>
+      </div>`;
     }
 
-    function badge(text, type = "badge-neutral") {
-      return `<span class="badge ${type} font-medium text-xs">${safe(text)}</span>`;
+    function badge(text, type = "bg-slate-100 text-slate-700") {
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${type}">${safe(text)}</span>`;
     }
 
-    function metricCard(title, value, icon, color = "text-blue-500", sub = "") {
-      return `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between">
+    function metricCard(title, value, icon, color = "text-blue-600", bg = "bg-blue-50", sub = "") {
+      return `<div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow flex flex-col justify-between">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">${title}</p>
-            <h3 class="text-2xl font-black text-white mt-2">${value}</h3>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">${title}</p>
+            <h3 class="text-2xl font-bold text-slate-800 mt-1">${value}</h3>
           </div>
-          <div class="p-3.5 rounded-2xl bg-slate-800/80 ${color} shadow-inner">
+          <div class="p-3.5 rounded-2xl ${bg} ${color}">
             <i class="bi bi-${icon} text-xl"></i>
           </div>
         </div>
-        ${sub ? `<p class="text-xs text-slate-500 mt-4">${sub}</p>` : ""}
+        ${sub ? `<p class="text-xs text-slate-500 font-medium mt-4">${sub}</p>` : ""}
       </div>`;
     }
 
     function pageHeader(title, description, buttonText, action) {
       return `<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h3 class="text-2xl font-bold text-white tracking-tight">${title}</h3>
-          <p class="text-sm text-slate-400 mt-1">${description}</p>
+          <h3 class="text-2xl font-bold text-slate-800 tracking-tight">${title}</h3>
+          <p class="text-sm text-slate-500 mt-1">${description}</p>
         </div>
-        ${buttonText ? `<button class="btn btn-primary btn-sm gap-2 shadow-lg shadow-blue-600/20" onclick="${action}"><i class="bi bi-plus-lg"></i>${buttonText}</button>` : ""}
+        ${buttonText ? `<button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 shadow-md shadow-blue-600/20 transition" onclick="${action}"><i class="bi bi-plus-lg"></i>${buttonText}</button>` : ""}
       </div>`;
     }
 
     function searchInput(placeholder) {
       return `<div class="relative mb-6 max-w-sm">
-        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500"><i class="bi bi-search"></i></span>
-        <input id="tableSearch" class="input input-bordered input-sm w-full pl-10 bg-slate-900 border-slate-800 focus:border-blue-500 text-slate-200" placeholder="${placeholder}" oninput="filterTable(this.value)">
+        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400"><i class="bi bi-search"></i></span>
+        <input id="tableSearch" class="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 focus:border-blue-600 focus:outline-none custom-shadow" placeholder="${placeholder}" oninput="filterTable(this.value)">
       </div>`;
     }
 
@@ -312,65 +308,65 @@
       (pages[currentPage] || renderHome)();
     }
 
-    /* --- HOME --- */
+    /* --- VISÃO GERAL --- */
     function renderHome() {
-      setPageTitle("Visão geral");
+      setPageTitle("Visão Geral");
       const today = todayISO();
       const todaySales = db.sales.filter(s => s.date === today);
       const revenue = todaySales.reduce((a, s) => a + s.total, 0);
       const lowStock = db.products.filter(p => p.active !== false && p.stock <= p.min);
       const pendingOS = db.orders.filter(o => o.status !== "Concluída" && o.status !== "Entregue" && o.status !== "Cancelada");
 
-      const lowRows = lowStock.slice(0, 5).map(p => `<tr><td>${safe(p.name)}</td><td><span class="text-error font-bold">${p.stock}</span></td><td>${p.min}</td><td>${badge("Baixo", "badge-error")}</td></tr>`);
-      const osRows = pendingOS.slice(0, 5).map(o => `<tr><td>${safe(o.number)}</td><td>${safe(o.customer)}</td><td>${safe(o.motorcycle)}</td><td>${badge(o.status, "badge-warning")}</td></tr>`);
+      const lowRows = lowStock.slice(0, 5).map(p => `<tr class="hover:bg-slate-50"><td class="px-5 py-3.5 font-semibold">${safe(p.name)}</td><td class="px-5 py-3.5 text-rose-600 font-bold">${p.stock}</td><td class="px-5 py-3.5">${p.min}</td><td class="px-5 py-3.5">${badge("Baixo Estoque", "bg-rose-100 text-rose-700")}</td></tr>`);
+      const osRows = pendingOS.slice(0, 5).map(o => `<tr class="hover:bg-slate-50"><td class="px-5 py-3.5 font-semibold">${safe(o.number)}</td><td class="px-5 py-3.5">${safe(o.customer)}</td><td class="px-5 py-3.5">${safe(o.motorcycle)}</td><td class="px-5 py-3.5">${badge(o.status, "bg-amber-100 text-amber-800")}</td></tr>`);
 
       $("content").innerHTML = `
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          ${metricCard("Vendas de Hoje", money(revenue), "cart-check", "text-emerald-400", todaySales.length + " venda(s) registrada(s)")}
-          ${metricCard("Produtos no Estoque", db.products.length, "box-seam", "text-blue-400")}
-          ${metricCard("Ordens em Andamento", pendingOS.length, "tools", "text-amber-400", "Na oficina")}
-          ${metricCard("Alerta de Estoque", lowStock.length, "exclamation-triangle", "text-rose-400", "Itens abaixo do mínimo")}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          ${metricCard("Vendas de Hoje", money(revenue), "cart-check", "text-emerald-600", "bg-emerald-50", todaySales.length + " venda(s) registrada(s)")}
+          ${metricCard("Produtos no Estoque", db.products.length, "boxes", "text-blue-600", "bg-blue-50", "Itens cadastrados")}
+          ${metricCard("Ordens em Andamento", pendingOS.length, "tools", "text-amber-600", "bg-amber-50", "Na oficina")}
+          ${metricCard("Alerta de Estoque", lowStock.length, "exclamation-triangle", "text-rose-600", "bg-rose-50", "Abaixo do mínimo")}
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow">
             <div class="flex justify-between items-center mb-5">
-              <h4 class="font-bold text-white text-base">Estoque Baixo</h4>
-              <button class="btn btn-ghost btn-xs text-blue-400" onclick="navigate('produtos')">Ver todos</button>
+              <h4 class="font-bold text-slate-800 text-base">Itens com Estoque Baixo</h4>
+              <button class="text-blue-600 text-xs font-semibold hover:underline" onclick="navigate('produtos')">Ver todos</button>
             </div>
-            ${table(["Produto", "Qtd", "Mín", "Status"], lowRows, "Nenhum produto em alerta.")}
+            ${table(["Produto", "Qtd", "Mín", "Situação"], lowRows, "Nenhum produto em alerta.")}
           </div>
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow">
             <div class="flex justify-between items-center mb-5">
-              <h4 class="font-bold text-white text-base">Ordens de Serviço Abertas</h4>
-              <button class="btn btn-ghost btn-xs text-blue-400" onclick="navigate('oficina')">Ver oficina</button>
+              <h4 class="font-bold text-slate-800 text-base">Ordens de Serviço Abertas</h4>
+              <button class="text-blue-600 text-xs font-semibold hover:underline" onclick="navigate('oficina')">Ver oficina</button>
             </div>
-            ${table(["OS", "Cliente", "Moto", "Status"], osRows, "Nenhuma OS em aberto.")}
+            ${table(["OS", "Cliente", "Veículo", "Status"], osRows, "Nenhuma OS em aberto.")}
           </div>
         </div>`;
     }
 
     /* --- PRODUTOS --- */
     function renderProducts() {
-      setPageTitle("Produtos e Estoque");
-      const rows = db.products.map(p => `<tr>
-        <td><span class="font-mono text-xs text-slate-400">${safe(p.code || "—")}</span></td>
-        <td class="font-bold text-white">${safe(p.name)}</td>
-        <td>${safe(p.category || "Peças")}</td>
-        <td>${money(p.cost)}</td>
-        <td>${money(p.price)}</td>
-        <td>${p.stock <= p.min ? badge(p.stock, "badge-error") : badge(p.stock, "badge-success")}</td>
-        <td>
+      setPageTitle("Produtos & Estoque");
+      const rows = db.products.map(p => `<tr class="hover:bg-slate-50">
+        <td class="px-5 py-3.5 font-mono text-xs text-slate-500">${safe(p.code || "—")}</td>
+        <td class="px-5 py-3.5 font-bold text-slate-800">${safe(p.name)}</td>
+        <td class="px-5 py-3.5">${safe(p.category || "Peças")}</td>
+        <td class="px-5 py-3.5">${money(p.cost)}</td>
+        <td class="px-5 py-3.5 font-semibold text-blue-600">${money(p.price)}</td>
+        <td class="px-5 py-3.5">${p.stock <= p.min ? badge(p.stock, "bg-rose-100 text-rose-700") : badge(p.stock, "bg-emerald-100 text-emerald-700")}</td>
+        <td class="px-5 py-3.5">
           <div class="flex gap-1">
-            <button class="btn btn-ghost btn-xs text-slate-300" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-ghost btn-xs text-blue-400" onclick="stockMovement('${p.id}')"><i class="bi bi-plus-slash-minus"></i></button>
-            <button class="btn btn-ghost btn-xs text-error" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
+            <button class="p-2 rounded-lg hover:bg-slate-100 text-slate-600" title="Editar" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
+            <button class="p-2 rounded-lg hover:bg-slate-100 text-blue-600" title="Movimentar Estoque" onclick="stockMovement('${p.id}')"><i class="bi bi-plus-slash-minus"></i></button>
+            <button class="p-2 rounded-lg hover:bg-slate-100 text-rose-600" title="Excluir" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
           </div>
         </td>
       </tr>`).reverse();
 
-      $("content").innerHTML = pageHeader("Produtos e Estoque", "Gerencie peças, preços de custo, venda e quantidades.", "Novo Produto", "addProduct()") +
-        searchInput("Pesquisar produto...") + table(["Código", "Nome", "Categoria", "Custo", "Venda", "Estoque", "Ações"], rows);
+      $("content").innerHTML = pageHeader("Catálogo de Produtos", "Gerencie peças, preços de custo, venda e controle de estoque.", "Novo Produto", "addProduct()") +
+        searchInput("Pesquisar produto por nome ou código...") + table(["Código", "Nome", "Categoria", "Custo", "Venda", "Estoque", "Ações"], rows);
     }
 
     async function addProduct(existing = null) {
@@ -414,60 +410,63 @@
     function renderPDV() {
       setPageTitle("PDV / Frente de Caixa");
       const options = db.products.filter(p => p.active !== false).map(p => `<option value="${p.id}">${safe(p.name)} — ${money(p.price)} (Disp: ${p.stock})</option>`).join("");
-      const cartRows = cart.map((c, i) => `<tr>
-        <td class="font-medium">${safe(c.name)}</td><td>${c.qty}</td><td>${money(c.price)}</td><td>${money(c.qty * c.price)}</td>
-        <td><button class="btn btn-ghost btn-xs text-error" onclick="removeCart(${i})"><i class="bi bi-x-lg"></i></button></td>
+      const cartRows = cart.map((c, i) => `<tr class="hover:bg-slate-50">
+        <td class="px-5 py-3.5 font-semibold">${safe(c.name)}</td>
+        <td class="px-5 py-3.5">${c.qty}</td>
+        <td class="px-5 py-3.5">${money(c.price)}</td>
+        <td class="px-5 py-3.5 font-semibold">${money(c.qty * c.price)}</td>
+        <td class="px-5 py-3.5"><button class="text-rose-600 hover:text-rose-800" onclick="removeCart(${i})"><i class="bi bi-x-circle-fill text-lg"></i></button></td>
       </tr>`);
       const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
 
       $("content").innerHTML = `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div class="lg:col-span-2 space-y-6">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-              <h4 class="font-bold text-white mb-4">Adicionar Produtos</h4>
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow">
+              <h4 class="font-bold text-slate-800 text-base mb-4">Adicionar Produto ao Carrinho</h4>
               <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
                 <div class="sm:col-span-7">
-                  <select id="cartProduct" class="select select-bordered w-full bg-slate-950 border-slate-700 text-sm"><option value="">Selecione um produto...</option>${options}</select>
+                  <select id="cartProduct" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none"><option value="">Selecione um produto...</option>${options}</select>
                 </div>
                 <div class="sm:col-span-3">
-                  <input id="cartQty" class="input input-bordered w-full bg-slate-950 border-slate-700 text-sm" type="number" min="1" value="1">
+                  <input id="cartQty" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" type="number" min="1" value="1">
                 </div>
                 <div class="sm:col-span-2">
-                  <button class="btn btn-primary w-full text-sm" onclick="addCart()">Adicionar</button>
+                  <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl text-sm transition" onclick="addCart()">Adicionar</button>
                 </div>
               </div>
             </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-              <h4 class="font-bold text-white mb-4">Itens no Carrinho</h4>
-              ${table(["Produto", "Qtd", "Unitário", "Subtotal", ""], cartRows, "Nenhum item adicionado.")}
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow">
+              <h4 class="font-bold text-slate-800 text-base mb-4">Itens Selecionados</h4>
+              ${table(["Produto", "Qtd", "Unitário", "Subtotal", ""], cartRows, "Nenhum item no carrinho.")}
             </div>
           </div>
           <div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <h4 class="font-bold text-white mb-2">Resumo da Venda</h4>
-              <div class="form-control w-full">
-                <label class="label"><span class="label-text text-slate-400">Cliente</span></label>
-                <select id="saleCustomer" class="select select-bordered w-full bg-slate-950 border-slate-700 text-sm">
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow space-y-4">
+              <h4 class="font-bold text-slate-800 text-base mb-2">Fechamento de Venda</h4>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Cliente</label>
+                <select id="saleCustomer" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none">
                   <option value="">Consumidor Final</option>
                   ${db.customers.map(c => `<option value="${c.id}">${safe(c.name)}</option>`).join("")}
                 </select>
               </div>
-              <div class="form-control w-full">
-                <label class="label"><span class="label-text text-slate-400">Forma de Pagamento</span></label>
-                <select id="salePayment" class="select select-bordered w-full bg-slate-950 border-slate-700 text-sm">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Forma de Pagamento</label>
+                <select id="salePayment" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none">
                   <option>Pix</option><option>Dinheiro</option><option>Débito</option><option>Crédito</option><option>A prazo</option>
                 </select>
               </div>
-              <div class="form-control w-full">
-                <label class="label"><span class="label-text text-slate-400">Observações</span></label>
-                <input id="saleNote" class="input input-bordered w-full bg-slate-950 border-slate-700 text-sm" placeholder="Opcional">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Observações</label>
+                <input id="saleNote" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" placeholder="Opcional">
               </div>
-              <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl flex justify-between items-center my-4">
-                <span class="text-slate-400 text-sm">Total:</span>
-                <span class="text-2xl font-black text-emerald-400">${money(total)}</span>
+              <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex justify-between items-center my-4">
+                <span class="text-sm font-semibold text-slate-600">Total a Pagar:</span>
+                <span class="text-2xl font-black text-emerald-600">${money(total)}</span>
               </div>
-              <button class="btn btn-success w-full font-bold shadow-lg shadow-success/20 text-white" onclick="finishSale()">Finalizar Venda</button>
-              <button class="btn btn-ghost w-full text-slate-400" onclick="cart=[];render()">Limpar Carrinho</button>
+              <button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md shadow-emerald-600/20 transition mb-2" onclick="finishSale()">Finalizar Venda</button>
+              <button class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl transition" onclick="cart=[];render()">Limpar Carrinho</button>
             </div>
           </div>
         </div>`;
@@ -500,37 +499,37 @@
       db.sales.push(sale);
       db.transactions.push({ id: uid(), date: todayISO(), type: "Entrada", description: `Venda ${sale.number}`, value: total, status: payment === "A prazo" ? "Pendente" : "Concluído" });
       saveDB(); cart = [];
-      await Swal.fire({ icon: "success", title: "Venda realizada com sucesso!", background: "#0f172a", color: "#f8fafc" });
+      await Swal.fire({ icon: "success", title: "Venda registrada com sucesso!", background: "#ffffff", color: "#1e293b" });
       render();
     }
 
     /* --- OFICINA / OS --- */
     function renderWorkshop() {
-      setPageTitle("Oficina / Ordens de Serviço");
-      const rows = db.orders.map(o => `<tr>
-        <td class="font-bold text-white">${safe(o.number)}</td>
-        <td>${safe(o.customer)}</td>
-        <td>${safe(o.motorcycle)}</td>
-        <td>${safe(o.problem)}</td>
-        <td>${badge(o.status, o.status === "Concluída" ? "badge-success" : "badge-warning")}</td>
-        <td>${money(o.value)}</td>
-        <td>
+      setPageTitle("Oficina & Ordens de Serviço");
+      const rows = db.orders.map(o => `<tr class="hover:bg-slate-50">
+        <td class="px-5 py-3.5 font-bold text-slate-800">${safe(o.number)}</td>
+        <td class="px-5 py-3.5">${safe(o.customer)}</td>
+        <td class="px-5 py-3.5">${safe(o.motorcycle)}</td>
+        <td class="px-5 py-3.5">${safe(o.problem)}</td>
+        <td class="px-5 py-3.5">${badge(o.status, o.status === "Concluída" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800")}</td>
+        <td class="px-5 py-3.5 font-semibold">${money(o.value)}</td>
+        <td class="px-5 py-3.5">
           <div class="flex gap-1">
-            <button class="btn btn-ghost btn-xs text-slate-300" onclick="editOrder('${o.id}')"><i class="bi bi-pencil"></i></button>
-            <button class="btn btn-ghost btn-xs text-blue-400" onclick="orderStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i></button>
+            <button class="p-2 rounded-lg hover:bg-slate-100 text-slate-600" onclick="editOrder('${o.id}')"><i class="bi bi-pencil"></i></button>
+            <button class="p-2 rounded-lg hover:bg-slate-100 text-blue-600" onclick="orderStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i></button>
           </div>
         </td>
       </tr>`).reverse();
 
-      $("content").innerHTML = pageHeader("Ordens de Serviço", "Gerencie reparos, motos e andamento da oficina.", "Nova OS", "addOrder()") +
-        searchInput("Pesquisar OS, cliente ou moto...") + table(["Nº OS", "Cliente", "Moto", "Defeito", "Status", "Valor", "Ações"], rows);
+      $("content").innerHTML = pageHeader("Ordens de Serviço", "Gerencie reparos, veículos e andamento da oficina mecânica.", "Nova OS", "addOrder()") +
+        searchInput("Pesquisar OS, cliente ou veículo...") + table(["Nº OS", "Cliente", "Veículo", "Defeito", "Status", "Valor", "Ações"], rows);
     }
 
     async function addOrder(existing = null) {
       const o = existing || {};
       const r = await modalForm(existing ? "Editar OS" : "Nova Ordem de Serviço", [
         { id: "customer", label: "Nome do Cliente", value: o.customer || "", required: true },
-        { id: "motorcycle", label: "Moto / Modelo / Placa", value: o.motorcycle || "", required: true },
+        { id: "motorcycle", label: "Veículo / Modelo / Placa", value: o.motorcycle || "", required: true },
         { id: "problem", label: "Defeito Relatado", value: o.problem || "", required: true },
         { id: "service", label: "Serviço Executado", value: o.service || "" },
         { id: "value", label: "Valor Total (R$)", type: "number", value: o.value ?? 0, min: 0, step: "0.01" },
@@ -555,19 +554,22 @@
     /* --- CLIENTES --- */
     function renderCustomers() {
       setPageTitle("Clientes");
-      const rows = db.customers.map(c => `<tr>
-        <td class="font-bold text-white">${safe(c.name)}</td><td>${safe(c.phone || "—")}</td><td>${safe(c.document || "—")}</td><td>${money(c.balance || 0)}</td>
-        <td><button class="btn btn-ghost btn-xs text-slate-300" onclick="editCustomer('${c.id}')"><i class="bi bi-pencil"></i></button></td>
+      const rows = db.customers.map(c => `<tr class="hover:bg-slate-50">
+        <td class="px-5 py-3.5 font-bold text-slate-800">${safe(c.name)}</td>
+        <td class="px-5 py-3.5">${safe(c.phone || "—")}</td>
+        <td class="px-5 py-3.5">${safe(c.document || "—")}</td>
+        <td class="px-5 py-3.5 font-semibold">${money(c.balance || 0)}</td>
+        <td class="px-5 py-3.5"><button class="p-2 rounded-lg hover:bg-slate-100 text-slate-600" onclick="editCustomer('${c.id}')"><i class="bi bi-pencil"></i></button></td>
       </tr>`).reverse();
-      $("content").innerHTML = pageHeader("Clientes", "Cadastro de clientes.", "Novo Cliente", "addCustomer()") +
-        searchInput("Pesquisar cliente...") + table(["Nome", "Telefone", "CPF", "Saldo Fiado", "Ações"], rows);
+      $("content").innerHTML = pageHeader("Clientes", "Cadastro e histórico de clientes.", "Novo Cliente", "addCustomer()") +
+        searchInput("Pesquisar cliente...") + table(["Nome", "Telefone", "CPF / CNPJ", "Saldo Fiado", "Ações"], rows);
     }
     async function addCustomer(existing = null) {
       const c = existing || {};
       const r = await modalForm(existing ? "Editar Cliente" : "Novo Cliente", [
         { id: "name", label: "Nome Completo", value: c.name || "", required: true },
         { id: "phone", label: "Telefone / WhatsApp", value: c.phone || "" },
-        { id: "document", label: "CPF / Documento", value: c.document || "" }
+        { id: "document", label: "CPF / CNPJ", value: c.document || "" }
       ]);
       if (!r.isConfirmed) return;
       const item = { ...r.value, id: c.id || uid(), balance: c.balance || 0 };
@@ -580,33 +582,35 @@
     /* --- FORNECEDORES --- */
     function renderSuppliers() {
       setPageTitle("Fornecedores");
-      const rows = db.suppliers.map(s => `<tr><td class="font-bold text-white">${safe(s.name)}</td><td>${safe(s.phone || "—")}</td><td>${safe(s.document || "—")}</td></tr>`).reverse();
-      $("content").innerHTML = pageHeader("Fornecedores", "Contatos de fornecedores de peças.", "Novo Fornecedor", "addSupplier()") +
+      const rows = db.suppliers.map(s => `<tr class="hover:bg-slate-50"><td class="px-5 py-3.5 font-bold text-slate-800">${safe(s.name)}</td><td class="px-5 py-3.5">${safe(s.phone || "—")}</td><td class="px-5 py-3.5">${safe(s.document || "—")}</td></tr>`).reverse();
+      $("content").innerHTML = pageHeader("Fornecedores", "Contatos de distribuidores e fornecedores.", "Novo Fornecedor", "addSupplier()") +
         table(["Nome", "Telefone", "CNPJ"], rows);
     }
     async function addSupplier() {
-      const r = await modalForm("Novo Fornecedor", [{ id: "name", label: "Nome", required: true }, { id: "phone", label: "Telefone" }]);
+      const r = await modalForm("Novo Fornecedor", [{ id: "name", label: "Nome da Empresa", required: true }, { id: "phone", label: "Telefone" }]);
       if (!r.isConfirmed) return;
       db.suppliers.push({ ...r.value, id: uid() }); saveDB(); toast("Fornecedor salvo!"); render();
     }
 
     /* --- FINANCEIRO --- */
     function renderFinance() {
-      setPageTitle("Financeiro");
+      setPageTitle("Controle Financeiro");
       const income = db.transactions.filter(t => t.type === "Entrada" && t.status === "Concluído").reduce((a, t) => a + t.value, 0);
       const expense = db.transactions.filter(t => t.type === "Saída" && t.status === "Concluído").reduce((a, t) => a + t.value, 0);
-      const rows = db.transactions.slice().reverse().map(t => `<tr>
-        <td>${dateBR(t.date)}</td><td>${safe(t.description)}</td>
-        <td>${badge(t.type, t.type === "Entrada" ? "badge-success" : "badge-error")}</td>
-        <td>${money(t.value)}</td><td>${badge(t.status, t.status === "Concluído" ? "badge-success" : "badge-warning")}</td>
+      const rows = db.transactions.slice().reverse().map(t => `<tr class="hover:bg-slate-50">
+        <td class="px-5 py-3.5">${dateBR(t.date)}</td>
+        <td class="px-5 py-3.5 font-medium">${safe(t.description)}</td>
+        <td class="px-5 py-3.5">${badge(t.type, t.type === "Entrada" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700")}</td>
+        <td class="px-5 py-3.5 font-semibold">${money(t.value)}</td>
+        <td class="px-5 py-3.5">${badge(t.status, t.status === "Concluído" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800")}</td>
       </tr>`);
 
-      $("content").innerHTML = pageHeader("Controle Financeiro", "Entradas e despesas.", "Novo Lançamento", "addTransaction()") +
-        `<div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-          ${metricCard("Entradas Realizadas", money(income), "arrow-up-circle", "text-emerald-400")}
-          ${metricCard("Saídas / Despesas", money(expense), "arrow-down-circle", "text-rose-400")}
-          ${metricCard("Saldo em Caixa", money(income - expense), "wallet2", "text-blue-400")}
-        </div>` + table(["Data", "Descrição", "Tipo", "Valor", "Status"], rows);
+      $("content").innerHTML = pageHeader("Financeiro", "Controle de caixa, entradas e despesas.", "Novo Lançamento", "addTransaction()") +
+        `<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          ${metricCard("Entradas Realizadas", money(income), "arrow-up-circle", "text-emerald-600", "bg-emerald-50")}
+          ${metricCard("Saídas / Despesas", money(expense), "arrow-down-circle", "text-rose-600", "bg-rose-50")}
+          ${metricCard("Saldo em Caixa", money(income - expense), "wallet2", "text-blue-600", "bg-blue-50")}
+        </div>` + table(["Data", "Descrição", "Tipo", "Valor", "Situação"], rows);
     }
     async function addTransaction() {
       const r = await modalForm("Novo Lançamento", [
@@ -623,9 +627,9 @@
 
     /* --- RELATÓRIOS --- */
     function renderReports() {
-      setPageTitle("Relatórios e Estatísticas");
-      $("content").innerHTML = pageHeader("Relatórios", "Análise de desempenho.") +
-        `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl mb-6"><h4 class="font-bold text-white mb-4">Vendas dos Últimos Dias</h4><canvas id="salesChart" height="100"></canvas></div>`;
+      setPageTitle("Relatórios & Estatísticas");
+      $("content").innerHTML = pageHeader("Relatórios", "Análise de desempenho comercial.") +
+        `<div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow mb-6"><h4 class="font-bold text-slate-800 text-base mb-4">Vendas dos Últimos 7 Dias</h4><canvas id="salesChart" height="100"></canvas></div>`;
       drawChart();
     }
     function drawChart() {
@@ -636,28 +640,28 @@
       const values = days.map(day => db.sales.filter(s => s.date === day).reduce((a, s) => a + s.total, 0));
       chartInstance = new Chart(canvas, {
         type: "bar",
-        data: { labels: days.map(dateBR), datasets: [{ data: values, backgroundColor: "#3b82f6", borderRadius: 8 }] },
-        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#94a3b8" }, grid: { display: false } }, y: { ticks: { color: "#94a3b8" }, grid: { color: "#1e293b" } } } }
+        data: { labels: days.map(dateBR), datasets: [{ data: values, backgroundColor: "#2563eb", borderRadius: 8 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: "#f1f5f9" } } } }
       });
     }
 
     /* --- CONFIGURAÇÕES --- */
     function renderSettings() {
       setPageTitle("Configurações");
-      $("content").innerHTML = pageHeader("Configurações", "Gerencie os dados e backup.") +
-        `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl mb-6 max-w-xl">
-          <h4 class="font-bold text-white mb-4">Identificação da Empresa</h4>
-          <div class="form-control w-full mb-4">
-            <label class="label"><span class="label-text text-slate-400">Nome da Oficina / Loja</span></label>
-            <input id="shopName" class="input input-bordered w-full bg-slate-950 border-slate-700" value="${safe(db.settings.shop)}">
+      $("content").innerHTML = pageHeader("Configurações", "Identificação do negócio e segurança de dados.") +
+        `<div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow mb-6 max-w-xl">
+          <h4 class="font-bold text-slate-800 text-base mb-4">Identificação</h4>
+          <div class="mb-4">
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1.5">Nome da Oficina / Loja</label>
+            <input id="shopName" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none" value="${safe(db.settings.shop)}">
           </div>
-          <button class="btn btn-primary btn-sm" onclick="saveSettings()">Salvar Alterações</button>
+          <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="saveSettings()">Salvar Alterações</button>
         </div>
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl max-w-xl">
-          <h4 class="font-bold text-white mb-4">Backup e Segurança</h4>
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 custom-shadow max-w-xl">
+          <h4 class="font-bold text-slate-800 text-base mb-4">Backup e Dados</h4>
           <div class="flex flex-wrap gap-3">
-            <button class="btn btn-outline btn-sm gap-2" onclick="exportBackup()"><i class="bi bi-download"></i> Baixar Backup JSON</button>
-            <button class="btn btn-error btn-outline btn-sm gap-2" onclick="clearData()"><i class="bi bi-trash"></i> Apagar Todos os Dados</button>
+            <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="exportBackup()"><i class="bi bi-download me-2"></i> Baixar Backup JSON</button>
+            <button class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold px-4 py-2.5 rounded-xl text-sm transition" onclick="clearData()"><i class="bi bi-trash me-2"></i> Apagar Todos os Dados</button>
           </div>
         </div>`;
     }
@@ -668,11 +672,11 @@
     function exportBackup() {
       const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = "backup-sistema-" + todayISO() + ".json"; a.click();
-      toast("Backup exportado!");
+      const a = document.createElement("a"); a.href = url; a.download = "backup-nexus-" + todayISO() + ".json"; a.click();
+      toast("Backup exportado com sucesso!");
     }
     async function clearData() {
-      if (!await askConfirm("Apagar tudo?", "Essa ação apagará todos os cadastros permanentemente!")) return;
+      if (!await askConfirm("Apagar todos os dados?", "Essa ação é irreversível e apagará todos os registros locais!")) return;
       db = emptyDB(); saveDB(); toast("Dados apagados."); render();
     }
 
