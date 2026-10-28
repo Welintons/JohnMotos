@@ -1,1131 +1,900 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JOHN MOTOS — Gestão de Peças & Oficina</title>
-  
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b0f17">
+<title>John Motos Peças | Gestão</title>
 
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            heading: ['Plus Jakarta Sans', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#fff7ed',
-              100: '#ffedd5',
-              500: '#f97316', // Laranja mecânico
-              600: '#ea580c',
-              700: '#c2410c',
-            },
-            app: {
-              bg: '#090d16',
-              card: '#111827',
-              border: '#1f293d',
-              accent: '#1e293b'
-            }
-          }
-        }
-      }
-    }
-  </script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #090d16;
-      color: #f3f4f6;
-    }
-    .glass-card {
-      background: rgba(17, 24, 39, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-    }
-    .glass-card-hover:hover {
-      background: rgba(30, 41, 59, 0.8);
-      border-color: rgba(249, 115, 22, 0.3);
-    }
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #090d16;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #1f293d;
-      border-radius: 9999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #374151;
-    }
-  </style>
+<style>
+:root{
+  --bg:#0b0f17;--panel:#111827;--border:#263244;
+  --text:#e5e7eb;--muted:#94a3b8;--accent:#3b82f6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font-family:Inter,system-ui,-apple-system,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.sidebar{background:#0d121d;border-right:1px solid var(--border)}
+.navbtn{display:flex;align-items:center;gap:12px;width:100%;
+padding:12px;border-radius:10px;color:#94a3b8;text-align:left;
+transition:.2s;font-size:14px}
+.navbtn:hover,.navbtn.active{background:#1b2b43;color:white}
+.navbtn.active{box-shadow:inset 3px 0 #3b82f6}
+.panel{background:var(--panel);border:1px solid var(--border);
+border-radius:14px}
+.field{width:100%;background:#0b1220;border:1px solid #334155;
+border-radius:9px;padding:10px 12px;color:white;outline:none}
+.field:focus{border-color:#3b82f6}
+.btn{display:inline-flex;align-items:center;justify-content:center;
+gap:8px;padding:10px 14px;border-radius:9px;font-size:13px;
+font-weight:600;transition:.2s}
+.btn-primary{background:#2563eb;color:white}
+.btn-primary:hover{background:#1d4ed8}
+.btn-secondary{background:#202b3b;color:#e2e8f0}
+.btn-danger{background:#451b25;color:#fda4af}
+.metric{padding:18px}
+.metric p{font-size:13px;color:var(--muted)}
+.metric strong{font-size:25px;display:block;margin-top:10px}
+table{width:100%;border-collapse:collapse;white-space:nowrap}
+th,td{text-align:left;padding:13px 15px;border-bottom:1px solid #263244;
+font-size:13px}
+th{color:#94a3b8;font-weight:500;background:#131c2b}
+td{color:#e2e8f0}
+tbody tr:hover{background:#182233}
+.badge{display:inline-block;padding:4px 8px;border-radius:6px;
+font-size:11px;background:#1e293b;color:#cbd5e1}
+.badge-ok{background:#12372b;color:#6ee7b7}
+.badge-warn{background:#422b13;color:#fcd34d}
+.badge-red{background:#451b25;color:#fda4af}
+.section-title{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.muted{color:var(--muted)}
+.mobilebar{display:none}
+#content{min-width:0}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}
+@media(max-width:768px){
+ .sidebar{position:fixed;z-index:50;left:-280px;top:0;bottom:0;
+ width:260px;transition:left .25s}
+ .sidebar.open{left:0}
+ .mobilebar{display:flex}
+ main{padding:16px!important}
+ .section-title{font-size:20px}
+ .metric strong{font-size:21px}
+ .metric{padding:14px}
+ .hide-mobile{display:none}
+}
+</style>
 </head>
-<body class="min-h-screen flex flex-col md:flex-row antialiased selection:bg-brand-500 selection:text-white pb-20 md:pb-0">
 
-  <!-- APP SIDEBAR / DESKTOP NAV -->
-  <aside class="w-full md:w-64 glass-card md:min-h-screen flex flex-col justify-between p-4 z-30 hidden md:flex border-r border-app-border">
+<body>
+<div class="min-h-screen flex">
+
+<!-- MENU -->
+<aside id="sidebar" class="sidebar w-64 shrink-0 p-4 flex flex-col">
+  <div class="flex items-center gap-3 px-2 py-4 mb-5">
+    <div class="bg-blue-600 rounded-xl p-3">
+      <i data-lucide="bike" class="w-7 h-7 text-white"></i>
+    </div>
     <div>
-      <!-- LOGO / BRANDING -->
-      <div class="flex items-center gap-3 px-2 py-3 mb-6">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/20 font-heading font-extrabold text-xl">
-          JM
-        </div>
-        <div>
-          <h1 class="font-heading font-bold text-base tracking-wide text-white leading-tight">JOHN MOTOS</h1>
-          <p class="text-xs text-slate-400 font-medium">Peças & Oficina</p>
-        </div>
-      </div>
-
-      <!-- NAV MENU -->
-      <nav class="space-y-1">
-        <button onclick="navigate('dashboard')" id="nav-dashboard" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-brand-500 bg-brand-500/10 border border-brand-500/20">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Visão Geral
-        </button>
-
-        <button onclick="navigate('pdv')" id="nav-pdv" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="shopping-cart" class="w-4 h-4"></i> Frente de Caixa (PDV)
-        </button>
-
-        <button onclick="navigate('produtos')" id="nav-produtos" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="package" class="w-4 h-4"></i> Produtos e Peças
-        </button>
-
-        <button onclick="navigate('os')" id="nav-os" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="wrench" class="w-4 h-4"></i> Ordens de Serviço
-        </button>
-
-        <button onclick="navigate('clientes')" id="nav-clientes" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="users" class="w-4 h-4"></i> Clientes / Veículos
-        </button>
-
-        <button onclick="navigate('garantias')" id="nav-garantias" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="shield-check" class="w-4 h-4"></i> Garantias
-        </button>
-
-        <button onclick="navigate('financeiro')" id="nav-financeiro" class="nav-link w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition text-slate-400 hover:text-slate-200 hover:bg-slate-800/50">
-          <i data-lucide="wallet" class="w-4 h-4"></i> Caixa & Financeiro
-        </button>
-      </nav>
+      <h1 class="font-bold text-lg">JOHN MOTOS</h1>
+      <p class="text-xs muted">PEÇAS & OFICINA</p>
     </div>
+  </div>
 
-    <!-- FOOTER / CONNECTION STATUS -->
-    <div class="pt-4 border-t border-app-border space-y-3">
-      <div class="flex items-center justify-between px-2 py-1.5 rounded-lg bg-slate-900/60 border border-slate-800">
-        <div class="flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-xs font-medium text-slate-300">Supabase</span>
-        </div>
-        <button onclick="toggleConfigModal()" class="text-xs text-slate-400 hover:text-white p-1">
-          <i data-lucide="settings" class="w-3.5 h-3.5"></i>
-        </button>
-      </div>
-
-      <div class="text-[11px] text-slate-500 text-center">
-        John Motos OS v2.0 • 2026
-      </div>
-    </div>
-  </aside>
-
-  <!-- MOBILE BOTTOM NAVIGATION BAR -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 glass-card z-50 px-2 py-2 border-t border-app-border flex justify-around items-center">
-    <button onclick="navigate('dashboard')" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-brand-500 text-[10px]">
-      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-      <span>Início</span>
-    </button>
-    <button onclick="navigate('pdv')" class="flex flex-col items-center gap-1 p-2 text-brand-500 text-[10px]">
-      <i data-lucide="shopping-cart" class="w-5 h-5"></i>
-      <span>PDV</span>
-    </button>
-    <button onclick="navigate('os')" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-brand-500 text-[10px]">
-      <i data-lucide="wrench" class="w-5 h-5"></i>
-      <span>O.S.</span>
-    </button>
-    <button onclick="navigate('produtos')" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-brand-500 text-[10px]">
-      <i data-lucide="package" class="w-5 h-5"></i>
-      <span>Estoque</span>
-    </button>
-    <button onclick="navigate('financeiro')" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-brand-500 text-[10px]">
-      <i data-lucide="wallet" class="w-5 h-5"></i>
-      <span>Caixa</span>
-    </button>
+  <p class="text-xs muted uppercase tracking-widest px-3 mb-2">Principal</p>
+  <nav class="space-y-1">
+    <button class="navbtn active" data-page="inicio"><i data-lucide="layout-dashboard"></i>Visão geral</button>
+    <button class="navbtn" data-page="pdv"><i data-lucide="shopping-cart"></i>PDV / Vendas</button>
+    <button class="navbtn" data-page="produtos"><i data-lucide="package"></i>Produtos e estoque</button>
+    <button class="navbtn" data-page="oficina"><i data-lucide="wrench"></i>Oficina / OS</button>
+    <button class="navbtn" data-page="clientes"><i data-lucide="users"></i>Clientes</button>
+    <button class="navbtn" data-page="fornecedores"><i data-lucide="truck"></i>Fornecedores</button>
   </nav>
 
-  <!-- MAIN APP CONTAINER -->
-  <main class="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+  <p class="text-xs muted uppercase tracking-widest px-3 mt-7 mb-2">Gestão</p>
+  <nav class="space-y-1">
+    <button class="navbtn" data-page="financeiro"><i data-lucide="wallet"></i>Financeiro</button>
+    <button class="navbtn" data-page="relatorios"><i data-lucide="chart-no-axes-combined"></i>Relatórios</button>
+    <button class="navbtn" data-page="config"><i data-lucide="settings"></i>Configurações</button>
+  </nav>
 
-    <!-- TOP BAR (HEADER) -->
-    <header class="flex items-center justify-between mb-8 pb-4 border-b border-app-border">
+  <div class="mt-auto panel p-3">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span class="text-xs">Sistema operacional</span>
+    </div>
+    <p class="text-xs muted mt-2">Armazenamento local</p>
+  </div>
+</aside>
+
+<!-- ÁREA PRINCIPAL -->
+<main class="flex-1 min-w-0 p-7 overflow-x-hidden">
+  <header class="flex justify-between items-center gap-3 mb-8">
+    <div class="flex items-center gap-3">
+      <button id="menuToggle" class="mobilebar btn btn-secondary">
+        <i data-lucide="menu"></i>
+      </button>
       <div>
-        <h2 id="page-title" class="text-2xl font-heading font-bold text-white tracking-tight">Visão Geral</h2>
-        <p id="page-subtitle" class="text-xs md:text-sm text-slate-400 mt-0.5">Acompanhe os principais indicadores da oficina</p>
+        <h2 id="pageTitle" class="text-xl font-bold">Visão geral</h2>
+        <p id="today" class="text-xs muted mt-1"></p>
       </div>
-
-      <div class="flex items-center gap-3">
-        <!-- CAIXA STATUS BADGE -->
-        <div id="caixa-status-badge" class="px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-2">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-          Caixa Aberto
-        </div>
-      </div>
-    </header>
-
-    <!-- SECTION: DASHBOARD -->
-    <section id="sec-dashboard" class="app-section space-y-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- CARD 1 -->
-        <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Vendas de Hoje</span>
-            <div class="p-2 rounded-xl bg-brand-500/10 text-brand-500">
-              <i data-lucide="dollar-sign" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <div class="text-2xl font-bold font-heading text-white mt-3" id="dash-vendas-hoje">R$ 0,00</div>
-          <span class="text-xs text-slate-400 mt-1 inline-block"><strong id="dash-qtd-vendas" class="text-slate-200">0</strong> operações realizadas</span>
-        </div>
-
-        <!-- CARD 2 -->
-        <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Produtos Cadastrados</span>
-            <div class="p-2 rounded-xl bg-blue-500/10 text-blue-400">
-              <i data-lucide="package" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <div class="text-2xl font-bold font-heading text-white mt-3" id="dash-qtd-produtos">0</div>
-          <span class="text-xs text-slate-400 mt-1 inline-block">Itens no estoque</span>
-        </div>
-
-        <!-- CARD 3 -->
-        <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-            <span>Estoque Baixo</span>
-            <div class="p-2 rounded-xl bg-amber-500/10 text-amber-400">
-              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <div class="text-2xl font-bold font-heading text-amber-400 mt-3" id="dash-estoque-baixo">0</div>
-          <span class="text-xs text-slate-400 mt-1 inline-block">Precisam de reposição</span>
-        </div>
-
-        <!-- CARD 4 -->
-        <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-400 text-xs font-semibold uppercase tracking-wider">
-            <span>O.S. em Andamento</span>
-            <div class="p-2 rounded-xl bg-purple-500/10 text-purple-400">
-              <i data-lucide="wrench" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <div class="text-2xl font-bold font-heading text-white mt-3" id="dash-os-andamento">0</div>
-          <span class="text-xs text-slate-400 mt-1 inline-block">Serviços na oficina</span>
-        </div>
-      </div>
-
-      <!-- RECENT SALES & OS TABLE -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="glass-card p-6 rounded-2xl">
-          <h3 class="font-heading font-bold text-base text-white mb-4 flex items-center gap-2">
-            <i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Últimas Vendas
-          </h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="text-slate-400 border-b border-app-border uppercase">
-                <tr>
-                  <th class="pb-2 font-semibold">ID</th>
-                  <th class="pb-2 font-semibold">Cliente</th>
-                  <th class="pb-2 font-semibold">Pagamento</th>
-                  <th class="pb-2 font-semibold text-right">Valor</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-dash-vendas" class="divide-y divide-app-border/50">
-                <tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma venda salva ainda.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="glass-card p-6 rounded-2xl">
-          <h3 class="font-heading font-bold text-base text-white mb-4 flex items-center gap-2">
-            <i data-lucide="wrench" class="w-4 h-4 text-brand-500"></i> Ordens de Serviço Recentes
-          </h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-300">
-              <thead class="text-slate-400 border-b border-app-border uppercase">
-                <tr>
-                  <th class="pb-2 font-semibold">Placa</th>
-                  <th class="pb-2 font-semibold">Serviço</th>
-                  <th class="pb-2 font-semibold">Status</th>
-                  <th class="pb-2 font-semibold text-right">Valor</th>
-                </tr>
-              </thead>
-              <tbody id="tbl-dash-os" class="divide-y divide-app-border/50">
-                <tr><td colspan="4" class="py-4 text-center text-slate-500">Nenhuma O.S. recente.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: PDV (FRENTE DE CAIXA) -->
-    <section id="sec-pdv" class="app-section hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- LEFT PANEL: ITEM SELECTION (PEÇAS OU MÃO DE OBRA LIVRE) -->
-        <div class="lg:col-span-7 space-y-4">
-          
-          <!-- TAB SWITCHER: PRODUTO VS MÃO DE OBRA LIVRE -->
-          <div class="flex p-1 bg-slate-900/80 rounded-xl border border-app-border">
-            <button id="pdv-tab-peca" onclick="switchPdvTab('peca')" class="flex-1 py-2.5 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 bg-brand-500 text-white shadow-md">
-              <i data-lucide="package" class="w-4 h-4"></i> Peça / Produto do Estoque
-            </button>
-            <button id="pdv-tab-servico" onclick="switchPdvTab('servico')" class="flex-1 py-2.5 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 text-slate-400 hover:text-white">
-              <i data-lucide="wrench" class="w-4 h-4"></i> Mão de Obra / Serviço Livre
-            </button>
-          </div>
-
-          <!-- PANEL A: PRODUTO DO ESTOQUE -->
-          <div id="pdv-panel-peca" class="glass-card p-5 rounded-2xl space-y-4">
-            <div class="relative">
-              <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
-              <input type="text" id="pdv-busca-produto" onkeyup="filtrarProdutosPDV()" placeholder="Buscar por Nome ou Código (ex: JM-1001)..." class="w-full bg-slate-900 border border-app-border rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500 transition">
-            </div>
-
-            <div class="max-h-80 overflow-y-auto space-y-2 pr-1" id="pdv-lista-produtos">
-              <!-- Lista de produtos populada via JS -->
-            </div>
-          </div>
-
-          <!-- PANEL B: MÃO DE OBRA / SERVIÇO LIVRE -->
-          <div id="pdv-panel-servico" class="glass-card p-5 rounded-2xl space-y-4 hidden">
-            <div class="flex items-center gap-2 text-amber-400 text-xs font-semibold border-b border-app-border pb-3">
-              <i data-lucide="info" class="w-4 h-4"></i> Lançamento Avulso (Sem registro prévio no estoque)
-            </div>
-
-            <div class="space-y-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Descrição do Serviço / Mão de Obra *</label>
-                <input type="text" id="pdv-mo-descricao" placeholder="Ex: Troca de pneu + alinhamento de roda" class="w-full bg-slate-900 border border-app-border rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500">
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Valor do Serviço (R$) *</label>
-                  <input type="number" step="0.01" id="pdv-mo-valor" placeholder="0.00" class="w-full bg-slate-900 border border-app-border rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500 font-semibold">
-                </div>
-
-                <div>
-                  <label class="block text-xs font-medium text-slate-400 mb-1">Garantia (Dias)</label>
-                  <input type="number" id="pdv-mo-garantia" value="30" class="w-full bg-slate-900 border border-app-border rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-brand-500">
-                </div>
-              </div>
-
-              <button onclick="adicionarMaoDeObraPDV()" class="w-full py-3 bg-gradient-to-r from-brand-600 to-amber-500 hover:from-brand-500 hover:to-amber-400 text-white font-semibold text-xs rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Mão de Obra ao Carrinho
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- RIGHT PANEL: CARRINHO & FINALIZAÇÃO -->
-        <div class="lg:col-span-5 space-y-4">
-          <div class="glass-card p-5 rounded-2xl flex flex-col justify-between h-full min-h-[480px]">
-            <div>
-              <div class="flex items-center justify-between pb-3 border-b border-app-border mb-4">
-                <h3 class="font-heading font-bold text-sm text-white flex items-center gap-2">
-                  <i data-lucide="shopping-bag" class="w-4 h-4 text-brand-500"></i> Carrinho de Compras
-                </h3>
-                <button onclick="limparCarrinho()" class="text-[11px] text-red-400 hover:underline">Limpar</button>
-              </div>
-
-              <!-- LISTA DE ITENS NO CARRINHO -->
-              <div id="pdv-carrinho-itens" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <div class="text-center py-10 text-slate-500 text-xs">
-                  Carrinho vazio. Adicione peças ou serviços ao lado.
-                </div>
-              </div>
-            </div>
-
-            <!-- SUMMARY & PAYMENT -->
-            <div class="pt-4 border-t border-app-border space-y-3 mt-4">
-              <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Cliente (Opcional / Fiado)</label>
-                <select id="pdv-cliente-select" class="w-full bg-slate-900 border border-app-border rounded-xl px-3 py-2 text-xs text-white">
-                  <option value="">Consumidor Final (Balcão)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">Forma de Pagamento</label>
-                <select id="pdv-forma-pagamento" class="w-full bg-slate-900 border border-app-border rounded-xl px-3 py-2 text-xs text-white">
-                  <option value="Dinheiro">Dinheiro</option>
-                  <option value="Pix">PIX</option>
-                  <option value="Cartão de débito">Cartão de Débito</option>
-                  <option value="Cartão de crédito">Cartão de Crédito</option>
-                  <option value="A prazo">A Prazo / Fiado</option>
-                </select>
-              </div>
-
-              <div class="flex items-center justify-between py-2 px-3 rounded-xl bg-slate-900 border border-app-border">
-                <span class="text-xs text-slate-400 font-medium">TOTAL DA VENDA</span>
-                <span id="pdv-total-valor" class="text-xl font-bold font-heading text-emerald-400">R$ 0,00</span>
-              </div>
-
-              <button onclick="finalizarVendaPDV()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg transition flex items-center justify-center gap-2">
-                <i data-lucide="check-circle-2" class="w-4 h-4"></i> Finalizar & Salvar Venda
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: PRODUTOS & ESTOQUE -->
-    <section id="sec-produtos" class="app-section hidden space-y-6">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div class="relative w-full sm:w-72">
-          <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
-          <input type="text" id="busca-produtos-lista" onkeyup="renderProdutosTabela()" placeholder="Buscar peças..." class="w-full bg-slate-900 border border-app-border rounded-xl pl-9 pr-4 py-2 text-xs text-white">
-        </div>
-
-        <button onclick="abrirModalProduto()" class="py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center gap-2">
-          <i data-lucide="plus" class="w-4 h-4"></i> Cadastrar Nova Peça
-        </button>
-      </div>
-
-      <div class="glass-card rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900/80 text-slate-400 border-b border-app-border uppercase">
-              <tr>
-                <th class="p-3.5 font-semibold">Cód. SKU</th>
-                <th class="p-3.5 font-semibold">Produto / Peça</th>
-                <th class="p-3.5 font-semibold">Categoria</th>
-                <th class="p-3.5 font-semibold">Qtd Estoque</th>
-                <th class="p-3.5 font-semibold">Preço Custo</th>
-                <th class="p-3.5 font-semibold">Preço Venda</th>
-                <th class="p-3.5 font-semibold">Garantia</th>
-                <th class="p-3.5 font-semibold text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="tbl-produtos-body" class="divide-y divide-app-border/50">
-              <!-- Render via JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: ORDENS DE SERVIÇO (OS) -->
-    <section id="sec-os" class="app-section hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <h3 class="text-sm font-semibold text-slate-300">Acompanhamento da Oficina</h3>
-        <button onclick="abrirModalOS()" class="py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center gap-2">
-          <i data-lucide="plus" class="w-4 h-4"></i> Nova Ordem de Serviço
-        </button>
-      </div>
-
-      <div class="glass-card rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900/80 text-slate-400 border-b border-app-border uppercase">
-              <tr>
-                <th class="p-3.5 font-semibold">Nº OS</th>
-                <th class="p-3.5 font-semibold">Placa / Veículo</th>
-                <th class="p-3.5 font-semibold">Serviço Solicitado</th>
-                <th class="p-3.5 font-semibold">Status</th>
-                <th class="p-3.5 font-semibold text-right">Valor Total</th>
-              </tr>
-            </thead>
-            <tbody id="tbl-os-body" class="divide-y divide-app-border/50">
-              <!-- Render via JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: CLIENTES -->
-    <section id="sec-clientes" class="app-section hidden space-y-6">
-      <div class="flex justify-between items-center">
-        <h3 class="text-sm font-semibold text-slate-300">Clientes & Motos Cadastradas</h3>
-        <button onclick="abrirModalCliente()" class="py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center gap-2">
-          <i data-lucide="plus" class="w-4 h-4"></i> Cadastrar Cliente
-        </button>
-      </div>
-
-      <div class="glass-card rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900/80 text-slate-400 border-b border-app-border uppercase">
-              <tr>
-                <th class="p-3.5 font-semibold">Nome</th>
-                <th class="p-3.5 font-semibold">Telefone</th>
-                <th class="p-3.5 font-semibold">Modelo da Moto</th>
-                <th class="p-3.5 font-semibold">Placa</th>
-                <th class="p-3.5 font-semibold">Documento</th>
-              </tr>
-            </thead>
-            <tbody id="tbl-clientes-body" class="divide-y divide-app-border/50">
-              <!-- Render via JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: GARANTIAS -->
-    <section id="sec-garantias" class="app-section hidden space-y-6">
-      <div class="glass-card p-6 rounded-2xl">
-        <h3 class="font-heading font-bold text-base text-white mb-2">Consulta de Garantias de Peças & Serviços</h3>
-        <p class="text-xs text-slate-400 mb-4">Verifique a validade da garantia de produtos ou mão de obra vendidos</p>
-
-        <div class="flex gap-3 max-w-md">
-          <input type="text" id="busca-garantia-input" placeholder="Digite o nome do produto ou placa do cliente..." class="w-full bg-slate-900 border border-app-border rounded-xl px-3.5 py-2 text-xs text-white">
-          <button onclick="consultarGarantia()" class="py-2 px-4 bg-brand-500 text-white font-semibold text-xs rounded-xl">Buscar</button>
-        </div>
-      </div>
-
-      <div class="glass-card rounded-2xl overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-300">
-            <thead class="bg-slate-900/80 text-slate-400 border-b border-app-border uppercase">
-              <tr>
-                <th class="p-3.5 font-semibold">Item Vendido</th>
-                <th class="p-3.5 font-semibold">Tipo</th>
-                <th class="p-3.5 font-semibold">Data da Venda</th>
-                <th class="p-3.5 font-semibold">Limite Garantia</th>
-                <th class="p-3.5 font-semibold">Status Garantia</th>
-              </tr>
-            </thead>
-            <tbody id="tbl-garantias-body" class="divide-y divide-app-border/50">
-              <tr><td colspan="5" class="py-6 text-center text-slate-500">Realize uma busca acima.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECTION: FINANCEIRO / CAIXA -->
-    <section id="sec-financeiro" class="app-section hidden space-y-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="glass-card p-5 rounded-2xl">
-          <span class="text-xs text-slate-400 font-semibold uppercase">Contas a Receber (Fiado)</span>
-          <div class="text-2xl font-bold font-heading text-emerald-400 mt-2" id="fin-a-receber">R$ 0,00</div>
-        </div>
-
-        <div class="glass-card p-5 rounded-2xl">
-          <span class="text-xs text-slate-400 font-semibold uppercase">Contas a Pagar</span>
-          <div class="text-2xl font-bold font-heading text-red-400 mt-2" id="fin-a-pagar">R$ 0,00</div>
-        </div>
-
-        <div class="glass-card p-5 rounded-2xl">
-          <span class="text-xs text-slate-400 font-semibold uppercase">Status da Sessão do Caixa</span>
-          <div class="text-lg font-bold font-heading text-white mt-2" id="fin-caixa-status">Aberto (Troco: R$ 0,00)</div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- MODAL: CONFIGURAÇÕES SUPABASE -->
-  <div id="modal-config" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card p-6 rounded-2xl max-w-md w-full space-y-4">
-      <div class="flex justify-between items-center border-b border-app-border pb-3">
-        <h3 class="font-heading font-bold text-white text-sm">Configuração de Conexão Supabase</h3>
-        <button onclick="toggleConfigModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block text-slate-400 mb-1">Project URL</label>
-          <input type="text" id="cfg-url" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Anon Key</label>
-          <input type="text" id="cfg-key" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
-        </div>
-      </div>
-
-      <button onclick="salvarConfiguracoes()" class="w-full py-2.5 bg-brand-500 text-white font-semibold text-xs rounded-xl">Salvar e Reconectar</button>
     </div>
-  </div>
-
-  <!-- MODAL: CADASTRAR PRODUTO -->
-  <div id="modal-produto" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card p-6 rounded-2xl max-w-lg w-full space-y-4">
-      <div class="flex justify-between items-center border-b border-app-border pb-3">
-        <h3 class="font-heading font-bold text-white text-sm">Cadastrar Peça / Produto</h3>
-        <button onclick="fecharModalProduto()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 text-xs">
-        <div>
-          <label class="block text-slate-400 mb-1">Código SKU (Exclusivo)</label>
-          <input type="text" id="prod-sku" readonly class="w-full bg-slate-800 border border-app-border rounded-xl p-2.5 text-amber-400 font-mono font-bold">
-        </div>
-        <div>
-          <label class="block text-slate-400 mb-1">Categoria</label>
-          <select id="prod-categoria" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
-            <option value="Lubrificantes">Lubrificantes / Óleos</option>
-            <option value="Transmissão">Kit Transmissão / Relação</option>
-            <option value="Freios">Freios (Pastilhas/Lonas)</option>
-            <option value="Pneus">Pneus / Câmaras</option>
-            <option value="Elétrica">Elétrica / Baterias</option>
-            <option value="Geral">Peças Gerais</option>
-          </select>
-        </div>
-
-        <div class="col-span-2">
-          <label class="block text-slate-400 mb-1">Nome da Peça *</label>
-          <input type="text" id="prod-nome" placeholder="Ex: Óleo Mobil Super Moto 20W50 1L" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
-        </div>
-
-        <div>
-          <label class="block text-slate-400 mb-1">Quantidade em Estoque</label>
-          <input type="number" id="prod-qtd" value="10" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
-        </div>
-
-        <div>
-          <label class="block text-slate-400 mb-1">Garantia (Dias)</label>
-          <input type="number" id="prod-garantia" value="90" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
-        </div>
-
-        <div>
-          <label class="block text-slate-400 mb-1">Preço de Custo (R$)</label>
-          <input type="number" step="0.01" id="prod-custo" placeholder="0.00" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
-        </div>
-
-        <div>
-          <label class="block text-slate-400 mb-1">Preço de Venda (R$) *</label>
-          <input type="number" step="0.01" id="prod-venda" placeholder="0.00" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white font-semibold text-emerald-400">
-        </div>
-      </div>
-
-      <button onclick="salvarProduto()" class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-lg">Cadastrar Produto</button>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-secondary" onclick="navigate('pdv')">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span class="hide-mobile">Nova venda</span>
+      </button>
     </div>
-  </div>
+  </header>
 
-  <!-- MODAL: NOVA ORDEM DE SERVIÇO (OS) -->
-  <div id="modal-os" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="glass-card p-6 rounded-2xl max-w-lg w-full space-y-4">
-      <div class="flex justify-between items-center border-b border-app-border pb-3">
-        <h3 class="font-heading font-bold text-white text-sm">Nova Ordem de Serviço (O.S.)</h3>
-        <button onclick="fecharModalOS()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
+  <div id="content"></div>
+  <footer class="text-center text-xs muted mt-10 pb-5">
+    John Motos Peças · Sistema de gestão
+  </footer>
+</main>
+</div>
 
-      <div class="space-y-3 text-xs">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-slate-400 mb-1">Placa do Veículo *</label>
-            <input type="text" id="os-placa" placeholder="Ex: ABC-1D23" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white uppercase font-bold">
-          </div>
-          <div>
-            <label class="block text-slate-400 mb-1">Status da O.S.</label>
-            <select id="os-status" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white">
-              <option value="Aberta">Aberta</option>
-              <option value="Em Andamento">Em Andamento</option>
-              <option value="Concluída">Concluída</option>
-            </select>
-          </div>
-        </div>
+<script>
+"use strict";
 
-        <div>
-          <label class="block text-slate-400 mb-1">Descrição dos Serviços / Observações *</label>
-          <textarea id="os-descricao" rows="3" placeholder="Descreva os problemas relatados e serviços a realizar..." class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white"></textarea>
-        </div>
+/* ===================================================
+   JOHN MOTOS PEÇAS
+   Versão local: os dados ficam neste navegador.
+   Faça exportações de backup regularmente.
+=================================================== */
 
-        <div>
-          <label class="block text-slate-400 mb-1">Valor Total Estimado (R$)</label>
-          <input type="number" step="0.01" id="os-valor" placeholder="0.00" class="w-full bg-slate-900 border border-app-border rounded-xl p-2.5 text-white font-semibold text-emerald-400">
-        </div>
-      </div>
+const $ = id => document.getElementById(id);
+const money = n => Number(n || 0).toLocaleString("pt-BR",{
+  style:"currency",currency:"BRL"
+});
+const todayISO = () => new Date().toLocaleDateString("en-CA");
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const safe = s => String(s ?? "").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+const dateBR = d => d ? new Date(d+"T12:00:00").toLocaleDateString("pt-BR") : "—";
 
-      <button onclick="salvarOS()" class="w-full py-3 bg-brand-500 hover:bg-brand-600 text-white font-semibold text-xs rounded-xl shadow-lg">Abrir Ordem de Serviço</button>
-    </div>
-  </div>
+const STORAGE_KEY = "john_motos_gestao_v1";
 
-  <!-- JAVASCRIPT APP LOGIC & SUPABASE CLIENT -->
-  <script>
-    // CREDENCIAIS PRÉ-CONFIGURADAS DO SUPABASE
-    let SUPABASE_URL = "https://nbwvncqobsvsrtzuhrxf.supabase.co";
-    let SUPABASE_KEY = "sb_publishable_uXYDMzK_oNkbHeCY5Fzt2Q_ayUnHdR7";
+function emptyDB(){
+  return {
+    products:[],customers:[],suppliers:[],
+    sales:[],orders:[],transactions:[],
+    settings:{shop:"John Motos Peças",currency:"BRL"}
+  };
+}
 
-    let db = null;
-    let produtosCache = [];
-    let osCache = [];
-    let carrinho = [];
+function loadDB(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return emptyDB();
+    const data=JSON.parse(raw);
+    const base=emptyDB();
+    return {...base,...data,
+      settings:{...base.settings,...(data.settings||{})}};
+  }catch(e){
+    console.error(e);
+    return emptyDB();
+  }
+}
+let db=loadDB();
+let cart=[];
+let chartInstance=null;
+let currentPage="inicio";
 
-    // INICIALIZAÇÃO
-    window.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
+function saveDB(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
+    return true;
+  }catch(e){
+    toast("Não foi possível salvar. Verifique o espaço do navegador.","error");
+    return false;
+  }
+}
 
-      // Carrega credenciais do localStorage se existirem
-      const savedUrl = localStorage.getItem('JM_SUPABASE_URL');
-      const savedKey = localStorage.getItem('JM_SUPABASE_KEY');
-      if (savedUrl) SUPABASE_URL = savedUrl;
-      if (savedKey) SUPABASE_KEY = savedKey;
+function toast(message,icon="success"){
+  Swal.fire({
+    toast:true,position:"top-end",showConfirmButton:false,
+    timer:2800,timerProgressBar:true,icon,title:message,
+    background:"#111827",color:"#e5e7eb"
+  });
+}
 
-      document.getElementById('cfg-url').value = SUPABASE_URL;
-      document.getElementById('cfg-key').value = SUPABASE_KEY;
-
-      conectarSupabase();
-    });
-
-    function conectarSupabase() {
-      try {
-        if (SUPABASE_URL && SUPABASE_KEY) {
-          db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-          carregarDadosGerais();
+function modalForm(title,fields){
+  return Swal.fire({
+    title,background:"#111827",color:"#e5e7eb",
+    confirmButtonText:"Salvar",cancelButtonText:"Cancelar",
+    showCancelButton:true,focusConfirm:false,
+    html:fields.map(f=>{
+      const value=f.value??"";
+      if(f.type==="select"){
+        return `<div style="text-align:left;margin:12px 0">
+          <label style="font-size:12px;color:#94a3b8">${safe(f.label)}</label>
+          <select id="f_${safe(f.id)}" class="field" style="margin-top:5px">
+          ${f.options.map(o=>`<option value="${safe(o.value)}"
+            ${String(o.value)===String(value)?"selected":""}>
+            ${safe(o.label)}</option>`).join("")}
+          </select></div>`;
+      }
+      return `<div style="text-align:left;margin:12px 0">
+        <label style="font-size:12px;color:#94a3b8">${safe(f.label)}</label>
+        <input id="f_${safe(f.id)}" class="field" style="margin-top:5px"
+        type="${f.type||"text"}" value="${safe(value)}"
+        ${f.required?"required":""} ${f.min!==undefined?`min="${f.min}"`:""}
+        ${f.step?`step="${f.step}"`:""}
+        placeholder="${safe(f.placeholder||"")}">
+      </div>`;
+    }).join(""),
+    preConfirm:()=>{
+      const result={};
+      for(const f of fields){
+        const el=$("f_"+f.id);
+        result[f.id]=el ? el.value.trim() : "";
+        if(f.required&&!result[f.id]){
+          Swal.showValidationMessage("Preencha: "+f.label);
+          return false;
         }
-      } catch (err) {
-        console.error("Erro ao conectar no Supabase:", err);
+        if(f.type==="number"&&result[f.id]!==""&&!Number.isFinite(Number(result[f.id]))){
+          Swal.showValidationMessage("Informe um número válido.");
+          return false;
+        }
       }
+      return result;
     }
+  });
+}
 
-    // NAVEGAÇÃO ENTRE TELAS
-    function navigate(screen) {
-      document.querySelectorAll('.app-section').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.nav-link').forEach(el => {
-        el.classList.remove('text-brand-500', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-        el.classList.add('text-slate-400');
-      });
+async function askConfirm(title,text){
+  const r=await Swal.fire({
+    title,text,icon:"warning",background:"#111827",color:"#e5e7eb",
+    showCancelButton:true,confirmButtonText:"Confirmar",
+    cancelButtonText:"Cancelar",confirmButtonColor:"#dc2626"
+  });
+  return r.isConfirmed;
+}
 
-      const target = document.getElementById(`sec-${screen}`);
-      if (target) target.classList.remove('hidden');
+function setPageTitle(title){
+  $("pageTitle").textContent=title;
+}
 
-      const navBtn = document.getElementById(`nav-${screen}`);
-      if (navBtn) {
-        navBtn.classList.add('text-brand-500', 'bg-brand-500/10', 'border', 'border-brand-500/20');
-        navBtn.classList.remove('text-slate-400');
-      }
+function navigate(page){
+  currentPage=page;
+  document.querySelectorAll(".navbtn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.page===page);
+  });
+  $("sidebar").classList.remove("open");
+  render();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
 
-      // Títulos
-      const titles = {
-        'dashboard': ['Visão Geral', 'Acompanhe os principais indicadores da oficina'],
-        'pdv': ['Frente de Caixa (PDV)', 'Lançamento rápido de peças e serviços livres'],
-        'produtos': ['Produtos e Peças', 'Gerencie o catálogo de produtos e controle de estoque'],
-        'os': ['Ordens de Serviço', 'Controle e acompanhamento da oficina por veículo'],
-        'clientes': ['Clientes & Motos', 'Cadastro de clientes e veículos'],
-        'garantias': ['Controle de Garantias', 'Consulta de validade de garantias'],
-        'financeiro': ['Caixa & Financeiro', 'Controle de movimentações e fiado']
-      };
+document.querySelectorAll(".navbtn").forEach(b=>{
+  b.addEventListener("click",()=>navigate(b.dataset.page));
+});
+$("menuToggle").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
+$("today").textContent=new Date().toLocaleDateString("pt-BR",{
+  weekday:"long",day:"2-digit",month:"long",year:"numeric"
+});
 
-      if (titles[screen]) {
-        document.getElementById('page-title').innerText = titles[screen][0];
-        document.getElementById('page-subtitle').innerText = titles[screen][1];
-      }
-    }
+function table(headers,rows,empty="Nenhum registro encontrado."){
+  return `<div class="overflow-x-auto panel"><table>
+  <thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+  <tbody>${rows.length?rows.join(""):`<tr><td colspan="${headers.length}"
+  class="text-center muted py-10">${empty}</td></tr>`}</tbody>
+  </table></div>`;
+}
+function badge(text,type=""){
+  return `<span class="badge ${type}">${safe(text)}</span>`;
+}
+function metric(label,value,icon,color="text-blue-400",sub=""){
+  return `<div class="panel metric">
+    <div class="flex justify-between items-center gap-2">
+      <p>${label}</p><i data-lucide="${icon}" class="w-5 h-5 ${color}"></i>
+    </div><strong>${value}</strong>
+    ${sub?`<p class="mt-2">${sub}</p>`:""}
+  </div>`;
+}
+function pageHead(title,description,buttonText,action){
+  return `<div class="flex flex-wrap justify-between items-start gap-3 mb-6">
+    <div><h3 class="section-title">${title}</h3>
+    <p class="muted text-sm mt-2">${description}</p></div>
+    ${buttonText?`<button class="btn btn-primary" onclick="${action}">
+    <i data-lucide="plus" class="w-4 h-4"></i>${buttonText}</button>`:""}
+  </div>`;
+}
+function searchBox(placeholder,id="search"){
+  return `<input id="${id}" class="field mb-4" placeholder="${placeholder}"
+  oninput="filterTable(this.value)">`;
+}
+function filterTable(value){
+  const q=value.toLowerCase();
+  document.querySelectorAll("#dataTable tbody tr").forEach(tr=>{
+    tr.style.display=tr.textContent.toLowerCase().includes(q)?"":"none";
+  });
+}
+function refreshIcons(){
+  if(window.lucide) lucide.createIcons();
+}
 
-    // CARREGAR DADOS DO SUPABASE
-    async function carregarDadosGerais() {
-      if (!db) return;
+function render(){
+  const pages={
+    inicio:renderHome,
+    pdv:renderPDV,
+    produtos:renderProducts,
+    oficina:renderWorkshop,
+    clientes:renderCustomers,
+    fornecedores:renderSuppliers,
+    financeiro:renderFinance,
+    relatorios:renderReports,
+    config:renderSettings
+  };
+  (pages[currentPage]||renderHome)();
+  refreshIcons();
+}
 
-      // Busca Produtos
-      const { data: prods } = await db.from('produtos').select('*');
-      if (prods) {
-        produtosCache = prods;
-        document.getElementById('dash-qtd-produtos').innerText = prods.length;
-        const baixo = prods.filter(p => p.quantidade <= (p.estoque_minimo || 2)).length;
-        document.getElementById('dash-estoque-baixo').innerText = baixo;
-        renderProdutosTabela();
-        renderPDVProdutos();
-      }
-
-      // Busca Ordens de Serviço (OS)
-      const { data: ordens } = await db.from('ordens_servico').select('*').order('id', { ascending: false });
-      if (ordens) {
-        osCache = ordens;
-        const emAndamento = ordens.filter(o => o.status === 'Em Andamento' || o.status === 'Aberta').length;
-        document.getElementById('dash-os-andamento').innerText = emAndamento;
-        renderOSTabela();
-      }
-
-      // Busca Vendas
-      const { data: vendas } = await db.from('vendas').select('*').order('id', { ascending: false }).limit(5);
-      if (vendas) {
-        let totalHoje = vendas.reduce((acc, v) => acc + Number(v.valor_total || 0), 0);
-        document.getElementById('dash-vendas-hoje').innerText = `R$ ${totalHoje.toFixed(2)}`;
-        document.getElementById('dash-qtd-vendas').innerText = vendas.length;
-        
-        let html = '';
-        vendas.forEach(v => {
-          html += `<tr>
-            <td class="py-2 font-mono text-amber-400">#${v.id}</td>
-            <td class="py-2">Cliente Balcão</td>
-            <td class="py-2"><span class="px-2 py-0.5 rounded-full bg-slate-800 text-[10px]">${v.forma_pagamento}</span></td>
-            <td class="py-2 text-right font-semibold text-emerald-400">R$ ${Number(v.valor_total).toFixed(2)}</td>
-          </tr>`;
-        });
-        if (html) document.getElementById('tbl-dash-vendas').innerHTML = html;
-      }
-    }
-
-    // FUNÇÕES DE ORDENS DE SERVIÇO (OS)
-    function abrirModalOS() {
-      document.getElementById('modal-os').classList.remove('hidden');
-    }
-
-    function fecharModalOS() {
-      document.getElementById('modal-os').classList.add('hidden');
-    }
-
-    async function salvarOS() {
-      const placa = document.getElementById('os-placa').value.toUpperCase();
-      const status = document.getElementById('os-status').value;
-      const desc = document.getElementById('os-descricao').value;
-      const valor = parseFloat(document.getElementById('os-valor').value) || 0;
-
-      if (!placa || !desc) {
-        alert("Preencha a placa do veículo e a descrição dos serviços.");
-        return;
-      }
-
-      if (db) {
-        await db.from('ordens_servico').insert([{
-          placa: placa,
-          status: status,
-          descricao_servico: desc,
-          valor_total: valor
-        }]);
-      }
-
-      document.getElementById('os-placa').value = '';
-      document.getElementById('os-descricao').value = '';
-      document.getElementById('os-valor').value = '';
-
-      fecharModalOS();
-      carregarDadosGerais();
-    }
-
-    function renderOSTabela() {
-      const body = document.getElementById('tbl-os-body');
-      const dashBody = document.getElementById('tbl-dash-os');
-      let html = '';
-      let dashHtml = '';
-
-      osCache.forEach(o => {
-        const badgeColor = o.status === 'Aberta' ? 'bg-amber-500/20 text-amber-400' : (o.status === 'Em Andamento' ? 'bg-blue-500/20 text-blue-400' : 'bg-emerald-500/20 text-emerald-400');
-
-        html += `
-          <tr>
-            <td class="p-3.5 font-mono font-bold text-amber-400">#${o.id}</td>
-            <td class="p-3.5 font-bold uppercase text-white">${o.placa || 'N/I'}</td>
-            <td class="p-3.5 text-slate-300 max-w-xs truncate">${o.descricao_servico}</td>
-            <td class="p-3.5"><span class="px-2 py-1 rounded-full text-[10px] font-semibold ${badgeColor}">${o.status}</span></td>
-            <td class="p-3.5 text-right font-bold text-emerald-400">R$ ${Number(o.valor_total).toFixed(2)}</td>
-          </tr>
-        `;
-      });
-
-      osCache.slice(0, 5).forEach(o => {
-        const badgeColor = o.status === 'Aberta' ? 'bg-amber-500/20 text-amber-400' : 'bg-blue-500/20 text-blue-400';
-        dashHtml += `
-          <tr>
-            <td class="py-2 font-bold uppercase text-white">${o.placa || 'N/I'}</td>
-            <td class="py-2 text-slate-300 truncate max-w-[120px]">${o.descricao_servico}</td>
-            <td class="py-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${badgeColor}">${o.status}</span></td>
-            <td class="py-2 text-right font-semibold text-emerald-400">R$ ${Number(o.valor_total).toFixed(2)}</td>
-          </tr>
-        `;
-      });
-
-      body.innerHTML = html || '<tr><td colspan="5" class="text-center py-6 text-slate-500">Nenhuma Ordem de Serviço registrada.</td></tr>';
-      if (dashHtml) dashBody.innerHTML = dashHtml;
-      lucide.createIcons();
-    }
-
-    // ALTERNAR ABAS NO PDV
-    function switchPdvTab(tab) {
-      const btnPeca = document.getElementById('pdv-tab-peca');
-      const btnServ = document.getElementById('pdv-tab-servico');
-      const panelPeca = document.getElementById('pdv-panel-peca');
-      const panelServ = document.getElementById('pdv-panel-servico');
-
-      if (tab === 'peca') {
-        btnPeca.className = "flex-1 py-2.5 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 bg-brand-500 text-white shadow-md";
-        btnServ.className = "flex-1 py-2.5 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 text-slate-400 hover:text-white";
-        panelPeca.classList.remove('hidden');
-        panelServ.classList.add('hidden');
-      } else {
-        btnServ.className = "flex-1 py-2.5 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 bg-amber-500 text-white shadow-md";
-        btnPeca.className = "flex-1 py-2.5 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-2 text-slate-400 hover:text-white";
-        panelServ.classList.remove('hidden');
-        panelPeca.classList.add('hidden');
-      }
-    }
-
-    // RENDERIZAR E FILTRAR PRODUTOS NO PDV
-    function renderPDVProdutos() {
-      const lista = document.getElementById('pdv-lista-produtos');
-      const busca = document.getElementById('pdv-busca-produto').value.toLowerCase();
-      let html = '';
-
-      const filtrados = produtosCache.filter(p => 
-        p.nome.toLowerCase().includes(busca) || 
-        p.codigo_interno.toLowerCase().includes(busca)
-      );
-
-      filtrados.forEach(p => {
-        html += `
-          <div onclick="adicionarProdutoPDV(${p.id})" class="p-3 rounded-xl bg-slate-900 border border-app-border hover:border-brand-500/50 cursor-pointer transition flex items-center justify-between">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-[10px] font-mono font-bold text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">${p.codigo_interno}</span>
-                <span class="text-xs font-medium text-white">${p.nome}</span>
-              </div>
-              <span class="text-[11px] text-slate-400">Estoque: ${p.quantidade} un.</span>
-            </div>
-            <div class="text-right">
-              <span class="text-xs font-bold text-emerald-400 font-heading">R$ ${Number(p.preco_venda).toFixed(2)}</span>
-            </div>
+/* ------------------ PAINEL ------------------ */
+function renderHome(){
+  setPageTitle("Visão geral");
+  const today=todayISO();
+  const todaySales=db.sales.filter(s=>s.date===today);
+  const revenue=todaySales.reduce((a,s)=>a+s.total,0);
+  const low=db.products.filter(p=>p.active!==false&&p.stock<=p.min);
+  const pending=db.orders.filter(o=>o.status!=="Concluída"&&o.status!=="Entregue"&&o.status!=="Cancelada");
+  const receivables=db.transactions.filter(t=>t.type==="Entrada"&&t.status==="Pendente");
+  const payable=db.transactions.filter(t=>t.type==="Saída"&&t.status==="Pendente");
+  const rows=low.slice(0,6).map(p=>`<tr>
+    <td>${safe(p.name)}</td><td>${p.stock}</td><td>${p.min}</td>
+    <td>${badge("Estoque baixo","badge-warn")}</td></tr>`);
+  const osRows=pending.slice(0,5).map(o=>`<tr>
+    <td>${safe(o.number)}</td><td>${safe(o.customer)}</td>
+    <td>${safe(o.motorcycle||"—")}</td><td>${badge(o.status,"badge-warn")}</td>
+    <td>${money(o.value)}</td></tr>`);
+  $("content").innerHTML=`
+    <div class="mb-6">
+      <h3 class="section-title">Bom trabalho!</h3>
+      <p class="muted mt-2 text-sm">Resumo operacional da ${safe(db.settings.shop)}.</p>
+    </div>
+    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      ${metric("Vendas de hoje",money(revenue),"shopping-cart","text-emerald-400",todaySales.length+" venda(s)")}
+      ${metric("Produtos cadastrados",db.products.length,"package","text-blue-400")}
+      ${metric("Ordens em andamento",pending.length,"wrench","text-amber-400")}
+      ${metric("Estoque baixo",low.length,"alert-triangle","text-rose-400")}
+    </div>
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
+      <section class="panel p-5">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-semibold">Alertas de estoque</h3>
+          <button class="text-blue-400 text-sm" onclick="navigate('produtos')">Ver estoque</button>
+        </div>
+        ${table(["Produto","Qtd.","Mínimo","Situação"],rows,"Nenhum produto abaixo do mínimo.")}
+      </section>
+      <section class="panel p-5">
+        <h3 class="font-semibold mb-4">Pendências financeiras</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-900 p-4 rounded-xl">
+            <p class="muted text-xs">A receber</p>
+            <strong class="text-emerald-400 text-lg">${money(receivables.reduce((a,t)=>a+t.value,0))}</strong>
+            <p class="muted text-xs mt-2">${receivables.length} pendência(s)</p>
           </div>
-        `;
-      });
-
-      lista.innerHTML = html || '<p class="text-xs text-slate-500 text-center py-4">Nenhuma peça encontrada.</p>';
-    }
-
-    function filtrarProdutosPDV() {
-      renderPDVProdutos();
-    }
-
-    // ADICIONAR PRODUTO AO CARRINHO
-    function adicionarProdutoPDV(id) {
-      const prod = produtosCache.find(p => p.id === id);
-      if (!prod) return;
-
-      const existente = carrinho.find(i => i.produto_id === id);
-      if (existente) {
-        existente.quantidade += 1;
-        existente.subtotal = existente.quantidade * existente.preco_unitario;
-      } else {
-        carrinho.push({
-          produto_id: prod.id,
-          tipo_item: 'produto',
-          descricao_item: prod.nome,
-          quantidade: 1,
-          preco_unitario: Number(prod.preco_venda),
-          subtotal: Number(prod.preco_venda),
-          garantia_dias: prod.garantia_dias || 90
-        });
-      }
-      renderCarrinho();
-    }
-
-    // ADICIONAR MÃO DE OBRA / SERVIÇO LIVRE AO CARRINHO
-    function adicionarMaoDeObraPDV() {
-      const desc = document.getElementById('pdv-mo-descricao').value;
-      const valor = parseFloat(document.getElementById('pdv-mo-valor').value);
-      const garantia = parseInt(document.getElementById('pdv-mo-garantia').value) || 30;
-
-      if (!desc || isNaN(valor) || valor <= 0) {
-        alert("Por favor, informe a descrição e o valor válido do serviço.");
-        return;
-      }
-
-      carrinho.push({
-        produto_id: null,
-        tipo_item: 'servico_livre',
-        descricao_item: desc,
-        quantidade: 1,
-        preco_unitario: valor,
-        subtotal: valor,
-        garantia_dias: garantia
-      });
-
-      document.getElementById('pdv-mo-descricao').value = '';
-      document.getElementById('pdv-mo-valor').value = '';
-
-      renderCarrinho();
-    }
-
-    // RENDERIZAR CARRINHO DE COMPRAS
-    function renderCarrinho() {
-      const container = document.getElementById('pdv-carrinho-itens');
-      let html = '';
-      let total = 0;
-
-      carrinho.forEach((item, index) => {
-        total += item.subtotal;
-        const badge = item.tipo_item === 'servico_livre' 
-          ? '<span class="text-[9px] bg-amber-500/20 text-amber-400 font-semibold px-1.5 py-0.5 rounded">🛠️ Serviço</span>'
-          : '<span class="text-[9px] bg-blue-500/20 text-blue-400 font-semibold px-1.5 py-0.5 rounded">📦 Peça</span>';
-
-        html += `
-          <div class="p-2.5 rounded-xl bg-slate-900 border border-app-border flex items-center justify-between text-xs">
-            <div class="space-y-0.5">
-              <div class="flex items-center gap-1.5">
-                ${badge}
-                <span class="font-medium text-white">${item.descricao_item}</span>
-              </div>
-              <span class="text-[11px] text-slate-400">${item.quantidade}x R$ ${item.preco_unitario.toFixed(2)}</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="font-bold text-white font-heading">R$ ${item.subtotal.toFixed(2)}</span>
-              <button onclick="removerItemCarrinho(${index})" class="text-red-400 hover:text-red-300"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-            </div>
+          <div class="bg-slate-900 p-4 rounded-xl">
+            <p class="muted text-xs">A pagar</p>
+            <strong class="text-rose-400 text-lg">${money(payable.reduce((a,t)=>a+t.value,0))}</strong>
+            <p class="muted text-xs mt-2">${payable.length} pendência(s)</p>
           </div>
-        `;
-      });
+        </div>
+        <button class="btn btn-secondary mt-4 w-full" onclick="navigate('financeiro')">Abrir financeiro</button>
+      </section>
+    </div>
+    <section class="panel p-5 mb-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-semibold">Ordens de serviço abertas</h3>
+        <button class="text-blue-400 text-sm" onclick="navigate('oficina')">Ver todas</button>
+      </div>
+      ${table(["OS","Cliente","Moto","Status","Valor"],osRows,"Nenhuma ordem em andamento.")}
+    </section>
+    <section class="panel p-5">
+      <h3 class="font-semibold mb-4">Atalhos rápidos</h3>
+      <div class="flex flex-wrap gap-3">
+        <button class="btn btn-primary" onclick="navigate('pdv')">Nova venda</button>
+        <button class="btn btn-secondary" onclick="addProduct()">Cadastrar produto</button>
+        <button class="btn btn-secondary" onclick="addOrder()">Nova ordem de serviço</button>
+        <button class="btn btn-secondary" onclick="navigate('financeiro')">Lançar despesa</button>
+      </div>
+    </section>`;
+}
 
-      container.innerHTML = html || '<div class="text-center py-10 text-slate-500 text-xs">Carrinho vazio. Adicione peças ou serviços ao lado.</div>';
-      document.getElementById('pdv-total-valor').innerText = `R$ ${total.toFixed(2)}`;
-      lucide.createIcons();
-    }
+/* ------------------ PRODUTOS ------------------ */
+function renderProducts(){
+  setPageTitle("Produtos e estoque");
+  const rows=db.products.map(p=>`<tr>
+    <td>${safe(p.code||"—")}</td>
+    <td><strong>${safe(p.name)}</strong></td>
+    <td>${safe(p.category||"Peças")}</td>
+    <td>${money(p.cost)}</td><td>${money(p.price)}</td>
+    <td>${p.stock<=p.min?badge(p.stock,"badge-red"):badge(p.stock,"badge-ok")}</td>
+    <td>${p.min}</td>
+    <td><div class="flex gap-2">
+      <button class="btn btn-secondary" onclick="editProduct('${p.id}')">Editar</button>
+      <button class="btn btn-secondary" onclick="stockMovement('${p.id}')">Estoque</button>
+      <button class="btn btn-danger" onclick="deleteProduct('${p.id}')">Excluir</button>
+    </div></td></tr>`).reverse();
+  $("content").innerHTML=pageHead("Produtos e estoque",
+    "Cadastre peças, preços de custo, preços de venda e quantidades.",
+    "Novo produto","addProduct()")+
+    `<div class="grid grid-cols-2 gap-4 mb-5">
+      ${metric("Itens cadastrados",db.products.length,"package")}
+      ${metric("Valor de custo do estoque",money(db.products.reduce((a,p)=>a+p.cost*p.stock,0)),"boxes")}
+    </div>`+
+    searchBox("Pesquisar por código, produto ou categoria")+
+    table(["Código","Produto","Categoria","Custo","Venda","Qtd.","Mínimo","Ações"],rows,"Cadastre seu primeiro produto.").replace('<table>','<table id="dataTable">');
+}
+async function addProduct(existing=null){
+  const p=existing||{};
+  const r=await modalForm(existing?"Editar produto":"Novo produto",[
+    {id:"code",label:"Código / SKU",value:p.code||""},
+    {id:"name",label:"Nome do produto",value:p.name||"",required:true},
+    {id:"category",label:"Categoria",value:p.category||"Peças"},
+    {id:"cost",label:"Preço de custo (R$)",type:"number",value:p.cost??0,min:0,step:"0.01"},
+    {id:"price",label:"Preço de venda (R$)",type:"number",value:p.price??0,min:0,step:"0.01"},
+    {id:"stock",label:"Quantidade atual",type:"number",value:p.stock??0,min:0,step:"1"},
+    {id:"min",label:"Estoque mínimo",type:"number",value:p.min??2,min:0,step:"1"}
+  ]);
+  if(!r.isConfirmed)return;
+  const values=r.value;
+  const item={...values,id:p.id||uid(),
+    cost:Number(values.cost),price:Number(values.price),
+    stock:Number(values.stock),min:Number(values.min),active:true};
+  if(existing) db.products=db.products.map(x=>x.id===p.id?item:x);
+  else db.products.push(item);
+  if(saveDB()){toast("Produto salvo.");render();}
+}
+function editProduct(id){const p=db.products.find(x=>x.id===id);if(p)addProduct(p);}
+async function deleteProduct(id){
+  if(!await askConfirm("Excluir produto?","O produto será removido do cadastro."))return;
+  db.products=db.products.filter(p=>p.id!==id);
+  saveDB();toast("Produto excluído.");render();
+}
+async function stockMovement(id){
+  const p=db.products.find(x=>x.id===id);if(!p)return;
+  const r=await modalForm("Movimentar estoque: "+p.name,[
+    {id:"kind",label:"Tipo de movimento",type:"select",value:"Entrada",
+      options:[{value:"Entrada",label:"Entrada"},{value:"Saída",label:"Saída"}]},
+    {id:"qty",label:"Quantidade",type:"number",value:1,min:1,step:"1",required:true},
+    {id:"reason",label:"Motivo",value:"Ajuste de estoque"}
+  ]);
+  if(!r.isConfirmed)return;
+  const qty=Number(r.value.qty);
+  if(!Number.isInteger(qty)||qty<1)return toast("Quantidade inválida.","error");
+  if(r.value.kind==="Saída"&&qty>p.stock)return toast("Estoque insuficiente.","error");
+  p.stock+=r.value.kind==="Entrada"?qty:-qty;
+  db.transactions.push({id:uid(),date:todayISO(),type:"Estoque",
+    description:`${r.value.kind}: ${p.name} (${qty}). ${r.value.reason}`,
+    value:0,status:"Concluído"});
+  saveDB();toast("Estoque atualizado.");render();
+}
 
-    function removerItemCarrinho(index) {
-      carrinho.splice(index, 1);
-      renderCarrinho();
-    }
+/* ------------------ PDV ------------------ */
+function renderPDV(){
+  setPageTitle("PDV / Vendas");
+  const options=db.products.filter(p=>p.active!==false).map(p=>
+    `<option value="${p.id}">${safe(p.name)} — ${money(p.price)} (Estoque: ${p.stock})</option>`).join("");
+  const cartRows=cart.map((c,i)=>`<tr>
+    <td>${safe(c.name)}</td><td>${c.qty}</td><td>${money(c.price)}</td>
+    <td>${money(c.qty*c.price)}</td>
+    <td><button class="btn btn-danger" onclick="removeCart(${i})">X</button></td>
+  </tr>`);
+  const total=cart.reduce((a,c)=>a+c.qty*c.price,0);
+  $("content").innerHTML=`
+    <h3 class="section-title mb-2">Ponto de venda</h3>
+    <p class="muted text-sm mb-6">Adicione os itens e finalize a venda.</p>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+      <section class="panel p-5 xl:col-span-2">
+        <label class="text-sm muted">Produto</label>
+        <select id="cartProduct" class="field mt-2 mb-4">
+          <option value="">Selecione um produto</option>${options}
+        </select>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div><label class="text-sm muted">Quantidade</label>
+          <input id="cartQty" class="field mt-2" type="number" min="1" step="1" value="1"></div>
+          <div class="flex items-end"><button class="btn btn-primary w-full" onclick="addCart()">Adicionar item</button></div>
+        </div>
+        ${table(["Produto","Qtd.","Unitário","Subtotal",""],cartRows,"Carrinho vazio.")}
+        <div class="flex justify-between mt-5">
+          <span class="muted">Total da venda</span>
+          <strong class="text-2xl">${money(total)}</strong>
+        </div>
+      </section>
+      <section class="panel p-5 h-fit">
+        <h3 class="font-semibold mb-4">Finalizar venda</h3>
+        <label class="text-sm muted">Cliente (opcional)</label>
+        <select id="saleCustomer" class="field mt-2 mb-4">
+          <option value="">Consumidor final</option>
+          ${db.customers.map(c=>`<option value="${c.id}">${safe(c.name)}</option>`).join("")}
+        </select>
+        <label class="text-sm muted">Pagamento</label>
+        <select id="salePayment" class="field mt-2 mb-4">
+          <option>Pix</option><option>Dinheiro</option><option>Débito</option>
+          <option>Crédito</option><option>Transferência</option><option>A prazo</option>
+        </select>
+        <label class="text-sm muted">Observação</label>
+        <input id="saleNote" class="field mt-2 mb-5" placeholder="Opcional">
+        <button class="btn btn-primary w-full" onclick="finishSale()">Confirmar venda</button>
+        <button class="btn btn-secondary w-full mt-2" onclick="cart=[];render()">Limpar carrinho</button>
+      </section>
+    </div>
+    <section class="panel p-5 mt-6">
+      <h3 class="font-semibold mb-4">Últimas vendas</h3>
+      ${table(["Data","Venda","Cliente","Pagamento","Total"],
+      db.sales.slice(-8).reverse().map(s=>`<tr>
+        <td>${dateBR(s.date)}</td><td>${safe(s.number)}</td>
+        <td>${safe(s.customer)}</td><td>${safe(s.payment)}</td>
+        <td>${money(s.total)}</td></tr>`),"Nenhuma venda registrada.")}
+    </section>`;
+}
+function addCart(){
+  const id=$("cartProduct").value;
+  const qty=Number($("cartQty").value);
+  const p=db.products.find(x=>x.id===id);
+  if(!p)return toast("Selecione um produto.","error");
+  if(!Number.isInteger(qty)||qty<1)return toast("Quantidade inválida.","error");
+  const existing=cart.find(c=>c.id===id);
+  const wanted=qty+(existing?existing.qty:0);
+  if(wanted>p.stock)return toast("Estoque insuficiente.","error");
+  if(existing)existing.qty+=qty;
+  else cart.push({id:p.id,name:p.name,price:p.price,qty});
+  render();
+}
+function removeCart(i){cart.splice(i,1);render();}
+async function finishSale(){
+  if(!cart.length)return toast("Carrinho vazio.","error");
+  for(const c of cart){
+    const p=db.products.find(x=>x.id===c.id);
+    if(!p||p.stock<c.qty)return toast("Estoque insuficiente para "+c.name,"error");
+  }
+  const payment=$("salePayment").value;
+  const customerId=$("saleCustomer").value;
+  const customer=db.customers.find(c=>c.id===customerId);
+  const total=cart.reduce((a,c)=>a+c.qty*c.price,0);
+  const sale={
+    id:uid(),number:"VD-"+Date.now().toString().slice(-7),
+    date:todayISO(),customer:customer?.name||"Consumidor final",
+    customerId:customerId||"",payment,note:$("saleNote").value,
+    items:cart.map(c=>({...c})),total
+  };
+  for(const c of cart){
+    const p=db.products.find(x=>x.id===c.id);
+    p.stock-=c.qty;
+  }
+  db.sales.push(sale);
+  db.transactions.push({id:uid(),date:todayISO(),type:"Entrada",
+    description:"Venda "+sale.number+" — "+sale.customer,
+    value:total,status:payment==="A prazo"?"Pendente":"Concluído",
+    payment,sourceId:sale.id});
+  if(payment==="A prazo"&&customer){
+    customer.balance=(customer.balance||0)+total;
+  }
+  saveDB();
+  cart=[];
+  await Swal.fire({
+    icon:"success",title:"Venda registrada!",
+    html:`<p>${safe(sale.number)}</p><h2 style="font-size:28px;margin:15px">${money(total)}</h2>
+    <p>Pagamento: ${safe(payment)}</p>`,
+    confirmButtonText:"Continuar",background:"#111827",color:"#e5e7eb"
+  });
+  render();
+}
 
-    function limparCarrinho() {
-      carrinho = [];
-      renderCarrinho();
-    }
+/* ------------------ CLIENTES ------------------ */
+function renderCustomers(){
+  setPageTitle("Clientes");
+  const rows=db.customers.map(c=>`<tr>
+    <td>${safe(c.name)}</td><td>${safe(c.phone||"—")}</td>
+    <td>${safe(c.document||"—")}</td><td>${money(c.balance||0)}</td>
+    <td><div class="flex gap-2">
+    <button class="btn btn-secondary" onclick="editCustomer('${c.id}')">Editar</button>
+    <button class="btn btn-danger" onclick="deleteCustomer('${c.id}')">Excluir</button>
+    </div></td></tr>`).reverse();
+  $("content").innerHTML=pageHead("Clientes","Cadastro e consulta de clientes.",
+    "Novo cliente","addCustomer()")+searchBox("Pesquisar cliente")+
+    table(["Nome","Telefone","CPF","Saldo a receber","Ações"],rows).replace('<table>','<table id="dataTable">');
+}
+async function addCustomer(existing=null){
+  const c=existing||{};
+  const r=await modalForm(existing?"Editar cliente":"Novo cliente",[
+    {id:"name",label:"Nome completo",value:c.name||"",required:true},
+    {id:"phone",label:"Telefone / WhatsApp",value:c.phone||""},
+    {id:"document",label:"CPF / documento",value:c.document||""},
+    {id:"notes",label:"Observações",value:c.notes||""}
+  ]);
+  if(!r.isConfirmed)return;
+  const item={...r.value,id:c.id||uid(),balance:c.balance||0};
+  if(existing)db.customers=db.customers.map(x=>x.id===c.id?item:x);
+  else db.customers.push(item);
+  saveDB();toast("Cliente salvo.");render();
+}
+function editCustomer(id){const c=db.customers.find(x=>x.id===id);if(c)addCustomer(c);}
+async function deleteCustomer(id){
+  if(!await askConfirm("Excluir cliente?","O histórico de vendas não será apagado."))return;
+  db.customers=db.customers.filter(c=>c.id!==id);saveDB();render();
+}
 
-    // FINALIZAR VENDA
-    async function finalizarVendaPDV() {
-      if (carrinho.length === 0) {
-        alert("Adicione pelo menos um produto ou serviço para finalizar a venda.");
-        return;
-      }
+/* ------------------ OFICINA / OS ------------------ */
+function renderWorkshop(){
+  setPageTitle("Oficina");
+  const rows=db.orders.map(o=>`<tr>
+    <td>${safe(o.number)}</td><td>${safe(o.customer)}</td>
+    <td>${safe(o.motorcycle||"—")}</td><td>${safe(o.problem)}</td>
+    <td>${badge(o.status,o.status==="Concluída"||o.status==="Entregue"?"badge-ok":o.status==="Cancelada"?"badge-red":"badge-warn")}</td>
+    <td>${money(o.value)}</td>
+    <td><div class="flex gap-2">
+      <button class="btn btn-secondary" onclick="editOrder('${o.id}')">Editar</button>
+      <button class="btn btn-secondary" onclick="orderStatus('${o.id}')">Status</button>
+    </div></td></tr>`).reverse();
+  $("content").innerHTML=pageHead("Ordens de serviço",
+    "Registre motos, defeitos, serviços e andamento dos reparos.",
+    "Nova OS","addOrder()")+searchBox("Pesquisar OS, cliente ou moto")+
+    table(["Nº OS","Cliente","Moto","Defeito / serviço","Status","Valor","Ações"],rows,
+    "Nenhuma ordem de serviço cadastrada.").replace('<table>','<table id="dataTable">');
+}
+async function addOrder(existing=null){
+  const o=existing||{};
+  const customers=[{value:"",label:"Cliente não cadastrado"},
+    ...db.customers.map(c=>({value:c.id,label:c.name}))];
+  const r=await modalForm(existing?"Editar OS":"Nova ordem de serviço",[
+    {id:"customerId",label:"Cliente",type:"select",value:o.customerId||"",options:customers},
+    {id:"customer",label:"Nome do cliente",value:o.customer||"",required:true},
+    {id:"phone",label:"Telefone",value:o.phone||""},
+    {id:"motorcycle",label:"Moto / modelo / placa",value:o.motorcycle||"",required:true},
+    {id:"problem",label:"Defeito relatado",value:o.problem||"",required:true},
+    {id:"service",label:"Serviço executado",value:o.service||""},
+    {id:"parts",label:"Peças / materiais",value:o.parts||""},
+    {id:"value",label:"Valor total (R$)",type:"number",value:o.value??0,min:0,step:"0.01"},
+    {id:"status",label:"Status",type:"select",value:o.status||"Recebida",
+      options:["Recebida","Em diagnóstico","Aguardando peças","Em reparo","Concluída","Entregue","Cancelada"].map(x=>({value:x,label:x}))}
+  ]);
+  if(!r.isConfirmed)return;
+  const v=r.value;
+  const customer=db.customers.find(c=>c.id===v.customerId);
+  const item={...v,id:o.id||uid(),number:o.number||"OS-"+String(Date.now()).slice(-7),
+    date:o.date||todayISO(),value:Number(v.value)};
+  if(customer)item.customer=customer.name;
+  if(existing)db.orders=db.orders.map(x=>x.id===o.id?item:x);
+  else db.orders.push(item);
+  saveDB();toast("Ordem salva.");render();
+}
+function editOrder(id){const o=db.orders.find(x=>x.id===id);if(o)addOrder(o);}
+async function orderStatus(id){
+  const o=db.orders.find(x=>x.id===id);if(!o)return;
+  const r=await modalForm("Status da OS "+o.number,[
+    {id:"status",label:"Novo status",type:"select",value:o.status,
+      options:["Recebida","Em diagnóstico","Aguardando peças","Em reparo","Concluída","Entregue","Cancelada"].map(x=>({value:x,label:x}))}
+  ]);
+  if(!r.isConfirmed)return;
+  o.status=r.value.status;
+  saveDB();toast("Status atualizado.");render();
+}
 
-      const total = carrinho.reduce((a, b) => a + b.subtotal, 0);
-      const formaPag = document.getElementById('pdv-forma-pagamento').value;
+/* ------------------ FORNECEDORES ------------------ */
+function renderSuppliers(){
+  setPageTitle("Fornecedores");
+  const rows=db.suppliers.map(s=>`<tr>
+    <td>${safe(s.name)}</td><td>${safe(s.phone||"—")}</td>
+    <td>${safe(s.document||"—")}</td><td>${safe(s.notes||"—")}</td>
+    <td><div class="flex gap-2">
+      <button class="btn btn-secondary" onclick="editSupplier('${s.id}')">Editar</button>
+      <button class="btn btn-danger" onclick="deleteSupplier('${s.id}')">Excluir</button>
+    </div></td></tr>`).reverse();
+  $("content").innerHTML=pageHead("Fornecedores","Contatos dos fornecedores de peças.",
+    "Novo fornecedor","addSupplier()")+searchBox("Pesquisar fornecedor")+
+    table(["Fornecedor","Telefone","CNPJ / CPF","Observações","Ações"],rows).replace('<table>','<table id="dataTable">');
+}
+async function addSupplier(existing=null){
+  const s=existing||{};
+  const r=await modalForm(existing?"Editar fornecedor":"Novo fornecedor",[
+    {id:"name",label:"Nome / empresa",value:s.name||"",required:true},
+    {id:"phone",label:"Telefone",value:s.phone||""},
+    {id:"document",label:"CNPJ / CPF",value:s.document||""},
+    {id:"notes",label:"Observações",value:s.notes||""}
+  ]);
+  if(!r.isConfirmed)return;
+  const item={...r.value,id:s.id||uid()};
+  if(existing)db.suppliers=db.suppliers.map(x=>x.id===s.id?item:x);
+  else db.suppliers.push(item);
+  saveDB();toast("Fornecedor salvo.");render();
+}
+function editSupplier(id){const s=db.suppliers.find(x=>x.id===id);if(s)addSupplier(s);}
+async function deleteSupplier(id){
+  if(!await askConfirm("Excluir fornecedor?",""))return;
+  db.suppliers=db.suppliers.filter(s=>s.id!==id);saveDB();render();
+}
 
-      if (!db) {
-        alert("Venda simulada com sucesso!");
-        limparCarrinho();
-        return;
-      }
+/* ------------------ FINANCEIRO ------------------ */
+function renderFinance(){
+  setPageTitle("Financeiro");
+  const income=db.transactions.filter(t=>t.type==="Entrada"&&t.status==="Concluído").reduce((a,t)=>a+t.value,0);
+  const expenses=db.transactions.filter(t=>t.type==="Saída"&&t.status==="Concluído").reduce((a,t)=>a+t.value,0);
+  const pending=db.transactions.filter(t=>t.status==="Pendente");
+  const rows=db.transactions.slice().reverse().map(t=>`<tr>
+    <td>${dateBR(t.date)}</td><td>${safe(t.description)}</td>
+    <td>${badge(t.type,t.type==="Entrada"?"badge-ok":t.type==="Saída"?"badge-red":"")}</td>
+    <td>${money(t.value)}</td><td>${badge(t.status,t.status==="Concluído"?"badge-ok":"badge-warn")}</td>
+    <td>${t.status==="Pendente"?`<button class="btn btn-secondary" onclick="settleTransaction('${t.id}')">Dar baixa</button>`:"—"}</td>
+  </tr>`);
+  $("content").innerHTML=pageHead("Financeiro",
+    "Entradas, despesas e pendências de pagamento.",
+    "Novo lançamento","addTransaction()")+
+    `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      ${metric("Entradas realizadas",money(income),"trending-up","text-emerald-400")}
+      ${metric("Despesas realizadas",money(expenses),"trending-down","text-rose-400")}
+      ${metric("Resultado acumulado",money(income-expenses),"wallet",income-expenses>=0?"text-emerald-400":"text-rose-400")}
+    </div>
+    <div class="panel p-4 mb-5">
+      <p class="text-sm muted">Pendências: ${pending.length} lançamento(s) · ${money(pending.reduce((a,t)=>a+t.value,0))}</p>
+    </div>`+
+    table(["Data","Descrição","Tipo","Valor","Status","Ações"],rows,"Nenhum lançamento financeiro.");
+}
+async function addTransaction(){
+  const r=await modalForm("Novo lançamento financeiro",[
+    {id:"type",label:"Tipo",type:"select",value:"Saída",options:[
+      {value:"Entrada",label:"Entrada / recebimento"},
+      {value:"Saída",label:"Despesa / pagamento"}]},
+    {id:"description",label:"Descrição",required:true},
+    {id:"value",label:"Valor (R$)",type:"number",value:0,min:0.01,step:"0.01",required:true},
+    {id:"date",label:"Data",type:"date",value:todayISO(),required:true},
+    {id:"status",label:"Situação",type:"select",value:"Concluído",options:[
+      {value:"Concluído",label:"Pago / recebido"},
+      {value:"Pendente",label:"Pendente"}]},
+    {id:"payment",label:"Forma de pagamento",type:"select",value:"Pix",
+      options:["Pix","Dinheiro","Débito","Crédito","Transferência","Boleto","Outro"].map(x=>({value:x,label:x}))}
+  ]);
+  if(!r.isConfirmed)return;
+  if(Number(r.value.value)<=0)return toast("O valor precisa ser maior que zero.","error");
+  db.transactions.push({...r.value,id:uid(),value:Number(r.value.value)});
+  saveDB();toast("Lançamento registrado.");render();
+}
+async function settleTransaction(id){
+  const t=db.transactions.find(x=>x.id===id);if(!t)return;
+  if(!await askConfirm("Confirmar baixa?",t.description))return;
+  t.status="Concluído";t.settledDate=todayISO();
+  saveDB();toast("Lançamento baixado.");render();
+}
 
-      try {
-        const { data: venda, error: errVenda } = await db.from('vendas').insert([{
-          valor_total: total,
-          forma_pagamento: formaPag,
-          status_pagamento: formaPag === 'A prazo' ? 'Pendente' : 'Pago'
-        }]).select().single();
+/* ------------------ RELATÓRIOS ------------------ */
+function renderReports(){
+  setPageTitle("Relatórios");
+  const sales=db.sales;
+  const revenue=sales.reduce((a,s)=>a+s.total,0);
+  const cost=sales.reduce((a,s)=>a+s.items.reduce((b,i)=>{
+    const p=db.products.find(x=>x.id===i.id);
+    return b+(p?p.cost:0)*i.qty;
+  },0),0);
+  const entries=db.transactions.filter(t=>t.type==="Entrada"&&t.status==="Concluído").reduce((a,t)=>a+t.value,0);
+  const exits=db.transactions.filter(t=>t.type==="Saída"&&t.status==="Concluído").reduce((a,t)=>a+t.value,0);
+  const salesRows=sales.slice().reverse().map(s=>`<tr>
+    <td>${dateBR(s.date)}</td><td>${safe(s.number)}</td><td>${safe(s.customer)}</td>
+    <td>${safe(s.payment)}</td><td>${money(s.total)}</td></tr>`);
+  $("content").innerHTML=`
+    <h3 class="section-title mb-2">Relatórios</h3>
+    <p class="muted text-sm mb-6">Resumo dos registros deste navegador.</p>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      ${metric("Vendas registradas",sales.length,"shopping-bag")}
+      ${metric("Total de vendas",money(revenue),"banknote","text-emerald-400")}
+      ${metric("Resultado de caixa",money(entries-exits),"chart-no-axes-combined",entries>=exits?"text-emerald-400":"text-rose-400")}
+    </div>
+    <section class="panel p-5 mb-6">
+      <h3 class="font-semibold mb-4">Vendas por dia (últimos 7 dias)</h3>
+      <canvas id="salesChart" height="100"></canvas>
+    </section>
+    <section class="panel p-5 mb-6">
+      <h3 class="font-semibold mb-4">Histórico de vendas</h3>
+      <div class="flex gap-2 mb-4 flex-wrap">
+        <button class="btn btn-secondary" onclick="exportSalesCSV()">Exportar vendas CSV</button>
+        <button class="btn btn-secondary" onclick="exportBackup()">Backup completo JSON</button>
+      </div>
+      ${table(["Data","Venda","Cliente","Pagamento","Total"],salesRows,"Nenhuma venda registrada.")}
+    </section>
+    <p class="muted text-xs">A estimativa de custo usa o custo atual cadastrado para cada produto. Não representa necessariamente o custo histórico de cada venda.</p>`;
+  drawChart();
+}
+function drawChart(){
+  const canvas=$("salesChart");if(!canvas)return;
+  if(chartInstance)chartInstance.destroy();
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    days.push(d.toLocaleDateString("en-CA"));
+  }
+  const values=days.map(day=>db.sales.filter(s=>s.date===day).reduce((a,s)=>a+s.total,0));
+  chartInstance=new Chart(canvas,{
+    type:"bar",
+    data:{labels:days.map(dateBR),datasets:[{label:"Vendas (R$)",data:values,
+      backgroundColor:"#3b82f6",borderRadius:6}]},
+    options:{responsive:true,plugins:{legend:{display:false}},
+      scales:{x:{ticks:{color:"#94a3b8"},grid:{display:false}},
+      y:{beginAtZero:true,ticks:{color:"#94a3b8"},grid:{color:"#263244"}}}}
+  });
+}
 
-        if (errVenda) throw errVenda;
+/* ------------------ CONFIGURAÇÕES / BACKUP ------------------ */
+function renderSettings(){
+  setPageTitle("Configurações");
+  $("content").innerHTML=`
+    <h3 class="section-title mb-2">Configurações</h3>
+    <p class="muted text-sm mb-6">Dados da empresa e cópias de segurança.</p>
+    <section class="panel p-5 mb-5">
+      <h3 class="font-semibold mb-4">Identificação</h3>
+      <label class="text-sm muted">Nome da empresa</label>
+      <input id="shopName" class="field mt-2 mb-4" value="${safe(db.settings.shop)}">
+      <button class="btn btn-primary" onclick="saveSettings()">Salvar alterações</button>
+    </section>
+    <section class="panel p-5 mb-5">
+      <h3 class="font-semibold mb-2">Backup dos dados</h3>
+      <p class="muted text-sm mb-4">Exporte seus dados regularmente. Limpar os dados do navegador pode apagar os registros locais.</p>
+      <div class="flex flex-wrap gap-3">
+        <button class="btn btn-primary" onclick="exportBackup()">Exportar backup</button>
+        <button class="btn btn-secondary" onclick="$('backupFile').click()">Restaurar backup JSON</button>
+        <input id="backupFile" type="file" accept=".json,application/json" class="hidden" onchange="importBackup(event)">
+      </div>
+    </section>
+    <section class="panel p-5">
+      <h3 class="font-semibold mb-2">Dados locais</h3>
+      <p class="muted text-sm mb-4">Registros armazenados: ${db.products.length} produtos, ${db.sales.length} vendas, ${db.orders.length} ordens de serviço.</p>
+      <button class="btn btn-danger" onclick="clearAllData()">Apagar todos os dados locais</button>
+    </section>
+    <section class="panel p-5 mt-5">
+      <h3 class="font-semibold mb-2">Supabase</h3>
+      <p class="muted text-sm">Esta versão ainda não sincroniza com o Supabase. Para ativar a sincronização, é necessário configurar as credenciais do projeto e adaptar as consultas ao esquema real das tabelas.</p>
+    </section>`;
+}
+function saveSettings(){
+  db.settings.shop=$("shopName").value.trim()||"John Motos Peças";
+  saveDB();toast("Configurações salvas.");render();
+}
+function downloadFile(name,content,type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportBackup(){
+  downloadFile("backup-john-motos-"+todayISO()+".json",
+    JSON.stringify(db,null,2),"application/json");
+  toast("Backup exportado.");
+}
+async function importBackup(event){
+  const file=event.target.files?.[0];if(!file)return;
+  try{
+    const parsed=JSON.parse(await file.text());
+    const required=["products","customers","suppliers","sales","orders","transactions"];
+    if(!parsed||!required.every(k=>Array.isArray(parsed[k])))throw new Error("Formato inválido");
+    if(!await askConfirm("Restaurar backup?","Os dados atuais serão substituídos."))return;
+    db={...emptyDB(),...parsed,settings:{...emptyDB().settings,...(parsed.settings||{})}};
+    saveDB();toast("Backup restaurado.");render();
+  }catch(e){toast("Arquivo inválido ou corrompido.","error");}
+  finally{event.target.value="";}
+}
+function exportSalesCSV(){
+  const rows=[["Data","Venda","Cliente","Pagamento","Total"],
+    ...db.sales.map(s=>[s.date,s.number,s.customer,s.payment,s.total])];
+  const csv="\uFEFF"+rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\r\n");
+  downloadFile("vendas-john-motos-"+todayISO()+".csv",csv,"text/csv;charset=utf-8");
+}
+async function clearAllData(){
+  if(!await askConfirm("Apagar todos os dados?","Esta ação não pode ser desfeita. Exporte um backup antes."))return;
+  if(!await askConfirm("Confirma pela segunda vez?","Todos os cadastros e lançamentos locais serão apagados."))return;
+  db=emptyDB();cart=[];saveDB();toast("Dados apagados.");render();
+}
 
-        const itensInsert = carrinho.map(i => ({
-          venda_id: venda.id,
-          produto_id: i.produto_id,
-          tipo_item: i.tipo_item,
-          descricao_item: i.descricao_item,
-          quantidade: i.quantidade,
-          preco_unitario: i.preco_unitario,
-          subtotal: i.subtotal
-        }));
-
-        await db.from('venda_itens').insert(itensInsert);
-
-        alert("Venda realizada com sucesso!");
-        limparCarrinho();
-        carregarDadosGerais();
-      } catch (e) {
-        console.error(e);
-        alert("Erro ao salvar venda no Supabase.");
-      }
-    }
-
-    // MODAIS E PRODUTOS
-    function abrirModalProduto() {
-      const nextNum = (produtosCache.length + 1001);
-      document.getElementById('prod-sku').value = `JM-${nextNum}`;
-      document.getElementById('modal-produto').classList.remove('hidden');
-    }
-
-    function fecharModalProduto() {
-      document.getElementById('modal-produto').classList.add('hidden');
-    }
-
-    async function salvarProduto() {
-      const sku = document.getElementById('prod-sku').value;
-      const nome = document.getElementById('prod-nome').value;
-      const cat = document.getElementById('prod-categoria').value;
-      const qtd = parseInt(document.getElementById('prod-qtd').value) || 0;
-      const garantia = parseInt(document.getElementById('prod-garantia').value) || 90;
-      const custo = parseFloat(document.getElementById('prod-custo').value) || 0;
-      const venda = parseFloat(document.getElementById('prod-venda').value) || 0;
-
-      if (!nome || venda <= 0) {
-        alert("Preencha o nome do produto e valor de venda válido.");
-        return;
-      }
-
-      if (db) {
-        await db.from('produtos').insert([{
-          codigo_interno: sku,
-          nome: nome,
-          categoria: cat,
-          quantidade: qtd,
-          garantia_dias: garantia,
-          preco_custo: custo,
-          preco_venda: venda
-        }]);
-      }
-
-      fecharModalProduto();
-      carregarDadosGerais();
-    }
-
-    function renderProdutosTabela() {
-      const body = document.getElementById('tbl-produtos-body');
-      let html = '';
-
-      produtosCache.forEach(p => {
-        html += `
-          <tr>
-            <td class="p-3.5 font-mono font-bold text-amber-400">${p.codigo_interno}</td>
-            <td class="p-3.5 font-medium text-white">${p.nome}</td>
-            <td class="p-3.5 text-slate-400">${p.categoria || 'Geral'}</td>
-            <td class="p-3.5 font-semibold text-slate-200">${p.quantidade}</td>
-            <td class="p-3.5 text-slate-400">R$ ${Number(p.preco_custo).toFixed(2)}</td>
-            <td class="p-3.5 font-bold text-emerald-400">R$ ${Number(p.preco_venda).toFixed(2)}</td>
-            <td class="p-3.5 text-slate-400">${p.garantia_dias || 90} dias</td>
-            <td class="p-3.5 text-right"><button class="text-slate-400 hover:text-white"><i data-lucide="edit" class="w-3.5 h-3.5"></i></button></td>
-          </tr>
-        `;
-      });
-
-      body.innerHTML = html || '<tr><td colspan="8" class="text-center py-6 text-slate-500">Nenhum produto cadastrado.</td></tr>';
-      lucide.createIcons();
-    }
-
-    // CONFIG MODAL
-    function toggleConfigModal() {
-      document.getElementById('modal-config').classList.toggle('hidden');
-    }
-
-    function salvarConfiguracoes() {
-      SUPABASE_URL = document.getElementById('cfg-url').value;
-      SUPABASE_KEY = document.getElementById('cfg-key').value;
-
-      localStorage.setItem('JM_SUPABASE_URL', SUPABASE_URL);
-      localStorage.setItem('JM_SUPABASE_KEY', SUPABASE_KEY);
-
-      conectarSupabase();
-      toggleConfigModal();
-    }
-  </script>
+/* Inicialização */
+render();
+</script>
 </body>
 </html>
