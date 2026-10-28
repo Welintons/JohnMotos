@@ -8,8 +8,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Leitor de Câmera (Opcional) -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root {
       --bg: #f8fafc; --sidebar: #0f172a; --card: #ffffff;
@@ -133,7 +131,6 @@
     let tgTemplates = {};
     let globalTelegramToken = "";
     let globalTelegramChatId = "";
-    let html5QrCodeScanner = null;
 
     try {
       supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
@@ -145,7 +142,7 @@
       sales: [],
       orders: [],
       history: [],
-      settings: { shop_name: "John Motos" }
+      settings: { shop: "John Motos" }
     };
 
     let cart = [];
@@ -154,7 +151,7 @@
     let customerSearchFilter = "";
     let orderSearchFilter = "";
     let historySearchFilter = "";
-    let pdvItemSearchFilter = "";
+    let pdvItemSearchFilter = ""; // Novo filtro de busca rápida no PDV
 
     async function initSystem() {
       if (supabaseClient) {
@@ -162,6 +159,7 @@
       } else {
         loadLocalFallback();
       }
+      initDailyReportCron();
       render();
     }
 
@@ -176,13 +174,14 @@
 
     async function loadDataFromSupabase() {
       try {
-        const [pRes, cRes, oRes, hRes, sRes, setRes] = await Promise.all([
+        const [pRes, cRes, oRes, hRes, sRes, setRes, tRes] = await Promise.all([
           supabaseClient.from("products").select("*"),
           supabaseClient.from("customers").select("*"),
           supabaseClient.from("orders").select("*"),
           supabaseClient.from("history").select("*"),
           supabaseClient.from("sales").select("*"),
-          supabaseClient.from("settings").select("*").limit(1).maybeSingle()
+          supabaseClient.from("settings").select("*").limit(1).single(),
+          supabaseClient.from("telegram_templates").select("*")
         ]);
 
         if (pRes.data) db.products = pRes.data;
@@ -194,6 +193,10 @@
         if (setRes.data) {
           globalTelegramToken = setRes.data.telegram_token || "";
           globalTelegramChatId = setRes.data.telegram_chat_id || "";
+        }
+
+        if (tRes.data) {
+          tRes.data.forEach(t => { tgTemplates[t.key] = t.template; });
         }
 
         $("syncStatusText").textContent = "Conectado na Nuvem";
@@ -211,10 +214,14 @@
     async function sendTelegramTemplate(key, dataObj) {
       if (!globalTelegramToken || !globalTelegramChatId) return;
       
-      let templateStr = "🔔 *Notificação John Motos*";
-      if (key === 'nova_venda') templateStr = "📋 *REGISTRO DE VENDA • JOHN MOTOS*\n──────────────────────────\n*Itens / Serviços:*\n{items}\n──────────────────────────\n💳 *Pagamento:* {payment}\n💰 *Valor Total:* *{total}*\n──────────────────────────\n✅ *Transação concluída com sucesso*";
-      else if (key === 'nova_os') templateStr = "🔧 *NOVA OS ABERTA* 📋\n━━━━━━━━━━━━━━━━━━\n🆔 *OS:* #{number}\n👤 *Cliente:* {customer}\n🏍️ *Moto:* {vehicle}\n🏷️ *Placa:* `{plate}`\n🛠️ *Serviço/Defeito:* {problem}\n━━━━━━━━━━━━━━━━━━\n⏳ *Status:* Em andamento na oficina.";
-      else if (key === 'estoque_baixo') templateStr = "⚠️ *ALERTA DE ESTOQUE BAIXO* 🛑\n━━━━━━━━━━━━━━━━━━\n📦 *Peça/Produto:* {product_name}\n📉 *Quantidade Restante:* *{stock} unidades*\n━━━━━━━━━━━━━━━━━━\n💡 *Dica:* Hora de repor no fornecedor!";
+      let templateStr = tgTemplates[key];
+      if (!templateStr) {
+        if (key === 'nova_venda') templateStr = "📋 *REGISTRO DE VENDA • JOHN MOTOS*\n──────────────────────────\n*Itens / Serviços:*\n{items}\n──────────────────────────\n💳 *Pagamento:* {payment}\n💰 *Valor Total:* *{total}*\n──────────────────────────\n✅ *Transação concluída com sucesso*";
+        else if (key === 'nova_os') templateStr = "🔧 *NOVA OS ABERTA* 📋\n━━━━━━━━━━━━━━━━━━\n🆔 *OS:* #{number}\n👤 *Cliente:* {customer}\n🏍️ *Moto:* {vehicle}\n🏷️ *Placa:* `{plate}`\n🛠️ *Serviço/Defeito:* {problem}\n━━━━━━━━━━━━━━━━━━\n⏳ *Status:* Em andamento na oficina.";
+        else if (key === 'estoque_baixo') templateStr = "⚠️ *ALERTA DE ESTOQUE BAIXO* 🛑\n━━━━━━━━━━━━━━━━━━\n📦 *Peça/Produto:* {product_name}\n📉 *Quantidade Restante:* *{stock} unidades*\n━━━━━━━━━━━━━━━━━━\n💡 *Dica:* Hora de repor no fornecedor!";
+        else if (key === 'relatorio_dia') templateStr = "📊 *RESUMO DO DIÁRIO • JOHN MOTOS* 🌙\n📅 {date}\n━━━━━━━━━━━━━━━━━━\n💰 *Total no Caixa:* *{total_sales}*\n• Pix: {pix_total}\n• Dinheiro: {cash_total}\n• Outros/Cartão: {card_total}\n━━━━━━━━━━━━━━━━━━\n📝 *Movimento:*\n• Vendas: {count_sales}\n• OS Concluídas: {count_orders}\n• Motos na oficina: {pending_orders}\n━━━━━━━━━━━━━━━━━━\n⚠️ *Peças acabando (Repor):*\n{low_stock_items}\n━━━━━━━━━━━━━━━━━━\n👍 *Expediente encerrado por hoje!*";
+        else templateStr = "🔔 *Notificação John Motos*";
+      }
 
       for (const [k, v] of Object.entries(dataObj)) {
         templateStr = templateStr.replaceAll(`{${k}}`, v);
@@ -229,6 +236,39 @@
       } catch (e) {
         console.error("Erro ao enviar Telegram:", e);
       }
+    }
+
+    function initDailyReportCron() {
+      setInterval(() => {
+        const now = new Date();
+        if (now.getHours() === 19 && now.getMinutes() === 0) {
+          const todayStr = todayISO();
+          const lastSentKey = "john_report_sent_" + todayStr;
+          if (!localStorage.getItem(lastSentKey)) {
+            sendDailyReport();
+            localStorage.setItem(lastSentKey, "true");
+          }
+        }
+      }, 30000);
+    }
+
+    async function sendDailyReport() {
+      const today = todayISO();
+      const todaySales = db.sales.filter(s => s.date === today);
+      const todayOrders = db.orders.filter(o => o.date === today);
+      const totalRevenue = todaySales.reduce((a, b) => a + Number(b.total), 0);
+
+      await sendTelegramTemplate("relatorio_dia", {
+        date: new Date().toLocaleDateString("pt-BR"),
+        total_sales: money(totalRevenue),
+        pix_total: "R$ 0,00",
+        cash_total: "R$ 0,00",
+        card_total: "R$ 0,00",
+        count_sales: todaySales.length,
+        count_orders: todayOrders.length,
+        pending_orders: db.orders.filter(o => o.status === 'Em andamento').length,
+        low_stock_items: "Nenhum no momento"
+      });
     }
 
     function navigate(page) {
@@ -260,19 +300,14 @@
       $("modalBody").innerHTML = htmlContent;
       $("appModal").classList.add("active");
     }
-    
     function closeModal() {
-      if (html5QrCodeScanner) {
-        try { html5QrCodeScanner.stop().catch(() => {}); } catch(e){}
-        html5QrCodeScanner = null;
-      }
       $("appModal").classList.remove("active");
     }
 
     /* --- VISÃO GERAL --- */
     function renderHome() {
       $("pageTitle").textContent = "Visão Geral - John Motos";
-      const totalSales = db.sales.reduce((a, b) => a + Number(b.total), 0);
+      const totalSales = db.sales.reduce((a, b) => a + b.total, 0);
       const uniquePlacas = [...new Set(db.history.map(h => h.plate))].length;
       $("content").innerHTML = `
         <div class="grid-4">
@@ -301,7 +336,7 @@
       $("pageTitle").textContent = "Produtos & Estoque";
       const filtered = db.products.filter(p => 
         p.name.toLowerCase().includes(productSearchFilter.toLowerCase()) || 
-        (p.code && p.code.toLowerCase().includes(productSearchFilter.toLowerCase()))
+        p.code.toLowerCase().includes(productSearchFilter.toLowerCase())
       );
 
       const rows = filtered.map(p => `<tr>
@@ -318,77 +353,35 @@
       $("content").innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
           <button class="btn" onclick="openProductModal()"><i class="bi bi-plus-lg"></i> Novo Produto</button>
-          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar produto ou código..." value="${productSearchFilter}" oninput="productSearchFilter=this.value; renderProducts();">
+          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar produto..." value="${productSearchFilter}" oninput="productSearchFilter=this.value; renderProducts();">
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Código de Barras</th><th>Produto</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead>
+            <thead><tr><th>Código</th><th>Produto</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead>
             <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum produto encontrado.</td></tr>'}</tbody>
           </table>
         </div>
       `;
     }
 
+    function generateProductCode() {
+      const count = db.products.length + 1;
+      return "PEC-" + String(count).padStart(3, '0');
+    }
+
     function openProductModal(id = null) {
       const p = id ? db.products.find(x => x.id === id) : null;
-      openModal(p ? "Editar Produto" : "Cadastrar Produto c/ Leitor", `
-        <div class="mb-3">
-          <label class="label">Código de Barras</label>
-          <div style="display:flex; gap:8px;">
-            <input id="pCode" class="field" value="${p ? (p.code || '') : ''}" placeholder="Passe o leitor ou digite o código" autofocus>
-            <button type="button" class="btn btn-secondary btn-sm" onclick="startBarcodeScanner()" title="Escanear com a câmera"><i class="bi bi-camera"></i> Câmera</button>
-          </div>
-        </div>
-
-        <div id="readerContainer" style="display:none; margin-bottom:15px;">
-          <div id="reader" style="width:100%; border-radius:8px; overflow:hidden;"></div>
-          <button type="button" class="btn btn-danger btn-sm" style="margin-top:8px; width:100%;" onclick="stopBarcodeScanner()">Fechar Câmera</button>
-        </div>
-
+      openModal(p ? "Editar Produto" : "Novo Produto", `
+        <div class="mb-3"><label class="label">Código</label><input id="pCode" class="field" value="${p ? p.code : generateProductCode()}" disabled></div>
         <div class="mb-3"><label class="label">Nome do Produto</label><input id="pName" class="field" value="${p ? p.name : ''}" placeholder="Ex: Pastilha de Freio CG 150"></div>
         <div class="mb-3"><label class="label">Preço de Venda (R$)</label><input id="pPrice" type="number" step="0.01" class="field" value="${p ? p.price : '0.00'}"></div>
         <div class="mb-3"><label class="label">Quantidade em Estoque</label><input id="pStock" type="number" class="field" value="${p ? p.stock : '10'}"></div>
         <button class="btn" style="width:100%; justify-content:center;" onclick="saveProduct('${id || ''}')">Salvar Produto</button>
       `);
-
-      setTimeout(() => {
-        const inputCode = $("pCode");
-        if (inputCode) inputCode.focus();
-      }, 100);
-    }
-
-    function startBarcodeScanner() {
-      $("readerContainer").style.display = "block";
-      if (!html5QrCodeScanner) {
-        html5QrCodeScanner = new Html5Qrcode("reader");
-      }
-      html5QrCodeScanner.start(
-        { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 100 } },
-        (decodedText) => {
-          $("pCode").value = decodedText;
-          stopBarcodeScanner();
-        },
-        (errorMessage) => {}
-      ).catch(err => {
-        alert("Erro ao iniciar a câmera: " + err);
-      });
-    }
-
-    function stopBarcodeScanner() {
-      if (html5QrCodeScanner) {
-        html5QrCodeScanner.stop().then(() => {
-          $("readerContainer").style.display = "none";
-        }).catch(() => {
-          $("readerContainer").style.display = "none";
-        });
-      } else {
-        $("readerContainer").style.display = "none";
-      }
     }
 
     async function saveProduct(id) {
-      const code = $("pCode").value.trim();
+      const code = $("pCode").value;
       const name = $("pName").value.trim();
       const price = parseFloat($("pPrice").value) || 0;
       const stock = parseInt($("pStock").value) || 0;
@@ -398,10 +391,10 @@
       if (id) {
         const prod = db.products.find(x => x.id === id);
         if (prod) {
-          prod.code = code; prod.name = name; prod.price = price; prod.stock = stock;
+          prod.name = name; prod.price = price; prod.stock = stock;
           saveCache();
           if (supabaseClient) {
-            await supabaseClient.from("products").update({ code, name, price, stock }).eq("id", id);
+            await supabaseClient.from("products").update({ name, price, stock }).eq("id", id);
           }
         }
       } else {
@@ -428,26 +421,18 @@
       renderProducts();
     }
 
-    /* --- PDV / CAIXA --- */
+    /* --- PDV / CAIXA (Com Barra de Pesquisa Rápida) --- */
     function renderPDV() {
       $("pageTitle").textContent = "PDV / Frente de Caixa";
       
+      // Filtra os produtos com base na digitação rápida
       const filteredProducts = db.products.filter(p => 
         p.name.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()) || 
         (p.code && p.code.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()))
       );
 
-      const produtosGridHtml = filteredProducts.length > 0 ? filteredProducts.map(p => `
-        <div onclick="adicionarDiretoCarrinho('${p.id}')" style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:10px; cursor:pointer; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-weight:600; font-size:13px; color:var(--text);">${p.name}</div>
-          <div style="font-size:11px; color:var(--muted);">Cód: ${p.code || 'N/D'}</div>
-          <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px;">
-            <span style="color:var(--success); font-weight:bold;">${money(p.price)}</span>
-            <span style="color:var(--muted);">Estoque: ${p.stock}</span>
-          </div>
-        </div>
-      `).join('') : '<p style="color:var(--muted); text-align:center; grid-column:span 2; padding:15px;">Nenhum produto encontrado</p>';
-
+      const options = filteredProducts.map(p => `<option value="${p.id}">${p.name} — ${money(p.price)} (Estoque: ${p.stock})</option>`).join("");
+      
       const cartRows = cart.map((c, i) => `<tr>
         <td><b>${c.name}</b> ${c.isCustom ? '<span class="badge badge-warn">Serviço/Livre</span>' : ''}</td>
         <td>${c.qty}</td>
@@ -461,24 +446,23 @@
         <div class="grid-2">
           <div style="display:flex; flex-direction:column; gap:20px;">
             <div class="card" style="margin-bottom:0;">
-              <h3 style="font-size:16px; margin-bottom:15px;">Adicionar Produto (Bipe ou Busca)</h3>
+              <h3 style="font-size:16px; margin-bottom:15px;">Adicionar Produto do Estoque</h3>
               
+              <!-- Barra de Pesquisa Rápida no PDV -->
               <div class="mb-3">
-                <label class="label">Pesquisa Rápida / Leitor de Código</label>
-                <input id="pdvSearchInput" class="field" placeholder="🔍 Bipe o código ou digite a peça..." value="${pdvItemSearchFilter}" oninput="verificarBipePDV(this.value)">
+                <label class="label">Pesquisa Rápida de Produto</label>
+                <input id="pdvSearchInput" class="field" placeholder="🔍 Digite para filtrar peças..." value="${pdvItemSearchFilter}" oninput="pdvItemSearchFilter=this.value; renderPDV();">
               </div>
 
               <div class="mb-3">
-                <label class="label">Clique no produto para adicionar:</label>
-                <div style="max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; border: 1px solid var(--border); padding: 10px; border-radius: 8px; background: #fff;">
-                  ${produtosGridHtml}
-                </div>
+                <label class="label">Selecionar Produto Filtrado</label>
+                <select id="pdvProduct" class="field" size="4" style="height: 120px;">${options || '<option value="">Nenhum produto encontrado</option>'}</select>
               </div>
-
               <div class="mb-3">
-                <label class="label">Quantidade Padrão</label>
+                <label class="label">Quantidade</label>
                 <input id="pdvQty" type="number" class="field" value="1" min="1">
               </div>
+              <button class="btn" onclick="addToCart()"><i class="bi bi-cart-plus"></i> Adicionar Item</button>
             </div>
 
             <div class="card" style="margin-bottom:0; background:#f8fafc;">
@@ -513,7 +497,7 @@
           </table>
         </div>
       `;
-
+      // Mantém o foco no input de busca para agilizar a digitação contínua
       const inputEl = $("pdvSearchInput");
       if (inputEl) {
         inputEl.focus();
@@ -521,28 +505,16 @@
       }
     }
 
-    function verificarBipePDV(val) {
-      pdvItemSearchFilter = val;
-      const exactMatch = db.products.find(p => p.code && p.code.toLowerCase() === val.trim().toLowerCase());
-      if (exactMatch) {
-        adicionarDiretoCarrinho(exactMatch.id);
-        pdvItemSearchFilter = "";
-        renderPDV();
-        return;
-      }
-      renderPDV();
-    }
-
-    function adicionarDiretoCarrinho(idProd) {
-      const prod = db.products.find(p => p.id === idProd);
+    function addToCart() {
+      const prodId = $("pdvProduct").value;
       const qty = parseInt($("pdvQty").value) || 1;
-      if (!prod) return;
+      const prod = db.products.find(p => p.id === prodId);
+      if (!prod) return alert("Selecione um produto.");
       if (prod.stock < qty) return alert("Estoque insuficiente!");
 
-      const existing = cart.find(c => c.id === idProd && !c.isCustom);
+      const existing = cart.find(c => c.id === prodId && !c.isCustom);
       if (existing) existing.qty += qty;
       else cart.push({ id: prod.id, name: prod.name, price: prod.price, qty, isCustom: false });
-      
       renderPDV();
     }
 
@@ -576,13 +548,13 @@
               await sendTelegramTemplate("estoque_baixo", { product_name: p.name, stock: p.stock });
             }
             if (supabaseClient) {
-              await supabaseClient.from("products").update({ stock: p.stock }).eq("id", c.id);
+              await supabaseClient.from("products").update({ stock: p.stock }).eq("id", p.id);
             }
           }
         }
       }
 
-      const sale = { id: uid(), date: todayISO(), total, payment, items: cart };
+      const sale = { id: uid(), date: todayISO(), total, payment, items: [...cart] };
       db.sales.push(sale);
       saveCache();
 
@@ -590,8 +562,14 @@
         await supabaseClient.from("sales").insert([sale]);
       }
 
+      // Mapeia os itens do carrinho para o formato profissional do template
       const itemsFormatted = cart.map(c => `• ${c.qty}x ${c.name} — ${money(c.price * c.qty)}`).join("\n");
-      await sendTelegramTemplate("nova_venda", { items: itemsFormatted, total: money(total), payment });
+
+      await sendTelegramTemplate("nova_venda", { 
+        items: itemsFormatted,
+        total: money(total), 
+        payment 
+      });
 
       cart = [];
       pdvItemSearchFilter = "";
@@ -720,7 +698,7 @@
       renderWorkshop();
     }
 
-    /* --- HISTÓRICO DE MANUTENÇÕES --- */
+    /* --- HISTÓRICO DE MANUTENÇÕES (Com Botão de Excluir) --- */
     function renderHistory() {
       $("pageTitle").textContent = "Histórico de Manutenções por Veículo";
 
@@ -770,7 +748,7 @@
 
       const vehicleName = records[0].vehicle;
       const itemsHtml = records.map(r => `
-        <div style="border-bottom: 1px solid var(--border); padding: 12px 0; display:flex; justify-content:space-between; align-items:center;">
+        <div style="border-bottom: 1px solid var(--border); padding: 12px 0; display:flex; justify-content:space-between; align-items:center;" id="hist-row-${r.id}">
           <div>
             <div style="display:flex; gap:10px; margin-bottom:4px;">
               <span style="font-size:12px; font-weight:600; color:var(--muted);">Data: ${r.date} (${r.number})</span>
@@ -779,7 +757,7 @@
             <p style="font-size:14px;"><b>Serviço:</b> ${r.service}</p>
             <p style="font-size:12px; color:var(--muted); margin-top:2px;">Cliente responsável: ${r.customer}</p>
           </div>
-          <button class="btn btn-danger btn-sm" onclick="deleteHistoryRecord('${r.id}', '${plate}')"><i class="bi bi-trash"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteHistoryRecord('${r.id}', '${plate}')" title="Excluir este registro"><i class="bi bi-trash"></i></button>
         </div>
       `).join("");
 
@@ -796,7 +774,8 @@
     }
 
     async function deleteHistoryRecord(id, plate) {
-      if (!confirm("Deseja realmente excluir este registro?")) return;
+      if (!confirm("Deseja realmente excluir este registro do histórico da moto?")) return;
+
       db.history = db.history.filter(h => h.id !== id);
       saveCache();
 
@@ -804,6 +783,7 @@
         await supabaseClient.from("history").delete().eq("id", id);
       }
 
+      // Atualiza o modal ou fecha se não houver mais registros para essa placa
       const remaining = db.history.filter(h => h.plate === plate);
       if (remaining.length > 0) {
         openVehicleHistoryModal(plate);
@@ -818,13 +798,14 @@
       $("pageTitle").textContent = "Clientes";
       const filtered = db.customers.filter(c => 
         c.name.toLowerCase().includes(customerSearchFilter.toLowerCase()) || 
+        (c.plate && c.plate.toLowerCase().includes(customerSearchFilter.toLowerCase())) ||
         (c.phone && c.phone.toLowerCase().includes(customerSearchFilter.toLowerCase()))
       );
 
       const rows = filtered.map(c => `<tr>
         <td><b>${c.name}</b></td>
         <td>${c.phone || "—"}</td>
-        <td>${c.doc || "—"}</td>
+        <td><code style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:700;">${c.plate || "—"}</code></td>
         <td>
           <button class="btn btn-warning btn-sm" onclick="openCustomerModal('${c.id}')"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')"><i class="bi bi-trash"></i></button>
@@ -834,11 +815,11 @@
       $("content").innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
           <button class="btn" onclick="openCustomerModal()"><i class="bi bi-plus-lg"></i> Novo Cliente</button>
-          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar cliente..." value="${customerSearchFilter}" oninput="customerSearchFilter=this.value; renderCustomers();">
+          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar cliente ou placa..." value="${customerSearchFilter}" oninput="customerSearchFilter=this.value; renderCustomers();">
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Nome</th><th>Telefone</th><th>Documento</th><th>Ações</th></tr></thead>
+            <thead><tr><th>Nome</th><th>Telefone</th><th>Placa da Moto</th><th>Ações</th></tr></thead>
             <tbody>${rows || '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente encontrado.</td></tr>'}</tbody>
           </table>
         </div>
@@ -850,7 +831,7 @@
       openModal(c ? "Editar Cliente" : "Novo Cliente", `
         <div class="mb-3"><label class="label">Nome Completo</label><input id="cName" class="field" value="${c ? c.name : ''}" placeholder="Ex: Maria Souza"></div>
         <div class="mb-3"><label class="label">Telefone / WhatsApp</label><input id="cPhone" class="field" value="${c ? c.phone || '' : ''}" placeholder="(88) 99999-9999"></div>
-        <div class="mb-3"><label class="label">Documento / CPF</label><input id="cDoc" class="field" value="${c ? c.doc || '' : ''}" placeholder="000.000.000-00"></div>
+        <div class="mb-3"><label class="label">Placa da Moto</label><input id="cPlate" class="field" value="${c ? c.plate || '' : ''}" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
         <button class="btn" style="width:100%; justify-content:center;" onclick="saveCustomer('${id || ''}')">${c ? 'Salvar Alterações' : 'Salvar Cliente'}</button>
       `);
     }
@@ -858,21 +839,21 @@
     async function saveCustomer(id) {
       const name = $("cName").value.trim();
       const phone = $("cPhone").value.trim();
-      const doc = $("cDoc").value.trim();
+      const plate = $("cPlate").value.trim().toUpperCase();
 
       if (!name) return alert("Digite o nome do cliente.");
 
       if (id) {
         const cust = db.customers.find(x => x.id === id);
         if (cust) {
-          cust.name = name; cust.phone = phone; cust.doc = doc;
+          cust.name = name; cust.phone = phone; cust.plate = plate;
           saveCache();
           if (supabaseClient) {
-            await supabaseClient.from("customers").update({ name, phone, doc }).eq("id", id);
+            await supabaseClient.from("customers").update({ name, phone, plate }).eq("id", id);
           }
         }
       } else {
-        const newCust = { id: uid(), name, phone, doc };
+        const newCust = { id: uid(), name, phone, plate };
         db.customers.push(newCust);
         saveCache();
         if (supabaseClient) {
