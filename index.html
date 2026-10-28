@@ -50,6 +50,7 @@
     .btn:hover { opacity: 0.9; }
     .btn-success { background: var(--success); }
     .btn-danger { background: var(--danger); }
+    .btn-secondary { background: #64748b; }
     .btn-sm { padding: 6px 12px; font-size: 12px; }
     .field { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; background: #fff; margin-top: 5px; }
     .field:focus { border-color: var(--primary); }
@@ -59,6 +60,13 @@
     .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
     .badge-ok { background: #d1fae5; color: #065f46; }
     .badge-warn { background: #fef3c7; color: #92400e; }
+
+    /* Modal Flutuante Customizado */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: #fff; border-radius: 12px; width: 100%; max-width: 450px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-header h3 { font-size: 18px; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -78,6 +86,7 @@
       <button class="navbtn" data-page="produtos"><i class="bi bi-boxes"></i> Produtos & Estoque</button>
       <button class="navbtn" data-page="pdv"><i class="bi bi-cart-dash"></i> PDV / Caixa</button>
       <button class="navbtn" data-page="oficina"><i class="bi bi-tools"></i> Oficina / OS</button>
+      <button class="navbtn" data-page="historico"><i class="bi bi-clock-history"></i> Histórico / Veículos</button>
       <button class="navbtn" data-page="clientes"><i class="bi bi-people"></i> Clientes</button>
       <button class="navbtn" data-page="config"><i class="bi bi-sliders"></i> Configurações</button>
     </div>
@@ -96,6 +105,17 @@
     <div class="content" id="content"></div>
   </div>
 
+  <!-- MODAL DINÂMICO UNIFICADO -->
+  <div id="appModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modalTitle">Cadastrar</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal()">X</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
   <script>
     "use strict";
 
@@ -104,7 +124,6 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-    // Carregamento de Configurações Externas (Supabase & Telegram)
     let SB_URL = localStorage.getItem("nexus_sb_url") || "";
     let SB_KEY = localStorage.getItem("nexus_sb_key") || "";
     let TG_TOKEN = localStorage.getItem("nexus_tg_token") || "";
@@ -119,15 +138,16 @@
       } catch(e) { console.error(e); }
     }
 
-    // Banco de dados local
-    const STORAGE_KEY = "nexus_sistema_oficina_v3";
+    const STORAGE_KEY = "nexus_sistema_oficina_v5";
     function loadDB() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return { products: [], customers: [], sales: [], orders: [], settings: { shop: "Oficina & Peças" } };
-        return JSON.parse(raw);
+        if (!raw) return { products: [], customers: [], sales: [], orders: [], history: [], settings: { shop: "Oficina & Peças" } };
+        const dbData = JSON.parse(raw);
+        if (!dbData.history) dbData.history = [];
+        return dbData;
       } catch(e) {
-        return { products: [], customers: [], sales: [], orders: [], settings: { shop: "Oficina & Peças" } };
+        return { products: [], customers: [], sales: [], orders: [], history: [], settings: { shop: "Oficina & Peças" } };
       }
     }
 
@@ -139,7 +159,6 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
     }
 
-    // Função para enviar alerta no Telegram do John
     async function sendTelegramAlert(text) {
       if (!TG_TOKEN || !TG_CHAT) return;
       try {
@@ -148,9 +167,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ chat_id: TG_CHAT, text: text, parse_mode: "Markdown" })
         });
-      } catch (e) {
-        console.error("Erro ao enviar Telegram:", e);
-      }
+      } catch (e) { console.error("Erro Telegram:", e); }
     }
 
     function navigate(page) {
@@ -173,9 +190,19 @@
       else if (currentPage === "produtos") renderProducts();
       else if (currentPage === "pdv") renderPDV();
       else if (currentPage === "oficina") renderWorkshop();
+      else if (currentPage === "historico") renderHistory();
       else if (currentPage === "clientes") renderCustomers();
       else if (currentPage === "config") renderSettings();
       else renderHome();
+    }
+
+    function openModal(title, htmlContent) {
+      $("modalTitle").textContent = title;
+      $("modalBody").innerHTML = htmlContent;
+      $("appModal").classList.add("active");
+    }
+    function closeModal() {
+      $("appModal").classList.remove("active");
     }
 
     /* --- VISÃO GERAL --- */
@@ -190,15 +217,15 @@
           </div>
           <div class="card metric">
             <div><p>Faturamento Total</p><h3>${money(totalSales)}</h3></div>
-            <div class="metric-icon" style="background:#ecfdf5; color:#059669;"><p></p><i class="bi bi-cash-stack"></i></div>
+            <div class="metric-icon" style="background:#ecfdf5; color:#059669;"><i class="bi bi-cash-stack"></i></div>
           </div>
           <div class="card metric">
             <div><p>Ordens de Serviço</p><h3>${db.orders.length}</h3></div>
             <div class="metric-icon" style="background:#fef3c7; color:#d97706;"><i class="bi bi-tools"></i></div>
           </div>
           <div class="card metric">
-            <div><p>Clientes</p><h3>${db.customers.length}</h3></div>
-            <div class="metric-icon" style="background:#e0f2fe; color:#0284c7;"><i class="bi bi-people"></i></div>
+            <div><p>Histórico / Veículos</p><h3>${db.history.length}</h3></div>
+            <div class="metric-icon" style="background:#e0f2fe; color:#0284c7;"><i class="bi bi-clock-history"></i></div>
           </div>
         </div>
       `;
@@ -217,7 +244,7 @@
 
       $("content").innerHTML = `
         <div style="margin-bottom: 20px;">
-          <button class="btn" onclick="addProductModal()"><i class="bi bi-plus-lg"></i> Novo Produto</button>
+          <button class="btn" onclick="openProductModal()"><i class="bi bi-plus-lg"></i> Novo Produto</button>
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
@@ -233,15 +260,27 @@
       return "PEC-" + String(count).padStart(3, '0');
     }
 
-    function addProductModal() {
-      const name = prompt("Nome do produto:");
-      if (!name) return;
-      const price = parseFloat(prompt("Preço de venda (R$):") || 0);
-      const stock = parseInt(prompt("Quantidade em estoque:") || 0);
-      const code = generateProductCode();
-      
+    function openProductModal() {
+      const nextCode = generateProductCode();
+      openModal("Novo Produto", `
+        <div class="mb-3"><label class="label">Código Automático</label><input id="pCode" class="field" value="${nextCode}" disabled></div>
+        <div class="mb-3"><label class="label">Nome do Produto</label><input id="pName" class="field" placeholder="Ex: Pastilha de Freio CG 150"></div>
+        <div class="mb-3"><label class="label">Preço de Venda (R$)</label><input id="pPrice" type="number" step="0.01" class="field" value="0.00"></div>
+        <div class="mb-3"><label class="label">Quantidade em Estoque</label><input id="pStock" type="number" class="field" value="10"></div>
+        <button class="btn" style="width:100%; justify-content:center;" onclick="saveProduct()">Salvar Produto</button>
+      `);
+    }
+
+    function saveProduct() {
+      const code = $("pCode").value;
+      const name = $("pName").value.trim();
+      const price = parseFloat($("pPrice").value) || 0;
+      const stock = parseInt($("pStock").value) || 0;
+
+      if (!name) return alert("Digite o nome do produto.");
       db.products.push({ id: uid(), code, name, price, stock });
       saveDB();
+      closeModal();
       renderProducts();
     }
 
@@ -268,7 +307,7 @@
             <h3 style="font-size:16px; margin-bottom:15px;">Adicionar ao Carrinho</h3>
             <div class="mb-3">
               <label class="label">Selecionar Produto</label>
-              <select id="pdvProduct" class="field">${options}</select>
+              <select id="pdvProduct" class="field">${options || '<option value="">Cadastre produtos primeiro</option>'}</select>
             </div>
             <div class="mb-3">
               <label class="label">Quantidade</label>
@@ -320,16 +359,18 @@
 
       cart.forEach(c => {
         const p = db.products.find(x => x.id === c.id);
-        if (p) p.stock -= c.qty;
+        if (p) {
+          p.stock -= c.qty;
+          if (p.stock <= 2) {
+            sendTelegramAlert(`⚠️ *Estoque Baixo!*\n• Produto: *${p.name}*\n• Restam apenas: *${p.stock} un*`);
+          }
+        }
       });
 
-      const sale = { id: uid(), date: todayISO(), total, payment, items: [...cart] };
-      db.sales.push(sale);
+      db.sales.push({ id: uid(), date: todayISO(), total, payment, items: [...cart] });
       saveDB();
 
-      // Envia alerta automático para o Telegram do John
       sendTelegramAlert(`🛒 *Nova Venda Realizada!*\n• Total: *${money(total)}*\n• Pagamento: *${payment}*`);
-
       cart = [];
       alert("Venda finalizada com sucesso!");
       renderPDV();
@@ -342,34 +383,95 @@
         <td><b>${o.number}</b></td><td>${o.customer}</td><td>${o.vehicle}</td><td>${o.problem}</td>
         <td><span class="badge badge-warn">${o.status}</span></td>
         <td>${money(o.value)}</td>
+        <td>
+          ${o.status === 'Em andamento' ? `<button class="btn btn-success btn-sm" onclick="finishOrder('${o.id}')"><i class="bi bi-check-lg"></i> Concluir</button>` : '<span style="color:var(--success); font-weight:600;">Finalizada</span>'}
+        </td>
       </tr>`).join("");
 
       $("content").innerHTML = `
         <div style="margin-bottom: 20px;">
-          <button class="btn" onclick="addOrderModal()"><i class="bi bi-plus-lg"></i> Nova OS</button>
+          <button class="btn" onclick="openOrderModal()"><i class="bi bi-plus-lg"></i> Nova OS</button>
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Nº OS</th><th>Cliente</th><th>Veículo</th><th>Defeito</th><th>Status</th><th>Valor</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="6" style="text-align:center; padding:30px; color:var(--muted);">Nenhuma OS aberta.</td></tr>'}</tbody>
+            <thead><tr><th>Nº OS</th><th>Cliente</th><th>Veículo / Placa</th><th>Defeito</th><th>Status</th><th>Valor</th><th>Ação</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--muted);">Nenhuma OS aberta.</td></tr>'}</tbody>
           </table>
         </div>
       `;
     }
 
-    function addOrderModal() {
-      const customer = prompt("Nome do Cliente:");
-      if (!customer) return;
-      const vehicle = prompt("Veículo / Placa:");
-      const problem = prompt("Defeito relatado:");
-      const value = parseFloat(prompt("Valor estimado (R$):") || 0);
+    function openOrderModal() {
+      openModal("Nova Ordem de Serviço", `
+        <div class="mb-3"><label class="label">Nome do Cliente</label><input id="osCustomer" class="field" placeholder="Ex: João Silva"></div>
+        <div class="mb-3"><label class="label">Veículo e Placa</label><input id="osVehicle" class="field" placeholder="Ex: Honda Titan 160 - ABC1D23"></div>
+        <div class="mb-3"><label class="label">Defeito Relatado / Serviço</label><input id="osProblem" class="field" placeholder="Ex: Troca de óleo e relação"></div>
+        <div class="mb-3"><label class="label">Valor Estimado (R$)</label><input id="osValue" type="number" step="0.01" class="field" value="0.00"></div>
+        <button class="btn" style="width:100%; justify-content:center;" onclick="saveOrder()">Abrir OS</button>
+      `);
+    }
+
+    function saveOrder() {
+      const customer = $("osCustomer").value.trim();
+      const vehicle = $("osVehicle").value.trim();
+      const problem = $("osProblem").value.trim();
+      const value = parseFloat($("osValue").value) || 0;
+
+      if (!customer || !vehicle) return alert("Preencha o cliente e o veículo/placa.");
 
       const number = "OS-" + Math.floor(1000 + Math.random() * 9000);
-      db.orders.push({ id: uid(), number, customer, vehicle, problem, value, status: "Em andamento" });
+      db.orders.push({ id: uid(), number, customer, vehicle, problem, value, status: "Em andamento", date: todayISO() });
       saveDB();
+      closeModal();
 
       sendTelegramAlert(`🔧 *Nova OS Aberta (${number})*\n• Cliente: *${customer}*\n• Veículo: *${vehicle}*\n• Defeito: _${problem}_`);
       renderWorkshop();
+    }
+
+    function finishOrder(id) {
+      const order = db.orders.find(o => o.id === id);
+      if (!order) return;
+      order.status = "Concluída";
+
+      // Salva automaticamente no Histórico de Manutenções do Veículo
+      db.history.push({
+        id: uid(),
+        date: todayISO(),
+        number: order.number,
+        customer: order.customer,
+        vehicle: order.vehicle,
+        service: order.problem,
+        value: order.value
+      });
+
+      saveDB();
+      sendTelegramAlert(`✅ *OS ${order.number} Concluída!*\n• Veículo: *${order.vehicle}*\n• Serviço: _${order.service || order.problem}_`);
+      renderWorkshop();
+    }
+
+    /* --- HISTÓRICO DE MANUTENÇÕES --- */
+    function renderHistory() {
+      $("pageTitle").textContent = "Histórico de Manutenções por Veículo";
+      
+      const rows = db.history.map(h => `<tr>
+        <td><b>${h.date}</b></td>
+        <td><code>${h.vehicle}</code></td>
+        <td>${h.customer}</td>
+        <td>${h.service}</td>
+        <td>${money(h.value)}</td>
+      </tr>`).join("");
+
+      $("content").innerHTML = `
+        <div class="card" style="margin-bottom:20px; background:#f1f5f9;">
+          <p style="font-size:13px; color:var(--muted);"><i class="bi bi-info-circle"><b> Nota:</b> Quando você conclui uma Ordem de Serviço na aba Oficina, o serviço vai automaticamente para este histórico vinculado à placa/veículo.</i></p>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden;">
+          <table>
+            <thead><tr><th>Data</th><th>Veículo / Placa</th><th>Cliente</th><th>Serviço Realizado</th><th>Valor</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum histórico registrado ainda. Conclua uma OS para gerar registros.</td></tr>'}</tbody>
+          </table>
+        </div>
+      `;
     }
 
     /* --- CLIENTES --- */
@@ -379,7 +481,7 @@
 
       $("content").innerHTML = `
         <div style="margin-bottom: 20px;">
-          <button class="btn" onclick="addCustomerModal()"><i class="bi bi-plus-lg"></i> Novo Cliente</button>
+          <button class="btn" onclick="openCustomerModal()"><i class="bi bi-plus-lg"></i> Novo Cliente</button>
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
@@ -390,18 +492,28 @@
       `;
     }
 
-    function addCustomerModal() {
-      const name = prompt("Nome do Cliente:");
-      if (!name) return;
-      const phone = prompt("Telefone / WhatsApp:");
-      const doc = prompt("CPF ou CNPJ:");
+    function openCustomerModal() {
+      openModal("Novo Cliente", `
+        <div class="mb-3"><label class="label">Nome Completo</label><input id="cName" class="field" placeholder="Ex: Maria Souza"></div>
+        <div class="mb-3"><label class="label">Telefone / WhatsApp</label><input id="cPhone" class="field" placeholder="(88) 99999-9999"></div>
+        <div class="mb-3"><label class="label">CPF ou CNPJ</label><input id="cDoc" class="field" placeholder="000.000.000-00"></div>
+        <button class="btn" style="width:100%; justify-content:center;" onclick="saveCustomer()">Salvar Cliente</button>
+      `);
+    }
 
+    function saveCustomer() {
+      const name = $("cName").value.trim();
+      const phone = $("cPhone").value.trim();
+      const doc = $("cDoc").value.trim();
+
+      if (!name) return alert("Digite o nome do cliente.");
       db.customers.push({ id: uid(), name, phone, doc });
       saveDB();
+      closeModal();
       renderCustomers();
     }
 
-    /* --- CONFIGURAÇÕES (SUPABASE & TELEGRAM) --- */
+    /* --- CONFIGURAÇÕES --- */
     function renderSettings() {
       $("pageTitle").textContent = "Configurações do Sistema";
       $("content").innerHTML = `
