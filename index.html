@@ -212,12 +212,8 @@
       localStorage.setItem("nexus_cache_db", JSON.stringify(db));
     }
 
-    // Envio do Telegram puxando Token e Chat ID direto do Supabase
     async function sendTelegramTemplate(key, dataObj) {
-      if (!globalTelegramToken || !globalTelegramChatId) {
-        console.warn("Telegram não enviado: Token ou Chat ID não configurados no Supabase.");
-        return;
-      }
+      if (!globalTelegramToken || !globalTelegramChatId) return;
       
       let templateStr = tgTemplates[key];
       if (!templateStr) {
@@ -233,35 +229,13 @@
       }
 
       try {
-        const res = await fetch(`https://api.telegram.org/bot${globalTelegramToken}/sendMessage`, {
+        await fetch(`https://api.telegram.org/bot${globalTelegramToken}/sendMessage`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ chat_id: globalTelegramChatId, text: templateStr, parse_mode: "Markdown" })
         });
-        const json = await res.json();
-        if (!json.ok) console.error("Erro Telegram API:", json.description);
       } catch (e) {
-        console.error("Erro de rede ao enviar Telegram:", e);
-      }
-    }
-
-    // Botão de Teste Manual do Telegram via Supabase
-    async function testTelegramConnection() {
-      const chatIDInput = $("settingTgChat").value.trim();
-      if (!chatIDInput) return alert("Digite o Chat ID direto no campo do Supabase para testar.");
-      if (!globalTelegramToken) return alert("Token do bot não carregado.");
-
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${globalTelegramToken}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: chatIDInput, text: "🟢 *Teste Bem-Sucedido!*\nO Nexus Oficina está conectado via Supabase!", parse_mode: "Markdown" })
-        });
-        const data = await res.json();
-        if (data.ok) alert("Mensagem de teste enviada com sucesso!");
-        else alert("Erro do Telegram: " + data.description);
-      } catch(e) {
-        alert("Erro de conexão.");
+        console.error("Erro ao enviar Telegram:", e);
       }
     }
 
@@ -429,26 +403,47 @@
       $("pageTitle").textContent = "PDV / Frente de Caixa";
       const options = db.products.map(p => `<option value="${p.id}">${p.name} — ${money(p.price)} (Estoque: ${p.stock})</option>`).join("");
       const cartRows = cart.map((c, i) => `<tr>
-        <td><b>${c.name}</b></td><td>${c.qty}</td><td>${money(c.price)}</td><td>${money(c.qty * c.price)}</td>
+        <td><b>${c.name}</b> ${c.isCustom ? '<span class="badge badge-warn">Serviço/Livre</span>' : ''}</td>
+        <td>${c.qty}</td>
+        <td>${money(c.price)}</td>
+        <td>${money(c.qty * c.price)}</td>
         <td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">X</button></td>
       </tr>`).join("");
       const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
 
       $("content").innerHTML = `
         <div class="grid-2">
-          <div class="card">
-            <h3 style="font-size:16px; margin-bottom:15px;">Adicionar ao Carrinho</h3>
-            <div class="mb-3">
-              <label class="label">Selecionar Produto</label>
-              <select id="pdvProduct" class="field">${options || '<option value="">Cadastre produtos primeiro</option>'}</select>
+          <!-- Coluna 1: Adicionar do Estoque ou Serviço Livre -->
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            <div class="card" style="margin-bottom:0;">
+              <h3 style="font-size:16px; margin-bottom:15px;">Adicionar Produto do Estoque</h3>
+              <div class="mb-3">
+                <label class="label">Selecionar Produto</label>
+                <select id="pdvProduct" class="field">${options || '<option value="">Cadastre produtos primeiro</option>'}</select>
+              </div>
+              <div class="mb-3">
+                <label class="label">Quantidade</label>
+                <input id="pdvQty" type="number" class="field" value="1" min="1">
+              </div>
+              <button class="btn" onclick="addToCart()"><i class="bi bi-cart-plus"></i> Adicionar Item</button>
             </div>
-            <div class="mb-3">
-              <label class="label">Quantidade</label>
-              <input id="pdvQty" type="number" class="field" value="1" min="1">
+
+            <div class="card" style="margin-bottom:0; background:#f8fafc;">
+              <h3 style="font-size:16px; margin-bottom:15px; color:var(--primary);"><i class="bi bi-pencil-square"></i> Adicionar Serviço / Valor Livre</h3>
+              <div class="mb-3">
+                <label class="label">Descrição do Serviço / Item</label>
+                <input id="customName" class="field" placeholder="Ex: Mão de obra de solda / Instalação">
+              </div>
+              <div class="mb-3">
+                <label class="label">Valor (R$)</label>
+                <input id="customPrice" type="number" step="0.01" class="field" placeholder="0.00">
+              </div>
+              <button class="btn btn-secondary" onclick="addCustomItem()"><i class="bi bi-plus-circle"></i> Adicionar Valor Livre</button>
             </div>
-            <button class="btn" onclick="addToCart()"><i class="bi bi-cart-plus"></i> Adicionar Item</button>
           </div>
-          <div class="card">
+
+          <!-- Coluna 2: Resumo e Pagamento -->
+          <div class="card" style="height: fit-content;">
             <h3 style="font-size:16px; margin-bottom:15px;">Resumo da Venda</h3>
             <div class="mb-3">
               <label class="label">Forma de Pagamento</label>
@@ -458,9 +453,10 @@
             <button class="btn btn-success" style="width:100%; justify-content:center;" onclick="finishSale()">Finalizar Venda</button>
           </div>
         </div>
-        <div class="card" style="padding:0; overflow:hidden;">
+
+        <div class="card" style="padding:0; overflow:hidden; margin-top:20px;">
           <table>
-            <thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th></th></tr></thead>
+            <thead><tr><th>Item / Descrição</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th></th></tr></thead>
             <tbody>${cartRows || '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">Carrinho vazio</td></tr>'}</tbody>
           </table>
         </div>
@@ -474,9 +470,27 @@
       if (!prod) return alert("Selecione um produto.");
       if (prod.stock < qty) return alert("Estoque insuficiente!");
 
-      const existing = cart.find(c => c.id === prodId);
+      const existing = cart.find(c => c.id === prodId && !c.isCustom);
       if (existing) existing.qty += qty;
-      else cart.push({ id: prod.id, name: prod.name, price: prod.price, qty });
+      else cart.push({ id: prod.id, name: prod.name, price: prod.price, qty, isCustom: false });
+      renderPDV();
+    }
+
+    function addCustomItem() {
+      const name = $("customName").value.trim();
+      const price = parseFloat($("customPrice").value);
+
+      if (!name) return alert("Digite a descrição do serviço/item livre.");
+      if (isNaN(price) || price <= 0) return alert("Digite um valor válido.");
+
+      cart.push({
+        id: uid(),
+        name: name,
+        price: price,
+        qty: 1,
+        isCustom: true
+      });
+
       renderPDV();
     }
 
@@ -491,14 +505,16 @@
       const payment = $("pdvPayment").value;
 
       for (let c of cart) {
-        const p = db.products.find(x => x.id === c.id);
-        if (p) {
-          p.stock -= c.qty;
-          if (p.stock <= 2) {
-            await sendTelegramTemplate("estoque_baixo", { product_name: p.name, stock: p.stock });
-          }
-          if (supabaseClient) {
-            await supabaseClient.from("products").update({ stock: p.stock }).eq("id", p.id);
+        if (!c.isCustom) {
+          const p = db.products.find(x => x.id === c.id);
+          if (p) {
+            p.stock -= c.qty;
+            if (p.stock <= 2) {
+              await sendTelegramTemplate("estoque_baixo", { product_name: p.name, stock: p.stock });
+            }
+            if (supabaseClient) {
+              await supabaseClient.from("products").update({ stock: p.stock }).eq("id", p.id);
+            }
           }
         }
       }
@@ -697,7 +713,7 @@
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
             <thead><tr><th>Nome</th><th>Telefone</th><th>CPF/CNPJ</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>'}</tbody>
+            </tbody>${rows || '<tr><td colspan="3" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>'}</tbody>
           </table>
         </div>
       `;
@@ -753,14 +769,8 @@
 
           <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button class="btn btn-success" style="flex: 1; justify-content:center;" onclick="saveAllSettings()">Salvar Configurações</button>
-            <button class="btn btn-secondary" onclick="testTelegramConnection()"><i class="bi bi-telegram"></i> Testar Mensagem</button>
           </div>
           <p style="font-size: 11px; color: var(--muted); margin-top: 10px;">* O Chat ID e o Token do Telegram são gerenciados diretamente na tabela <code>settings</code> do Supabase.</p>
-        </div>
-
-        <div class="card" style="max-width: 600px; display: none;">
-          <!-- Campo oculto apenas para compatibilidade do botão de teste -->
-          <input id="settingTgChat" value="${globalTelegramChatId}">
         </div>
       `;
     }
@@ -789,7 +799,6 @@
       location.reload();
     }
 
-    // Inicializa o sistema ao abrir
     initSystem();
   </script>
 </body>
