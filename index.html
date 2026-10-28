@@ -77,7 +77,7 @@
       <div class="brand-icon"><i class="bi bi-bicycle"></i></div>
       <div>
         <h4 style="font-size:14px; color:#fff;">JOHN MOTOS</h4>
-        <p style="font-size:11px; color:#34d399;" id="syncStatusText">Conectado na Nuvem</p>
+        <p style="font-size:11px; color:#34d399;" id="syncStatusText">Conectando...</p>
       </div>
     </div>
     <div class="nav-links">
@@ -123,9 +123,12 @@
     const todayISO = () => new Date().toLocaleDateString("en-CA");
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-    // Credenciais Fixas e Travadas do Supabase (John Motos)
+    // URL Fixa do Supabase
     const SB_URL = "https://twzzayvfxodwzxtwbyqq.supabase.co";
-    const SB_KEY = "Sb_publishable_zCBCr9gs149bTGmHfmeV0A_96dPiSAo";
+    
+    // Aqui usamos o valor que estava funcionando quando você configurava manualmente:
+    // (Caso você tenha salvado a chave anon 'eyJ...' no navegador anteriormente, ele puxa dela de forma segura)
+    const SB_KEY = localStorage.getItem("nexus_sb_key") || "Sb_publishable_zCBCr9gs149bTGmHfmeV0A_96dPiSAo";
 
     let supabaseClient = null;
     let tgTemplates = {};
