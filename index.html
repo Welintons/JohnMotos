@@ -1,900 +1,744 @@
-
 <!DOCTYPE html>
-<html lang="pt-BR" class="dark">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b0f17">
-<title>John Motos Peças | Gestão</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestão Profissional | Oficina & Peças</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/lucide@latest"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-:root{
-  --bg:#0b0f17;--panel:#111827;--border:#263244;
-  --text:#e5e7eb;--muted:#94a3b8;--accent:#3b82f6;
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);
-font-family:Inter,system-ui,-apple-system,sans-serif}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-.sidebar{background:#0d121d;border-right:1px solid var(--border)}
-.navbtn{display:flex;align-items:center;gap:12px;width:100%;
-padding:12px;border-radius:10px;color:#94a3b8;text-align:left;
-transition:.2s;font-size:14px}
-.navbtn:hover,.navbtn.active{background:#1b2b43;color:white}
-.navbtn.active{box-shadow:inset 3px 0 #3b82f6}
-.panel{background:var(--panel);border:1px solid var(--border);
-border-radius:14px}
-.field{width:100%;background:#0b1220;border:1px solid #334155;
-border-radius:9px;padding:10px 12px;color:white;outline:none}
-.field:focus{border-color:#3b82f6}
-.btn{display:inline-flex;align-items:center;justify-content:center;
-gap:8px;padding:10px 14px;border-radius:9px;font-size:13px;
-font-weight:600;transition:.2s}
-.btn-primary{background:#2563eb;color:white}
-.btn-primary:hover{background:#1d4ed8}
-.btn-secondary{background:#202b3b;color:#e2e8f0}
-.btn-danger{background:#451b25;color:#fda4af}
-.metric{padding:18px}
-.metric p{font-size:13px;color:var(--muted)}
-.metric strong{font-size:25px;display:block;margin-top:10px}
-table{width:100%;border-collapse:collapse;white-space:nowrap}
-th,td{text-align:left;padding:13px 15px;border-bottom:1px solid #263244;
-font-size:13px}
-th{color:#94a3b8;font-weight:500;background:#131c2b}
-td{color:#e2e8f0}
-tbody tr:hover{background:#182233}
-.badge{display:inline-block;padding:4px 8px;border-radius:6px;
-font-size:11px;background:#1e293b;color:#cbd5e1}
-.badge-ok{background:#12372b;color:#6ee7b7}
-.badge-warn{background:#422b13;color:#fcd34d}
-.badge-red{background:#451b25;color:#fda4af}
-.section-title{font-size:22px;font-weight:700;letter-spacing:-.5px}
-.muted{color:var(--muted)}
-.mobilebar{display:none}
-#content{min-width:0}
-::-webkit-scrollbar{width:7px;height:7px}
-::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}
-@media(max-width:768px){
- .sidebar{position:fixed;z-index:50;left:-280px;top:0;bottom:0;
- width:260px;transition:left .25s}
- .sidebar.open{left:0}
- .mobilebar{display:flex}
- main{padding:16px!important}
- .section-title{font-size:20px}
- .metric strong{font-size:21px}
- .metric{padding:14px}
- .hide-mobile{display:none}
-}
-</style>
-</head>
-
-<body>
-<div class="min-h-screen flex">
-
-<!-- MENU -->
-<aside id="sidebar" class="sidebar w-64 shrink-0 p-4 flex flex-col">
-  <div class="flex items-center gap-3 px-2 py-4 mb-5">
-    <div class="bg-blue-600 rounded-xl p-3">
-      <i data-lucide="bike" class="w-7 h-7 text-white"></i>
-    </div>
-    <div>
-      <h1 class="font-bold text-lg">JOHN MOTOS</h1>
-      <p class="text-xs muted">PEÇAS & OFICINA</p>
-    </div>
-  </div>
-
-  <p class="text-xs muted uppercase tracking-widest px-3 mb-2">Principal</p>
-  <nav class="space-y-1">
-    <button class="navbtn active" data-page="inicio"><i data-lucide="layout-dashboard"></i>Visão geral</button>
-    <button class="navbtn" data-page="pdv"><i data-lucide="shopping-cart"></i>PDV / Vendas</button>
-    <button class="navbtn" data-page="produtos"><i data-lucide="package"></i>Produtos e estoque</button>
-    <button class="navbtn" data-page="oficina"><i data-lucide="wrench"></i>Oficina / OS</button>
-    <button class="navbtn" data-page="clientes"><i data-lucide="users"></i>Clientes</button>
-    <button class="navbtn" data-page="fornecedores"><i data-lucide="truck"></i>Fornecedores</button>
-  </nav>
-
-  <p class="text-xs muted uppercase tracking-widest px-3 mt-7 mb-2">Gestão</p>
-  <nav class="space-y-1">
-    <button class="navbtn" data-page="financeiro"><i data-lucide="wallet"></i>Financeiro</button>
-    <button class="navbtn" data-page="relatorios"><i data-lucide="chart-no-axes-combined"></i>Relatórios</button>
-    <button class="navbtn" data-page="config"><i data-lucide="settings"></i>Configurações</button>
-  </nav>
-
-  <div class="mt-auto panel p-3">
-    <div class="flex items-center gap-2">
-      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-      <span class="text-xs">Sistema operacional</span>
-    </div>
-    <p class="text-xs muted mt-2">Armazenamento local</p>
-  </div>
-</aside>
-
-<!-- ÁREA PRINCIPAL -->
-<main class="flex-1 min-w-0 p-7 overflow-x-hidden">
-  <header class="flex justify-between items-center gap-3 mb-8">
-    <div class="flex items-center gap-3">
-      <button id="menuToggle" class="mobilebar btn btn-secondary">
-        <i data-lucide="menu"></i>
-      </button>
-      <div>
-        <h2 id="pageTitle" class="text-xl font-bold">Visão geral</h2>
-        <p id="today" class="text-xs muted mt-1"></p>
-      </div>
-    </div>
-    <div class="flex items-center gap-2">
-      <button class="btn btn-secondary" onclick="navigate('pdv')">
-        <i data-lucide="plus" class="w-4 h-4"></i>
-        <span class="hide-mobile">Nova venda</span>
-      </button>
-    </div>
-  </header>
-
-  <div id="content"></div>
-  <footer class="text-center text-xs muted mt-10 pb-5">
-    John Motos Peças · Sistema de gestão
-  </footer>
-</main>
-</div>
-
-<script>
-"use strict";
-
-/* ===================================================
-   JOHN MOTOS PEÇAS
-   Versão local: os dados ficam neste navegador.
-   Faça exportações de backup regularmente.
-=================================================== */
-
-const $ = id => document.getElementById(id);
-const money = n => Number(n || 0).toLocaleString("pt-BR",{
-  style:"currency",currency:"BRL"
-});
-const todayISO = () => new Date().toLocaleDateString("en-CA");
-const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-const safe = s => String(s ?? "").replace(/[&<>"']/g,c=>({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-}[c]));
-const dateBR = d => d ? new Date(d+"T12:00:00").toLocaleDateString("pt-BR") : "—";
-
-const STORAGE_KEY = "john_motos_gestao_v1";
-
-function emptyDB(){
-  return {
-    products:[],customers:[],suppliers:[],
-    sales:[],orders:[],transactions:[],
-    settings:{shop:"John Motos Peças",currency:"BRL"}
-  };
-}
-
-function loadDB(){
-  try{
-    const raw=localStorage.getItem(STORAGE_KEY);
-    if(!raw) return emptyDB();
-    const data=JSON.parse(raw);
-    const base=emptyDB();
-    return {...base,...data,
-      settings:{...base.settings,...(data.settings||{})}};
-  }catch(e){
-    console.error(e);
-    return emptyDB();
-  }
-}
-let db=loadDB();
-let cart=[];
-let chartInstance=null;
-let currentPage="inicio";
-
-function saveDB(){
-  try{
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
-    return true;
-  }catch(e){
-    toast("Não foi possível salvar. Verifique o espaço do navegador.","error");
-    return false;
-  }
-}
-
-function toast(message,icon="success"){
-  Swal.fire({
-    toast:true,position:"top-end",showConfirmButton:false,
-    timer:2800,timerProgressBar:true,icon,title:message,
-    background:"#111827",color:"#e5e7eb"
-  });
-}
-
-function modalForm(title,fields){
-  return Swal.fire({
-    title,background:"#111827",color:"#e5e7eb",
-    confirmButtonText:"Salvar",cancelButtonText:"Cancelar",
-    showCancelButton:true,focusConfirm:false,
-    html:fields.map(f=>{
-      const value=f.value??"";
-      if(f.type==="select"){
-        return `<div style="text-align:left;margin:12px 0">
-          <label style="font-size:12px;color:#94a3b8">${safe(f.label)}</label>
-          <select id="f_${safe(f.id)}" class="field" style="margin-top:5px">
-          ${f.options.map(o=>`<option value="${safe(o.value)}"
-            ${String(o.value)===String(value)?"selected":""}>
-            ${safe(o.label)}</option>`).join("")}
-          </select></div>`;
-      }
-      return `<div style="text-align:left;margin:12px 0">
-        <label style="font-size:12px;color:#94a3b8">${safe(f.label)}</label>
-        <input id="f_${safe(f.id)}" class="field" style="margin-top:5px"
-        type="${f.type||"text"}" value="${safe(value)}"
-        ${f.required?"required":""} ${f.min!==undefined?`min="${f.min}"`:""}
-        ${f.step?`step="${f.step}"`:""}
-        placeholder="${safe(f.placeholder||"")}">
-      </div>`;
-    }).join(""),
-    preConfirm:()=>{
-      const result={};
-      for(const f of fields){
-        const el=$("f_"+f.id);
-        result[f.id]=el ? el.value.trim() : "";
-        if(f.required&&!result[f.id]){
-          Swal.showValidationMessage("Preencha: "+f.label);
-          return false;
-        }
-        if(f.type==="number"&&result[f.id]!==""&&!Number.isFinite(Number(result[f.id]))){
-          Swal.showValidationMessage("Informe um número válido.");
-          return false;
-        }
-      }
-      return result;
+  <style>
+    :root {
+      --bs-body-bg: #0b131e;
+      --bs-body-color: #e2e8f0;
+      --panel-bg: #131f32;
+      --border-color: #223249;
     }
-  });
-}
+    body {
+      background-color: var(--bs-body-bg);
+      color: var(--bs-body-color);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    /* Sidebar */
+    #sidebar {
+      width: 260px;
+      background: #0f1726;
+      border-right: 1px solid var(--border-color);
+      min-height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      transition: all 0.3s;
+    }
+    .brand-box {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .nav-link {
+      color: #94a3b8;
+      padding: 12px 20px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 8px;
+      margin: 4px 12px;
+      transition: 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: #fff;
+      background: #1e293b;
+    }
+    .nav-link.active {
+      border-left: 4px solid #3b82f6;
+    }
+    /* Main Content */
+    #main-content {
+      margin-left: 260px;
+      padding: 30px;
+    }
+    @media (max-width: 991px) {
+      #sidebar { margin-left: -260px; }
+      #sidebar.show { margin-left: 0; }
+      #main-content { margin-left: 0; padding: 20px; }
+    }
+    /* Cards & Panels */
+    .card-custom {
+      background-color: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+    /* Tables */
+    .table-dark-custom {
+      background-color: transparent;
+      color: #e2e8f0;
+    }
+    .table-dark-custom th {
+      background-color: #1a2a42;
+      color: #94a3b8;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px;
+    }
+    .table-dark-custom td {
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px;
+      vertical-align: middle;
+    }
+    .table-dark-custom tbody tr:hover {
+      background-color: #18263c;
+    }
+    /* Forms & Inputs */
+    .form-control, .form-select {
+      background-color: #0b131e;
+      border: 1px solid #334155;
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .form-control:focus, .form-select:focus {
+      background-color: #0b131e;
+      border-color: #3b82f6;
+      color: #fff;
+      box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+    }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  </style>
+</head>
+<body>
 
-async function askConfirm(title,text){
-  const r=await Swal.fire({
-    title,text,icon:"warning",background:"#111827",color:"#e5e7eb",
-    showCancelButton:true,confirmButtonText:"Confirmar",
-    cancelButtonText:"Cancelar",confirmButtonColor:"#dc2626"
-  });
-  return r.isConfirmed;
-}
-
-function setPageTitle(title){
-  $("pageTitle").textContent=title;
-}
-
-function navigate(page){
-  currentPage=page;
-  document.querySelectorAll(".navbtn").forEach(b=>{
-    b.classList.toggle("active",b.dataset.page===page);
-  });
-  $("sidebar").classList.remove("open");
-  render();
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-document.querySelectorAll(".navbtn").forEach(b=>{
-  b.addEventListener("click",()=>navigate(b.dataset.page));
-});
-$("menuToggle").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
-$("today").textContent=new Date().toLocaleDateString("pt-BR",{
-  weekday:"long",day:"2-digit",month:"long",year:"numeric"
-});
-
-function table(headers,rows,empty="Nenhum registro encontrado."){
-  return `<div class="overflow-x-auto panel"><table>
-  <thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
-  <tbody>${rows.length?rows.join(""):`<tr><td colspan="${headers.length}"
-  class="text-center muted py-10">${empty}</td></tr>`}</tbody>
-  </table></div>`;
-}
-function badge(text,type=""){
-  return `<span class="badge ${type}">${safe(text)}</span>`;
-}
-function metric(label,value,icon,color="text-blue-400",sub=""){
-  return `<div class="panel metric">
-    <div class="flex justify-between items-center gap-2">
-      <p>${label}</p><i data-lucide="${icon}" class="w-5 h-5 ${color}"></i>
-    </div><strong>${value}</strong>
-    ${sub?`<p class="mt-2">${sub}</p>`:""}
-  </div>`;
-}
-function pageHead(title,description,buttonText,action){
-  return `<div class="flex flex-wrap justify-between items-start gap-3 mb-6">
-    <div><h3 class="section-title">${title}</h3>
-    <p class="muted text-sm mt-2">${description}</p></div>
-    ${buttonText?`<button class="btn btn-primary" onclick="${action}">
-    <i data-lucide="plus" class="w-4 h-4"></i>${buttonText}</button>`:""}
-  </div>`;
-}
-function searchBox(placeholder,id="search"){
-  return `<input id="${id}" class="field mb-4" placeholder="${placeholder}"
-  oninput="filterTable(this.value)">`;
-}
-function filterTable(value){
-  const q=value.toLowerCase();
-  document.querySelectorAll("#dataTable tbody tr").forEach(tr=>{
-    tr.style.display=tr.textContent.toLowerCase().includes(q)?"":"none";
-  });
-}
-function refreshIcons(){
-  if(window.lucide) lucide.createIcons();
-}
-
-function render(){
-  const pages={
-    inicio:renderHome,
-    pdv:renderPDV,
-    produtos:renderProducts,
-    oficina:renderWorkshop,
-    clientes:renderCustomers,
-    fornecedores:renderSuppliers,
-    financeiro:renderFinance,
-    relatorios:renderReports,
-    config:renderSettings
-  };
-  (pages[currentPage]||renderHome)();
-  refreshIcons();
-}
-
-/* ------------------ PAINEL ------------------ */
-function renderHome(){
-  setPageTitle("Visão geral");
-  const today=todayISO();
-  const todaySales=db.sales.filter(s=>s.date===today);
-  const revenue=todaySales.reduce((a,s)=>a+s.total,0);
-  const low=db.products.filter(p=>p.active!==false&&p.stock<=p.min);
-  const pending=db.orders.filter(o=>o.status!=="Concluída"&&o.status!=="Entregue"&&o.status!=="Cancelada");
-  const receivables=db.transactions.filter(t=>t.type==="Entrada"&&t.status==="Pendente");
-  const payable=db.transactions.filter(t=>t.type==="Saída"&&t.status==="Pendente");
-  const rows=low.slice(0,6).map(p=>`<tr>
-    <td>${safe(p.name)}</td><td>${p.stock}</td><td>${p.min}</td>
-    <td>${badge("Estoque baixo","badge-warn")}</td></tr>`);
-  const osRows=pending.slice(0,5).map(o=>`<tr>
-    <td>${safe(o.number)}</td><td>${safe(o.customer)}</td>
-    <td>${safe(o.motorcycle||"—")}</td><td>${badge(o.status,"badge-warn")}</td>
-    <td>${money(o.value)}</td></tr>`);
-  $("content").innerHTML=`
-    <div class="mb-6">
-      <h3 class="section-title">Bom trabalho!</h3>
-      <p class="muted mt-2 text-sm">Resumo operacional da ${safe(db.settings.shop)}.</p>
+  <!-- SIDEBAR -->
+  <nav id="sidebar">
+    <div class="brand-box d-flex align-items-center gap-3">
+      <div class="bg-primary text-white p-2 rounded-3">
+        <i class="bi bi-tools fs-4"></i>
+      </div>
+      <div>
+        <h6 class="m-0 fw-bold text-white tracking-wide">OFICINA & PEÇAS</h6>
+        <small class="text-muted" id="shopTitleNav">Gestão Profissional</small>
+      </div>
     </div>
-    <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-      ${metric("Vendas de hoje",money(revenue),"shopping-cart","text-emerald-400",todaySales.length+" venda(s)")}
-      ${metric("Produtos cadastrados",db.products.length,"package","text-blue-400")}
-      ${metric("Ordens em andamento",pending.length,"wrench","text-amber-400")}
-      ${metric("Estoque baixo",low.length,"alert-triangle","text-rose-400")}
+
+    <div class="py-3">
+      <small class="text-uppercase text-muted px-4 fs-7 fw-bold" style="font-size: 11px; letter-spacing: 1px;">Principal</small>
+      <div class="mt-2">
+        <a href="#" class="nav-link active" data-page="inicio"><i class="bi bi-speedometer2"></i>Visão geral</a>
+        <a href="#" class="nav-link" data-page="pdv"><i class="bi bi-cart3"></i>PDV / Vendas</a>
+        <a href="#" class="nav-link" data-page="produtos"><i class="bi bi-box-seam"></i>Produtos e estoque</a>
+        <a href="#" class="nav-link" data-page="oficina"><i class="bi bi-wrench-adjustable"></i>Oficina / OS</a>
+        <a href="#" class="nav-link" data-page="clientes"><i class="bi bi-people"></i>Clientes</a>
+        <a href="#" class="nav-link" data-page="fornecedores"><i class="bi bi-truck"></i>Fornecedores</a>
+      </div>
+
+      <small class="text-uppercase text-muted px-4 fs-7 fw-bold mt-4 d-block" style="font-size: 11px; letter-spacing: 1px;">Gestão</small>
+      <div class="mt-2">
+        <a href="#" class="nav-link" data-page="financeiro"><i class="bi bi-wallet2"></i>Financeiro</a>
+        <a href="#" class="nav-link" data-page="relatorios"><i class="bi bi-graph-up"></i>Relatórios</a>
+        <a href="#" class="nav-link" data-page="config"><i class="bi bi-gear"></i>Configurações</a>
+      </div>
     </div>
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
-      <section class="panel p-5">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="font-semibold">Alertas de estoque</h3>
-          <button class="text-blue-400 text-sm" onclick="navigate('produtos')">Ver estoque</button>
+
+    <div class="p-3 mx-3 mt-auto card-custom">
+      <div class="d-flex align-items-center gap-2">
+        <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
+        <span class="small text-muted">Sistema Local</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN WRAPPER -->
+  <main id="main-content">
+    <!-- TOPBAR -->
+    <header class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <h4 id="pageTitle" class="fw-bold m-0 text-white">Visão geral</h4>
+          <small id="todayDate" class="text-muted"></small>
         </div>
-        ${table(["Produto","Qtd.","Mínimo","Situação"],rows,"Nenhum produto abaixo do mínimo.")}
-      </section>
-      <section class="panel p-5">
-        <h3 class="font-semibold mb-4">Pendências financeiras</h3>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="bg-slate-900 p-4 rounded-xl">
-            <p class="muted text-xs">A receber</p>
-            <strong class="text-emerald-400 text-lg">${money(receivables.reduce((a,t)=>a+t.value,0))}</strong>
-            <p class="muted text-xs mt-2">${receivables.length} pendência(s)</p>
+      </div>
+      <div>
+        <button class="btn btn-primary d-flex align-items-center gap-2" onclick="navigate('pdv')">
+          <i class="bi bi-plus-lg"></i> Nova Venda
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT DYNAMIC INJECTION -->
+    <div id="content"></div>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-muted small mt-5 pt-3 border-top border-secondary border-opacity-25">
+      Sistema de Gestão Integrado · Armazenamento Local Seguro
+    </footer>
+  </main>
+
+  <!-- BOOTSTRAP 5 JS BUNDLE -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+    const money = n => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const todayISO = () => new Date().toLocaleDateString("en-CA");
+    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+    const safe = s => String(s ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+    const dateBR = d => d ? new Date(d + "T12:00:00").toLocaleDateString("pt-BR") : "—";
+
+    const STORAGE_KEY = "gestao_oficina_v2";
+
+    function emptyDB() {
+      return {
+        products: [], customers: [], suppliers: [],
+        sales: [], orders: [], transactions: [],
+        settings: { shop: "Oficina & Peças", currency: "BRL" }
+      };
+    }
+
+    function loadDB() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return emptyDB();
+        const data = JSON.parse(raw);
+        const base = emptyDB();
+        return { ...base, ...data, settings: { ...base.settings, ...(data.settings || {}) } };
+      } catch (e) {
+        console.error(e);
+        return emptyDB();
+      }
+    }
+
+    let db = loadDB();
+    let cart = [];
+    let chartInstance = null;
+    let currentPage = "inicio";
+
+    function saveDB() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+        return true;
+      } catch (e) {
+        toast("Erro ao salvar dados no navegador.", "error");
+        return false;
+      }
+    }
+
+    function toast(message, icon = "success") {
+      Swal.fire({
+        toast: true, position: "top-end", showConfirmButton: false,
+        timer: 2500, timerProgressBar: true, icon, title: message,
+        background: "#131f32", color: "#e2e8f0"
+      });
+    }
+
+    async function modalForm(title, fields) {
+      return Swal.fire({
+        title, background: "#131f32", color: "#e2e8f0",
+        confirmButtonText: "Salvar", cancelButtonText: "Cancelar",
+        showCancelButton: true, focusConfirm: false,
+        customClass: { confirmButton: 'btn btn-primary px-4', cancelButton: 'btn btn-secondary px-4' },
+        buttonsStyling: false,
+        html: fields.map(f => {
+          const value = f.value ?? "";
+          if (f.type === "select") {
+            return `<div class="text-start mb-3">
+              <label class="form-label text-muted small">${safe(f.label)}</label>
+              <select id="f_${safe(f.id)}" class="form-select">
+              ${f.options.map(o => `<option value="${safe(o.value)}" ${String(o.value) === String(value) ? "selected" : ""}>${safe(o.label)}</option>`).join("")}
+              </select></div>`;
+          }
+          return `<div class="text-start mb-3">
+            <label class="form-label text-muted small">${safe(f.label)}</label>
+            <input id="f_${safe(f.id)}" class="form-control" type="${f.type || "text"}" value="${safe(value)}"
+            ${f.required ? "required" : ""} ${f.min !== undefined ? `min="${f.min}"` : ""} ${f.step ? `step="${f.step}"` : ""} placeholder="${safe(f.placeholder || "")}">
+          </div>`;
+        }).join(""),
+        preConfirm: () => {
+          const result = {};
+          for (const f of fields) {
+            const el = $("f_" + f.id);
+            result[f.id] = el ? el.value.trim() : "";
+            if (f.required && !result[f.id]) {
+              Swal.showValidationMessage("Preencha o campo: " + f.label);
+              return false;
+            }
+          }
+          return result;
+        }
+      });
+    }
+
+    async function askConfirm(title, text) {
+      const r = await Swal.fire({
+        title, text, icon: "warning", background: "#131f32", color: "#e2e8f0",
+        showCancelButton: true, confirmButtonText: "Sim, confirmar", cancelButtonText: "Cancelar",
+        customClass: { confirmButton: 'btn btn-danger px-4', cancelButton: 'btn btn-secondary px-4' },
+        buttonsStyling: false
+      });
+      return r.isConfirmed;
+    }
+
+    function setPageTitle(title) {
+      $("pageTitle").textContent = title;
+    }
+
+    function navigate(page) {
+      currentPage = page;
+      document.querySelectorAll(".nav-link").forEach(b => {
+        b.classList.toggle("active", b.dataset.page === page);
+      });
+      const sidebar = $("sidebar");
+      if (window.innerWidth < 992) sidebar.classList.remove("show");
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.querySelectorAll(".nav-link").forEach(b => {
+      b.addEventListener("click", (e) => { e.preventDefault(); navigate(b.dataset.page); });
+    });
+    $("sidebarToggle").addEventListener("click", () => $("sidebar").classList.toggle("show"));
+    $("todayDate").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
+    $("shopTitleNav").textContent = db.settings.shop;
+
+    function table(headers, rows, empty = "Nenhum registro encontrado.") {
+      return `<div class="table-responsive card-custom p-2"><table class="table table-dark-custom mb-0">
+      <thead><tr>${headers.map(h => `<th>${h}</th>`).join("")}</tr></thead>
+      <tbody>${rows.length ? rows.join("") : `<tr><td colspan="${headers.length}" class="text-center text-muted py-5">${empty}</td></tr>`}</tbody>
+      </table></div>`;
+    }
+
+    function badge(text, type = "bg-secondary text-light") {
+      return `<span class="badge ${type}">${safe(text)}</span>`;
+    }
+
+    function metricCard(title, value, icon, color = "text-primary", sub = "") {
+      return `<div class="card card-custom p-4 h-100">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <p class="text-muted small mb-1">${title}</p>
+            <h3 class="fw-bold mb-0 text-white">${value}</h3>
           </div>
-          <div class="bg-slate-900 p-4 rounded-xl">
-            <p class="muted text-xs">A pagar</p>
-            <strong class="text-rose-400 text-lg">${money(payable.reduce((a,t)=>a+t.value,0))}</strong>
-            <p class="muted text-xs mt-2">${payable.length} pendência(s)</p>
+          <div class="p-3 rounded-3 bg-opacity-10 bg-primary ${color}">
+            <i class="bi bi-${icon} fs-4"></i>
           </div>
         </div>
-        <button class="btn btn-secondary mt-4 w-full" onclick="navigate('financeiro')">Abrir financeiro</button>
-      </section>
-    </div>
-    <section class="panel p-5 mb-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="font-semibold">Ordens de serviço abertas</h3>
-        <button class="text-blue-400 text-sm" onclick="navigate('oficina')">Ver todas</button>
-      </div>
-      ${table(["OS","Cliente","Moto","Status","Valor"],osRows,"Nenhuma ordem em andamento.")}
-    </section>
-    <section class="panel p-5">
-      <h3 class="font-semibold mb-4">Atalhos rápidos</h3>
-      <div class="flex flex-wrap gap-3">
-        <button class="btn btn-primary" onclick="navigate('pdv')">Nova venda</button>
-        <button class="btn btn-secondary" onclick="addProduct()">Cadastrar produto</button>
-        <button class="btn btn-secondary" onclick="addOrder()">Nova ordem de serviço</button>
-        <button class="btn btn-secondary" onclick="navigate('financeiro')">Lançar despesa</button>
-      </div>
-    </section>`;
-}
+        ${sub ? `<p class="text-muted small mt-3 mb-0">${sub}</p>` : ""}
+      </div>`;
+    }
 
-/* ------------------ PRODUTOS ------------------ */
-function renderProducts(){
-  setPageTitle("Produtos e estoque");
-  const rows=db.products.map(p=>`<tr>
-    <td>${safe(p.code||"—")}</td>
-    <td><strong>${safe(p.name)}</strong></td>
-    <td>${safe(p.category||"Peças")}</td>
-    <td>${money(p.cost)}</td><td>${money(p.price)}</td>
-    <td>${p.stock<=p.min?badge(p.stock,"badge-red"):badge(p.stock,"badge-ok")}</td>
-    <td>${p.min}</td>
-    <td><div class="flex gap-2">
-      <button class="btn btn-secondary" onclick="editProduct('${p.id}')">Editar</button>
-      <button class="btn btn-secondary" onclick="stockMovement('${p.id}')">Estoque</button>
-      <button class="btn btn-danger" onclick="deleteProduct('${p.id}')">Excluir</button>
-    </div></td></tr>`).reverse();
-  $("content").innerHTML=pageHead("Produtos e estoque",
-    "Cadastre peças, preços de custo, preços de venda e quantidades.",
-    "Novo produto","addProduct()")+
-    `<div class="grid grid-cols-2 gap-4 mb-5">
-      ${metric("Itens cadastrados",db.products.length,"package")}
-      ${metric("Valor de custo do estoque",money(db.products.reduce((a,p)=>a+p.cost*p.stock,0)),"boxes")}
-    </div>`+
-    searchBox("Pesquisar por código, produto ou categoria")+
-    table(["Código","Produto","Categoria","Custo","Venda","Qtd.","Mínimo","Ações"],rows,"Cadastre seu primeiro produto.").replace('<table>','<table id="dataTable">');
-}
-async function addProduct(existing=null){
-  const p=existing||{};
-  const r=await modalForm(existing?"Editar produto":"Novo produto",[
-    {id:"code",label:"Código / SKU",value:p.code||""},
-    {id:"name",label:"Nome do produto",value:p.name||"",required:true},
-    {id:"category",label:"Categoria",value:p.category||"Peças"},
-    {id:"cost",label:"Preço de custo (R$)",type:"number",value:p.cost??0,min:0,step:"0.01"},
-    {id:"price",label:"Preço de venda (R$)",type:"number",value:p.price??0,min:0,step:"0.01"},
-    {id:"stock",label:"Quantidade atual",type:"number",value:p.stock??0,min:0,step:"1"},
-    {id:"min",label:"Estoque mínimo",type:"number",value:p.min??2,min:0,step:"1"}
-  ]);
-  if(!r.isConfirmed)return;
-  const values=r.value;
-  const item={...values,id:p.id||uid(),
-    cost:Number(values.cost),price:Number(values.price),
-    stock:Number(values.stock),min:Number(values.min),active:true};
-  if(existing) db.products=db.products.map(x=>x.id===p.id?item:x);
-  else db.products.push(item);
-  if(saveDB()){toast("Produto salvo.");render();}
-}
-function editProduct(id){const p=db.products.find(x=>x.id===id);if(p)addProduct(p);}
-async function deleteProduct(id){
-  if(!await askConfirm("Excluir produto?","O produto será removido do cadastro."))return;
-  db.products=db.products.filter(p=>p.id!==id);
-  saveDB();toast("Produto excluído.");render();
-}
-async function stockMovement(id){
-  const p=db.products.find(x=>x.id===id);if(!p)return;
-  const r=await modalForm("Movimentar estoque: "+p.name,[
-    {id:"kind",label:"Tipo de movimento",type:"select",value:"Entrada",
-      options:[{value:"Entrada",label:"Entrada"},{value:"Saída",label:"Saída"}]},
-    {id:"qty",label:"Quantidade",type:"number",value:1,min:1,step:"1",required:true},
-    {id:"reason",label:"Motivo",value:"Ajuste de estoque"}
-  ]);
-  if(!r.isConfirmed)return;
-  const qty=Number(r.value.qty);
-  if(!Number.isInteger(qty)||qty<1)return toast("Quantidade inválida.","error");
-  if(r.value.kind==="Saída"&&qty>p.stock)return toast("Estoque insuficiente.","error");
-  p.stock+=r.value.kind==="Entrada"?qty:-qty;
-  db.transactions.push({id:uid(),date:todayISO(),type:"Estoque",
-    description:`${r.value.kind}: ${p.name} (${qty}). ${r.value.reason}`,
-    value:0,status:"Concluído"});
-  saveDB();toast("Estoque atualizado.");render();
-}
-
-/* ------------------ PDV ------------------ */
-function renderPDV(){
-  setPageTitle("PDV / Vendas");
-  const options=db.products.filter(p=>p.active!==false).map(p=>
-    `<option value="${p.id}">${safe(p.name)} — ${money(p.price)} (Estoque: ${p.stock})</option>`).join("");
-  const cartRows=cart.map((c,i)=>`<tr>
-    <td>${safe(c.name)}</td><td>${c.qty}</td><td>${money(c.price)}</td>
-    <td>${money(c.qty*c.price)}</td>
-    <td><button class="btn btn-danger" onclick="removeCart(${i})">X</button></td>
-  </tr>`);
-  const total=cart.reduce((a,c)=>a+c.qty*c.price,0);
-  $("content").innerHTML=`
-    <h3 class="section-title mb-2">Ponto de venda</h3>
-    <p class="muted text-sm mb-6">Adicione os itens e finalize a venda.</p>
-    <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
-      <section class="panel p-5 xl:col-span-2">
-        <label class="text-sm muted">Produto</label>
-        <select id="cartProduct" class="field mt-2 mb-4">
-          <option value="">Selecione um produto</option>${options}
-        </select>
-        <div class="grid grid-cols-2 gap-3 mb-4">
-          <div><label class="text-sm muted">Quantidade</label>
-          <input id="cartQty" class="field mt-2" type="number" min="1" step="1" value="1"></div>
-          <div class="flex items-end"><button class="btn btn-primary w-full" onclick="addCart()">Adicionar item</button></div>
+    function pageHeader(title, description, buttonText, action) {
+      return `<div class="d-flex flex-wrap justify-between align-items-center gap-3 mb-4">
+        <div>
+          <h3 class="fw-bold text-white mb-1">${title}</h3>
+          <p class="text-muted small m-0">${description}</p>
         </div>
-        ${table(["Produto","Qtd.","Unitário","Subtotal",""],cartRows,"Carrinho vazio.")}
-        <div class="flex justify-between mt-5">
-          <span class="muted">Total da venda</span>
-          <strong class="text-2xl">${money(total)}</strong>
+        ${buttonText ? `<button class="btn btn-primary d-flex align-items-center gap-2" onclick="${action}"><i class="bi bi-plus-lg"></i>${buttonText}</button>` : ""}
+      </div>`;
+    }
+
+    function searchInput(placeholder) {
+      return `<div class="input-group mb-4 shadow-sm" style="max-width: 400px;">
+        <span class="input-group-text bg-dark border-secondary text-muted"><i class="bi bi-search"></i></span>
+        <input id="tableSearch" class="form-control border-secondary" placeholder="${placeholder}" oninput="filterTable(this.value)">
+      </div>`;
+    }
+
+    function filterTable(val) {
+      const q = val.toLowerCase();
+      document.querySelectorAll("#dataTable tbody tr").forEach(tr => {
+        tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none";
+      });
+    }
+
+    function render() {
+      const pages = {
+        inicio: renderHome, pdv: renderPDV, produtos: renderProducts,
+        oficina: renderWorkshop, clientes: renderCustomers, fornecedores: renderSuppliers,
+        financeiro: renderFinance, relatorios: renderReports, config: renderSettings
+      };
+      (pages[currentPage] || renderHome)();
+    }
+
+    /* --- HOME --- */
+    function renderHome() {
+      setPageTitle("Visão geral");
+      const today = todayISO();
+      const todaySales = db.sales.filter(s => s.date === today);
+      const revenue = todaySales.reduce((a, s) => a + s.total, 0);
+      const lowStock = db.products.filter(p => p.active !== false && p.stock <= p.min);
+      const pendingOS = db.orders.filter(o => o.status !== "Concluída" && o.status !== "Entregue" && o.status !== "Cancelada");
+
+      const lowRows = lowStock.slice(0, 5).map(p => `<tr><td>${safe(p.name)}</td><td><span class="text-danger fw-bold">${p.stock}</span></td><td>${p.min}</td><td>${badge("Baixo", "bg-danger text-white")}</td></tr>`);
+      const osRows = pendingOS.slice(0, 5).map(o => `<tr><td>${safe(o.number)}</td><td>${safe(o.customer)}</td><td>${safe(o.motorcycle)}</td><td>${badge(o.status, "bg-warning text-dark")}</td></tr>`);
+
+      $("content").innerHTML = `
+        <div class="row g-4 mb-4">
+          <div class="col-sm-6 col-xl-3">${metricCard("Vendas de Hoje", money(revenue), "cart-check", "text-success", todaySales.length + " venda(s) realizada(s)")}</div>
+          <div class="col-sm-6 col-xl-3">${metricCard("Produtos no Estoque", db.products.length, "box-seam", "text-primary")}</div>
+          <div class="col-sm-6 col-xl-3">${metricCard("Ordens em Andamento", pendingOS.length, "tools", "text-warning", "Na oficina")}</div>
+          <div class="col-sm-6 col-xl-3">${metricCard("Alerta de Estoque", lowStock.length, "exclamation-triangle", "text-danger", "Itens abaixo do mínimo")}</div>
         </div>
-      </section>
-      <section class="panel p-5 h-fit">
-        <h3 class="font-semibold mb-4">Finalizar venda</h3>
-        <label class="text-sm muted">Cliente (opcional)</label>
-        <select id="saleCustomer" class="field mt-2 mb-4">
-          <option value="">Consumidor final</option>
-          ${db.customers.map(c=>`<option value="${c.id}">${safe(c.name)}</option>`).join("")}
-        </select>
-        <label class="text-sm muted">Pagamento</label>
-        <select id="salePayment" class="field mt-2 mb-4">
-          <option>Pix</option><option>Dinheiro</option><option>Débito</option>
-          <option>Crédito</option><option>Transferência</option><option>A prazo</option>
-        </select>
-        <label class="text-sm muted">Observação</label>
-        <input id="saleNote" class="field mt-2 mb-5" placeholder="Opcional">
-        <button class="btn btn-primary w-full" onclick="finishSale()">Confirmar venda</button>
-        <button class="btn btn-secondary w-full mt-2" onclick="cart=[];render()">Limpar carrinho</button>
-      </section>
-    </div>
-    <section class="panel p-5 mt-6">
-      <h3 class="font-semibold mb-4">Últimas vendas</h3>
-      ${table(["Data","Venda","Cliente","Pagamento","Total"],
-      db.sales.slice(-8).reverse().map(s=>`<tr>
-        <td>${dateBR(s.date)}</td><td>${safe(s.number)}</td>
-        <td>${safe(s.customer)}</td><td>${safe(s.payment)}</td>
-        <td>${money(s.total)}</td></tr>`),"Nenhuma venda registrada.")}
-    </section>`;
-}
-function addCart(){
-  const id=$("cartProduct").value;
-  const qty=Number($("cartQty").value);
-  const p=db.products.find(x=>x.id===id);
-  if(!p)return toast("Selecione um produto.","error");
-  if(!Number.isInteger(qty)||qty<1)return toast("Quantidade inválida.","error");
-  const existing=cart.find(c=>c.id===id);
-  const wanted=qty+(existing?existing.qty:0);
-  if(wanted>p.stock)return toast("Estoque insuficiente.","error");
-  if(existing)existing.qty+=qty;
-  else cart.push({id:p.id,name:p.name,price:p.price,qty});
-  render();
-}
-function removeCart(i){cart.splice(i,1);render();}
-async function finishSale(){
-  if(!cart.length)return toast("Carrinho vazio.","error");
-  for(const c of cart){
-    const p=db.products.find(x=>x.id===c.id);
-    if(!p||p.stock<c.qty)return toast("Estoque insuficiente para "+c.name,"error");
-  }
-  const payment=$("salePayment").value;
-  const customerId=$("saleCustomer").value;
-  const customer=db.customers.find(c=>c.id===customerId);
-  const total=cart.reduce((a,c)=>a+c.qty*c.price,0);
-  const sale={
-    id:uid(),number:"VD-"+Date.now().toString().slice(-7),
-    date:todayISO(),customer:customer?.name||"Consumidor final",
-    customerId:customerId||"",payment,note:$("saleNote").value,
-    items:cart.map(c=>({...c})),total
-  };
-  for(const c of cart){
-    const p=db.products.find(x=>x.id===c.id);
-    p.stock-=c.qty;
-  }
-  db.sales.push(sale);
-  db.transactions.push({id:uid(),date:todayISO(),type:"Entrada",
-    description:"Venda "+sale.number+" — "+sale.customer,
-    value:total,status:payment==="A prazo"?"Pendente":"Concluído",
-    payment,sourceId:sale.id});
-  if(payment==="A prazo"&&customer){
-    customer.balance=(customer.balance||0)+total;
-  }
-  saveDB();
-  cart=[];
-  await Swal.fire({
-    icon:"success",title:"Venda registrada!",
-    html:`<p>${safe(sale.number)}</p><h2 style="font-size:28px;margin:15px">${money(total)}</h2>
-    <p>Pagamento: ${safe(payment)}</p>`,
-    confirmButtonText:"Continuar",background:"#111827",color:"#e5e7eb"
-  });
-  render();
-}
 
-/* ------------------ CLIENTES ------------------ */
-function renderCustomers(){
-  setPageTitle("Clientes");
-  const rows=db.customers.map(c=>`<tr>
-    <td>${safe(c.name)}</td><td>${safe(c.phone||"—")}</td>
-    <td>${safe(c.document||"—")}</td><td>${money(c.balance||0)}</td>
-    <td><div class="flex gap-2">
-    <button class="btn btn-secondary" onclick="editCustomer('${c.id}')">Editar</button>
-    <button class="btn btn-danger" onclick="deleteCustomer('${c.id}')">Excluir</button>
-    </div></td></tr>`).reverse();
-  $("content").innerHTML=pageHead("Clientes","Cadastro e consulta de clientes.",
-    "Novo cliente","addCustomer()")+searchBox("Pesquisar cliente")+
-    table(["Nome","Telefone","CPF","Saldo a receber","Ações"],rows).replace('<table>','<table id="dataTable">');
-}
-async function addCustomer(existing=null){
-  const c=existing||{};
-  const r=await modalForm(existing?"Editar cliente":"Novo cliente",[
-    {id:"name",label:"Nome completo",value:c.name||"",required:true},
-    {id:"phone",label:"Telefone / WhatsApp",value:c.phone||""},
-    {id:"document",label:"CPF / documento",value:c.document||""},
-    {id:"notes",label:"Observações",value:c.notes||""}
-  ]);
-  if(!r.isConfirmed)return;
-  const item={...r.value,id:c.id||uid(),balance:c.balance||0};
-  if(existing)db.customers=db.customers.map(x=>x.id===c.id?item:x);
-  else db.customers.push(item);
-  saveDB();toast("Cliente salvo.");render();
-}
-function editCustomer(id){const c=db.customers.find(x=>x.id===id);if(c)addCustomer(c);}
-async function deleteCustomer(id){
-  if(!await askConfirm("Excluir cliente?","O histórico de vendas não será apagado."))return;
-  db.customers=db.customers.filter(c=>c.id!==id);saveDB();render();
-}
+        <div class="row g-4 mb-4">
+          <div class="col-xl-6">
+            <div class="card card-custom p-4 h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0 text-white">Estoque Baixo</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="navigate('produtos')">Ver todos</button>
+              </div>
+              ${table(["Produto", "Qtd", "Mín", "Status"], lowRows, "Nenhum produto em alerta.")}
+            </div>
+          </div>
+          <div class="col-xl-6">
+            <div class="card card-custom p-4 h-100">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0 text-white">Ordens de Serviço Abertas</h5>
+                <button class="btn btn-sm btn-outline-secondary" onclick="navigate('oficina')">Ver oficina</button>
+              </div>
+              ${table(["OS", "Cliente", "Moto", "Status"], osRows, "Nenhuma OS em aberto.")}
+            </div>
+          </div>
+        </div>`;
+    }
 
-/* ------------------ OFICINA / OS ------------------ */
-function renderWorkshop(){
-  setPageTitle("Oficina");
-  const rows=db.orders.map(o=>`<tr>
-    <td>${safe(o.number)}</td><td>${safe(o.customer)}</td>
-    <td>${safe(o.motorcycle||"—")}</td><td>${safe(o.problem)}</td>
-    <td>${badge(o.status,o.status==="Concluída"||o.status==="Entregue"?"badge-ok":o.status==="Cancelada"?"badge-red":"badge-warn")}</td>
-    <td>${money(o.value)}</td>
-    <td><div class="flex gap-2">
-      <button class="btn btn-secondary" onclick="editOrder('${o.id}')">Editar</button>
-      <button class="btn btn-secondary" onclick="orderStatus('${o.id}')">Status</button>
-    </div></td></tr>`).reverse();
-  $("content").innerHTML=pageHead("Ordens de serviço",
-    "Registre motos, defeitos, serviços e andamento dos reparos.",
-    "Nova OS","addOrder()")+searchBox("Pesquisar OS, cliente ou moto")+
-    table(["Nº OS","Cliente","Moto","Defeito / serviço","Status","Valor","Ações"],rows,
-    "Nenhuma ordem de serviço cadastrada.").replace('<table>','<table id="dataTable">');
-}
-async function addOrder(existing=null){
-  const o=existing||{};
-  const customers=[{value:"",label:"Cliente não cadastrado"},
-    ...db.customers.map(c=>({value:c.id,label:c.name}))];
-  const r=await modalForm(existing?"Editar OS":"Nova ordem de serviço",[
-    {id:"customerId",label:"Cliente",type:"select",value:o.customerId||"",options:customers},
-    {id:"customer",label:"Nome do cliente",value:o.customer||"",required:true},
-    {id:"phone",label:"Telefone",value:o.phone||""},
-    {id:"motorcycle",label:"Moto / modelo / placa",value:o.motorcycle||"",required:true},
-    {id:"problem",label:"Defeito relatado",value:o.problem||"",required:true},
-    {id:"service",label:"Serviço executado",value:o.service||""},
-    {id:"parts",label:"Peças / materiais",value:o.parts||""},
-    {id:"value",label:"Valor total (R$)",type:"number",value:o.value??0,min:0,step:"0.01"},
-    {id:"status",label:"Status",type:"select",value:o.status||"Recebida",
-      options:["Recebida","Em diagnóstico","Aguardando peças","Em reparo","Concluída","Entregue","Cancelada"].map(x=>({value:x,label:x}))}
-  ]);
-  if(!r.isConfirmed)return;
-  const v=r.value;
-  const customer=db.customers.find(c=>c.id===v.customerId);
-  const item={...v,id:o.id||uid(),number:o.number||"OS-"+String(Date.now()).slice(-7),
-    date:o.date||todayISO(),value:Number(v.value)};
-  if(customer)item.customer=customer.name;
-  if(existing)db.orders=db.orders.map(x=>x.id===o.id?item:x);
-  else db.orders.push(item);
-  saveDB();toast("Ordem salva.");render();
-}
-function editOrder(id){const o=db.orders.find(x=>x.id===id);if(o)addOrder(o);}
-async function orderStatus(id){
-  const o=db.orders.find(x=>x.id===id);if(!o)return;
-  const r=await modalForm("Status da OS "+o.number,[
-    {id:"status",label:"Novo status",type:"select",value:o.status,
-      options:["Recebida","Em diagnóstico","Aguardando peças","Em reparo","Concluída","Entregue","Cancelada"].map(x=>({value:x,label:x}))}
-  ]);
-  if(!r.isConfirmed)return;
-  o.status=r.value.status;
-  saveDB();toast("Status atualizado.");render();
-}
+    /* --- PRODUTOS --- */
+    function renderProducts() {
+      setPageTitle("Produtos e Estoque");
+      const rows = db.products.map(p => `<tr>
+        <td><code>${safe(p.code || "—")}</code></td>
+        <td class="fw-bold">${safe(p.name)}</td>
+        <td>${safe(p.category || "Peças")}</td>
+        <td>${money(p.cost)}</td>
+        <td>${money(p.price)}</td>
+        <td>${p.stock <= p.min ? badge(p.stock, "bg-danger") : badge(p.stock, "bg-success")}</td>
+        <td>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary" onclick="editProduct('${p.id}')"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-outline-primary" onclick="stockMovement('${p.id}')"><i class="bi bi-plus-slash-minus"></i></button>
+            <button class="btn btn-outline-danger" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
+          </div>
+        </td>
+      </tr>`).reverse();
 
-/* ------------------ FORNECEDORES ------------------ */
-function renderSuppliers(){
-  setPageTitle("Fornecedores");
-  const rows=db.suppliers.map(s=>`<tr>
-    <td>${safe(s.name)}</td><td>${safe(s.phone||"—")}</td>
-    <td>${safe(s.document||"—")}</td><td>${safe(s.notes||"—")}</td>
-    <td><div class="flex gap-2">
-      <button class="btn btn-secondary" onclick="editSupplier('${s.id}')">Editar</button>
-      <button class="btn btn-danger" onclick="deleteSupplier('${s.id}')">Excluir</button>
-    </div></td></tr>`).reverse();
-  $("content").innerHTML=pageHead("Fornecedores","Contatos dos fornecedores de peças.",
-    "Novo fornecedor","addSupplier()")+searchBox("Pesquisar fornecedor")+
-    table(["Fornecedor","Telefone","CNPJ / CPF","Observações","Ações"],rows).replace('<table>','<table id="dataTable">');
-}
-async function addSupplier(existing=null){
-  const s=existing||{};
-  const r=await modalForm(existing?"Editar fornecedor":"Novo fornecedor",[
-    {id:"name",label:"Nome / empresa",value:s.name||"",required:true},
-    {id:"phone",label:"Telefone",value:s.phone||""},
-    {id:"document",label:"CNPJ / CPF",value:s.document||""},
-    {id:"notes",label:"Observações",value:s.notes||""}
-  ]);
-  if(!r.isConfirmed)return;
-  const item={...r.value,id:s.id||uid()};
-  if(existing)db.suppliers=db.suppliers.map(x=>x.id===s.id?item:x);
-  else db.suppliers.push(item);
-  saveDB();toast("Fornecedor salvo.");render();
-}
-function editSupplier(id){const s=db.suppliers.find(x=>x.id===id);if(s)addSupplier(s);}
-async function deleteSupplier(id){
-  if(!await askConfirm("Excluir fornecedor?",""))return;
-  db.suppliers=db.suppliers.filter(s=>s.id!==id);saveDB();render();
-}
+      $("content").innerHTML = pageHeader("Gerenciamento de Produtos", "Cadastre peças, acessórios e controle seu estoque.", "Novo Produto", "addProduct()") +
+        searchInput("Pesquisar produto ou código...") +
+        table(["Código", "Nome", "Categoria", "Custo", "Venda", "Estoque", "Ações"], rows).replace('<table>', '<table id="dataTable" class="table table-dark-custom mb-0">');
+    }
 
-/* ------------------ FINANCEIRO ------------------ */
-function renderFinance(){
-  setPageTitle("Financeiro");
-  const income=db.transactions.filter(t=>t.type==="Entrada"&&t.status==="Concluído").reduce((a,t)=>a+t.value,0);
-  const expenses=db.transactions.filter(t=>t.type==="Saída"&&t.status==="Concluído").reduce((a,t)=>a+t.value,0);
-  const pending=db.transactions.filter(t=>t.status==="Pendente");
-  const rows=db.transactions.slice().reverse().map(t=>`<tr>
-    <td>${dateBR(t.date)}</td><td>${safe(t.description)}</td>
-    <td>${badge(t.type,t.type==="Entrada"?"badge-ok":t.type==="Saída"?"badge-red":"")}</td>
-    <td>${money(t.value)}</td><td>${badge(t.status,t.status==="Concluído"?"badge-ok":"badge-warn")}</td>
-    <td>${t.status==="Pendente"?`<button class="btn btn-secondary" onclick="settleTransaction('${t.id}')">Dar baixa</button>`:"—"}</td>
-  </tr>`);
-  $("content").innerHTML=pageHead("Financeiro",
-    "Entradas, despesas e pendências de pagamento.",
-    "Novo lançamento","addTransaction()")+
-    `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      ${metric("Entradas realizadas",money(income),"trending-up","text-emerald-400")}
-      ${metric("Despesas realizadas",money(expenses),"trending-down","text-rose-400")}
-      ${metric("Resultado acumulado",money(income-expenses),"wallet",income-expenses>=0?"text-emerald-400":"text-rose-400")}
-    </div>
-    <div class="panel p-4 mb-5">
-      <p class="text-sm muted">Pendências: ${pending.length} lançamento(s) · ${money(pending.reduce((a,t)=>a+t.value,0))}</p>
-    </div>`+
-    table(["Data","Descrição","Tipo","Valor","Status","Ações"],rows,"Nenhum lançamento financeiro.");
-}
-async function addTransaction(){
-  const r=await modalForm("Novo lançamento financeiro",[
-    {id:"type",label:"Tipo",type:"select",value:"Saída",options:[
-      {value:"Entrada",label:"Entrada / recebimento"},
-      {value:"Saída",label:"Despesa / pagamento"}]},
-    {id:"description",label:"Descrição",required:true},
-    {id:"value",label:"Valor (R$)",type:"number",value:0,min:0.01,step:"0.01",required:true},
-    {id:"date",label:"Data",type:"date",value:todayISO(),required:true},
-    {id:"status",label:"Situação",type:"select",value:"Concluído",options:[
-      {value:"Concluído",label:"Pago / recebido"},
-      {value:"Pendente",label:"Pendente"}]},
-    {id:"payment",label:"Forma de pagamento",type:"select",value:"Pix",
-      options:["Pix","Dinheiro","Débito","Crédito","Transferência","Boleto","Outro"].map(x=>({value:x,label:x}))}
-  ]);
-  if(!r.isConfirmed)return;
-  if(Number(r.value.value)<=0)return toast("O valor precisa ser maior que zero.","error");
-  db.transactions.push({...r.value,id:uid(),value:Number(r.value.value)});
-  saveDB();toast("Lançamento registrado.");render();
-}
-async function settleTransaction(id){
-  const t=db.transactions.find(x=>x.id===id);if(!t)return;
-  if(!await askConfirm("Confirmar baixa?",t.description))return;
-  t.status="Concluído";t.settledDate=todayISO();
-  saveDB();toast("Lançamento baixado.");render();
-}
+    async function addProduct(existing = null) {
+      const p = existing || {};
+      const r = await modalForm(existing ? "Editar Produto" : "Novo Produto", [
+        { id: "code", label: "Código / SKU", value: p.code || "" },
+        { id: "name", label: "Nome do Produto", value: p.name || "", required: true },
+        { id: "category", label: "Categoria", value: p.category || "Peças" },
+        { id: "cost", label: "Preço de Custo (R$)", type: "number", value: p.cost ?? 0, min: 0, step: "0.01" },
+        { id: "price", label: "Preço de Venda (R$)", type: "number", value: p.price ?? 0, min: 0, step: "0.01" },
+        { id: "stock", label: "Quantidade em Estoque", type: "number", value: p.stock ?? 0, min: 0, step: "1" },
+        { id: "min", label: "Estoque Mínimo", type: "number", value: p.min ?? 2, min: 0, step: "1" }
+      ]);
+      if (!r.isConfirmed) return;
+      const item = { ...r.value, id: p.id || uid(), cost: Number(r.value.cost), price: Number(r.value.price), stock: Number(r.value.stock), min: Number(r.value.min), active: true };
+      if (existing) db.products = db.products.map(x => x.id === p.id ? item : x);
+      else db.products.push(item);
+      saveDB(); toast("Produto salvo com sucesso!"); render();
+    }
+    function editProduct(id) { const p = db.products.find(x => x.id === id); if (p) addProduct(p); }
+    async function deleteProduct(id) {
+      if (!await askConfirm("Excluir produto?", "Essa ação não poderá ser desfeita.")) return;
+      db.products = db.products.filter(p => p.id !== id);
+      saveDB(); toast("Produto excluído."); render();
+    }
+    async function stockMovement(id) {
+      const p = db.products.find(x => x.id === id); if (!p) return;
+      const r = await modalForm("Movimentar Estoque: " + p.name, [
+        { id: "kind", label: "Tipo de Movimento", type: "select", value: "Entrada", options: [{ value: "Entrada", label: "Entrada" }, { value: "Saída", label: "Saída" }] },
+        { id: "qty", label: "Quantidade", type: "number", value: 1, min: 1, required: true },
+        { id: "reason", label: "Motivo / Observação", value: "Ajuste de estoque" }
+      ]);
+      if (!r.isConfirmed) return;
+      const qty = Number(r.value.qty);
+      if (r.value.kind === "Saída" && qty > p.stock) return toast("Estoque insuficiente!", "error");
+      p.stock += r.value.kind === "Entrada" ? qty : -qty;
+      saveDB(); toast("Estoque atualizado!"); render();
+    }
 
-/* ------------------ RELATÓRIOS ------------------ */
-function renderReports(){
-  setPageTitle("Relatórios");
-  const sales=db.sales;
-  const revenue=sales.reduce((a,s)=>a+s.total,0);
-  const cost=sales.reduce((a,s)=>a+s.items.reduce((b,i)=>{
-    const p=db.products.find(x=>x.id===i.id);
-    return b+(p?p.cost:0)*i.qty;
-  },0),0);
-  const entries=db.transactions.filter(t=>t.type==="Entrada"&&t.status==="Concluído").reduce((a,t)=>a+t.value,0);
-  const exits=db.transactions.filter(t=>t.type==="Saída"&&t.status==="Concluído").reduce((a,t)=>a+t.value,0);
-  const salesRows=sales.slice().reverse().map(s=>`<tr>
-    <td>${dateBR(s.date)}</td><td>${safe(s.number)}</td><td>${safe(s.customer)}</td>
-    <td>${safe(s.payment)}</td><td>${money(s.total)}</td></tr>`);
-  $("content").innerHTML=`
-    <h3 class="section-title mb-2">Relatórios</h3>
-    <p class="muted text-sm mb-6">Resumo dos registros deste navegador.</p>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      ${metric("Vendas registradas",sales.length,"shopping-bag")}
-      ${metric("Total de vendas",money(revenue),"banknote","text-emerald-400")}
-      ${metric("Resultado de caixa",money(entries-exits),"chart-no-axes-combined",entries>=exits?"text-emerald-400":"text-rose-400")}
-    </div>
-    <section class="panel p-5 mb-6">
-      <h3 class="font-semibold mb-4">Vendas por dia (últimos 7 dias)</h3>
-      <canvas id="salesChart" height="100"></canvas>
-    </section>
-    <section class="panel p-5 mb-6">
-      <h3 class="font-semibold mb-4">Histórico de vendas</h3>
-      <div class="flex gap-2 mb-4 flex-wrap">
-        <button class="btn btn-secondary" onclick="exportSalesCSV()">Exportar vendas CSV</button>
-        <button class="btn btn-secondary" onclick="exportBackup()">Backup completo JSON</button>
-      </div>
-      ${table(["Data","Venda","Cliente","Pagamento","Total"],salesRows,"Nenhuma venda registrada.")}
-    </section>
-    <p class="muted text-xs">A estimativa de custo usa o custo atual cadastrado para cada produto. Não representa necessariamente o custo histórico de cada venda.</p>`;
-  drawChart();
-}
-function drawChart(){
-  const canvas=$("salesChart");if(!canvas)return;
-  if(chartInstance)chartInstance.destroy();
-  const days=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date();d.setDate(d.getDate()-i);
-    days.push(d.toLocaleDateString("en-CA"));
-  }
-  const values=days.map(day=>db.sales.filter(s=>s.date===day).reduce((a,s)=>a+s.total,0));
-  chartInstance=new Chart(canvas,{
-    type:"bar",
-    data:{labels:days.map(dateBR),datasets:[{label:"Vendas (R$)",data:values,
-      backgroundColor:"#3b82f6",borderRadius:6}]},
-    options:{responsive:true,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{color:"#94a3b8"},grid:{display:false}},
-      y:{beginAtZero:true,ticks:{color:"#94a3b8"},grid:{color:"#263244"}}}}
-  });
-}
+    /* --- PDV --- */
+    function renderPDV() {
+      setPageTitle("PDV / Frente de Caixa");
+      const options = db.products.filter(p => p.active !== false).map(p => `<option value="${p.id}">${safe(p.name)} — ${money(p.price)} (Disp: ${p.stock})</option>`).join("");
+      const cartRows = cart.map((c, i) => `<tr>
+        <td>${safe(c.name)}</td><td>${c.qty}</td><td>${money(c.price)}</td><td>${money(c.qty * c.price)}</td>
+        <td><button class="btn btn-sm btn-outline-danger" onclick="removeCart(${i})"><i class="bi bi-x-lg"></i></button></td>
+      </tr>`);
+      const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
 
-/* ------------------ CONFIGURAÇÕES / BACKUP ------------------ */
-function renderSettings(){
-  setPageTitle("Configurações");
-  $("content").innerHTML=`
-    <h3 class="section-title mb-2">Configurações</h3>
-    <p class="muted text-sm mb-6">Dados da empresa e cópias de segurança.</p>
-    <section class="panel p-5 mb-5">
-      <h3 class="font-semibold mb-4">Identificação</h3>
-      <label class="text-sm muted">Nome da empresa</label>
-      <input id="shopName" class="field mt-2 mb-4" value="${safe(db.settings.shop)}">
-      <button class="btn btn-primary" onclick="saveSettings()">Salvar alterações</button>
-    </section>
-    <section class="panel p-5 mb-5">
-      <h3 class="font-semibold mb-2">Backup dos dados</h3>
-      <p class="muted text-sm mb-4">Exporte seus dados regularmente. Limpar os dados do navegador pode apagar os registros locais.</p>
-      <div class="flex flex-wrap gap-3">
-        <button class="btn btn-primary" onclick="exportBackup()">Exportar backup</button>
-        <button class="btn btn-secondary" onclick="$('backupFile').click()">Restaurar backup JSON</button>
-        <input id="backupFile" type="file" accept=".json,application/json" class="hidden" onchange="importBackup(event)">
-      </div>
-    </section>
-    <section class="panel p-5">
-      <h3 class="font-semibold mb-2">Dados locais</h3>
-      <p class="muted text-sm mb-4">Registros armazenados: ${db.products.length} produtos, ${db.sales.length} vendas, ${db.orders.length} ordens de serviço.</p>
-      <button class="btn btn-danger" onclick="clearAllData()">Apagar todos os dados locais</button>
-    </section>
-    <section class="panel p-5 mt-5">
-      <h3 class="font-semibold mb-2">Supabase</h3>
-      <p class="muted text-sm">Esta versão ainda não sincroniza com o Supabase. Para ativar a sincronização, é necessário configurar as credenciais do projeto e adaptar as consultas ao esquema real das tabelas.</p>
-    </section>`;
-}
-function saveSettings(){
-  db.settings.shop=$("shopName").value.trim()||"John Motos Peças";
-  saveDB();toast("Configurações salvas.");render();
-}
-function downloadFile(name,content,type){
-  const blob=new Blob([content],{type});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;a.download=name;a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-function exportBackup(){
-  downloadFile("backup-john-motos-"+todayISO()+".json",
-    JSON.stringify(db,null,2),"application/json");
-  toast("Backup exportado.");
-}
-async function importBackup(event){
-  const file=event.target.files?.[0];if(!file)return;
-  try{
-    const parsed=JSON.parse(await file.text());
-    const required=["products","customers","suppliers","sales","orders","transactions"];
-    if(!parsed||!required.every(k=>Array.isArray(parsed[k])))throw new Error("Formato inválido");
-    if(!await askConfirm("Restaurar backup?","Os dados atuais serão substituídos."))return;
-    db={...emptyDB(),...parsed,settings:{...emptyDB().settings,...(parsed.settings||{})}};
-    saveDB();toast("Backup restaurado.");render();
-  }catch(e){toast("Arquivo inválido ou corrompido.","error");}
-  finally{event.target.value="";}
-}
-function exportSalesCSV(){
-  const rows=[["Data","Venda","Cliente","Pagamento","Total"],
-    ...db.sales.map(s=>[s.date,s.number,s.customer,s.payment,s.total])];
-  const csv="\uFEFF"+rows.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\r\n");
-  downloadFile("vendas-john-motos-"+todayISO()+".csv",csv,"text/csv;charset=utf-8");
-}
-async function clearAllData(){
-  if(!await askConfirm("Apagar todos os dados?","Esta ação não pode ser desfeita. Exporte um backup antes."))return;
-  if(!await askConfirm("Confirma pela segunda vez?","Todos os cadastros e lançamentos locais serão apagados."))return;
-  db=emptyDB();cart=[];saveDB();toast("Dados apagados.");render();
-}
+      $("content").innerHTML = `
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <div class="card card-custom p-4 mb-4">
+              <h5 class="fw-bold mb-3 text-white">Adicionar Produtos</h5>
+              <div class="row g-3">
+                <div class="col-md-7">
+                  <select id="cartProduct" class="form-select"><option value="">Selecione um produto...</option>${options}</select>
+                </div>
+                <div class="col-md-3">
+                  <input id="cartQty" class="form-control" type="number" min="1" value="1">
+                </div>
+                <div class="col-md-2">
+                  <button class="btn btn-primary w-100" onclick="addCart()">Adicionar</button>
+                </div>
+              </div>
+            </div>
+            <div class="card card-custom p-4">
+              <h5 class="fw-bold mb-3 text-white">Itens no Carrinho</h5>
+              ${table(["Produto", "Qtd", "Unitário", "Subtotal", ""], cartRows, "Nenhum item adicionado.")}
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card card-custom p-4">
+              <h5 class="fw-bold mb-3 text-white">Resumo da Venda</h5>
+              <div class="mb-3">
+                <label class="form-label text-muted small">Cliente</label>
+                <select id="saleCustomer" class="form-select">
+                  <option value="">Consumidor Final</option>
+                  ${db.customers.map(c => `<option value="${c.id}">${safe(c.name)}</option>`).join("")}
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label text-muted small">Forma de Pagamento</label>
+                <select id="salePayment" class="form-select">
+                  <option>Pix</option><option>Dinheiro</option><option>Débito</option><option>Crédito</option><option>A prazo</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label class="form-label text-muted small">Observações</label>
+                <input id="saleNote" class="form-control" placeholder="Opcional">
+              </div>
+              <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-dark rounded-3">
+                <span class="text-muted">Total:</span>
+                <h3 class="fw-bold text-success m-0">${money(total)}</h3>
+              </div>
+              <button class="btn btn-success w-full py-2 fw-bold mb-2" onclick="finishSale()">Finalizar Venda</button>
+              <button class="btn btn-outline-secondary w-full" onclick="cart=[];render()">Limpar Carrinho</button>
+            </div>
+          </div>
+        </div>`;
+    }
 
-/* Inicialização */
-render();
-</script>
+    function addCart() {
+      const id = $("cartProduct").value;
+      const qty = Number($("cartQty").value);
+      const p = db.products.find(x => x.id === id);
+      if (!p) return toast("Selecione um produto.", "error");
+      const existing = cart.find(c => c.id === id);
+      const wanted = qty + (existing ? existing.qty : 0);
+      if (wanted > p.stock) return toast("Estoque insuficiente!", "error");
+      if (existing) existing.qty += qty;
+      else cart.push({ id: p.id, name: p.name, price: p.price, qty });
+      render();
+    }
+    function removeCart(i) { cart.splice(i, 1); render(); }
+
+    async function finishSale() {
+      if (!cart.length) return toast("Carrinho vazio.", "error");
+      const payment = $("salePayment").value;
+      const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
+      const sale = {
+        id: uid(), number: "VD-" + Date.now().toString().slice(-6),
+        date: todayISO(), customer: db.customers.find(c => c.id === $("saleCustomer").value)?.name || "Consumidor Final",
+        payment, total, items: [...cart]
+      };
+      cart.forEach(c => db.products.find(x => x.id === c.id).stock -= c.qty);
+      db.sales.push(sale);
+      db.transactions.push({ id: uid(), date: todayISO(), type: "Entrada", description: `Venda ${sale.number}`, value: total, status: payment === "A prazo" ? "Pendente" : "Concluído" });
+      saveDB(); cart = [];
+      await Swal.fire({ icon: "success", title: "Venda realizada com sucesso!", background: "#131f32", color: "#e2e8f0" });
+      render();
+    }
+
+    /* --- OFICINA / OS --- */
+    function renderWorkshop() {
+      setPageTitle("Oficina / Ordens de Serviço");
+      const rows = db.orders.map(o => `<tr>
+        <td><strong>${safe(o.number)}</strong></td>
+        <td>${safe(o.customer)}</td>
+        <td>${safe(o.motorcycle)}</td>
+        <td>${safe(o.problem)}</td>
+        <td>${badge(o.status, o.status === "Concluída" ? "bg-success" : "bg-warning text-dark")}</td>
+        <td>${money(o.value)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-secondary" onclick="editOrder('${o.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-primary" onclick="orderStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i></button>
+        </td>
+      </tr>`).reverse();
+
+      $("content").innerHTML = pageHeader("Ordens de Serviço", "Gerencie reparos, motos e andamento da oficina.", "Nova OS", "addOrder()") +
+        searchInput("Pesquisar OS, cliente ou moto...") +
+        table(["Nº OS", "Cliente", "Moto", "Defeito", "Status", "Valor", "Ações"], rows).replace('<table>', '<table id="dataTable" class="table table-dark-custom mb-0">');
+    }
+
+    async function addOrder(existing = null) {
+      const o = existing || {};
+      const r = await modalForm(existing ? "Editar OS" : "Nova Ordem de Serviço", [
+        { id: "customer", label: "Nome do Cliente", value: o.customer || "", required: true },
+        { id: "motorcycle", label: "Moto / Modelo / Placa", value: o.motorcycle || "", required: true },
+        { id: "problem", label: "Defeito Relatado", value: o.problem || "", required: true },
+        { id: "service", label: "Serviço Executado", value: o.service || "" },
+        { id: "value", label: "Valor Total (R$)", type: "number", value: o.value ?? 0, min: 0, step: "0.01" },
+        { id: "status", label: "Status", type: "select", value: o.status || "Recebida", options: ["Recebida", "Em Análise", "Em Reparo", "Aguardando Peças", "Concluída", "Entregue"].map(x => ({ value: x, label: x })) }
+      ]);
+      if (!r.isConfirmed) return;
+      const item = { ...r.value, id: o.id || uid(), number: o.number || "OS-" + Date.now().toString().slice(-5), date: o.date || todayISO(), value: Number(r.value.value) };
+      if (existing) db.orders = db.orders.map(x => x.id === o.id ? item : x);
+      else db.orders.push(item);
+      saveDB(); toast("Ordem de serviço salva!"); render();
+    }
+    function editOrder(id) { const o = db.orders.find(x => x.id === id); if (o) addOrder(o); }
+    async function orderStatus(id) {
+      const o = db.orders.find(x => x.id === id); if (!o) return;
+      const r = await modalForm("Alterar Status da " + o.number, [
+        { id: "status", label: "Novo Status", type: "select", value: o.status, options: ["Recebida", "Em Análise", "Em Reparo", "Aguardando Peças", "Concluída", "Entregue"].map(x => ({ value: x, label: x })) }
+      ]);
+      if (!r.isConfirmed) return;
+      o.status = r.value.status; saveDB(); toast("Status atualizado!"); render();
+    }
+
+    /* --- CLIENTES --- */
+    function renderCustomers() {
+      setPageTitle("Clientes");
+      const rows = db.customers.map(c => `<tr>
+        <td><strong>${safe(c.name)}</strong></td><td>${safe(c.phone || "—")}</td><td>${safe(c.document || "—")}</td><td>${money(c.balance || 0)}</td>
+        <td><button class="btn btn-sm btn-outline-secondary" onclick="editCustomer('${c.id}')"><i class="bi bi-pencil"></i></button></td>
+      </tr>`).reverse();
+      $("content").innerHTML = pageHeader("Clientes", "Cadastro de clientes.", "Novo Cliente", "addCustomer()") +
+        searchInput("Pesquisar cliente...") + table(["Nome", "Telefone", "CPF", "Saldo Fiado", "Ações"], rows).replace('<table>', '<table id="dataTable" class="table table-dark-custom mb-0">');
+    }
+    async function addCustomer(existing = null) {
+      const c = existing || {};
+      const r = await modalForm(existing ? "Editar Cliente" : "Novo Cliente", [
+        { id: "name", label: "Nome Completo", value: c.name || "", required: true },
+        { id: "phone", label: "Telefone / WhatsApp", value: c.phone || "" },
+        { id: "document", label: "CPF / Documento", value: c.document || "" }
+      ]);
+      if (!r.isConfirmed) return;
+      const item = { ...r.value, id: c.id || uid(), balance: c.balance || 0 };
+      if (existing) db.customers = db.customers.map(x => x.id === c.id ? item : x);
+      else db.customers.push(item);
+      saveDB(); toast("Cliente salvo!"); render();
+    }
+    function editCustomer(id) { const c = db.customers.find(x => x.id === id); if (c) addCustomer(c); }
+
+    /* --- FORNECEDORES --- */
+    function renderSuppliers() {
+      setPageTitle("Fornecedores");
+      const rows = db.suppliers.map(s => `<tr><td><strong>${safe(s.name)}</strong></td><td>${safe(s.phone || "—")}</td><td>${safe(s.document || "—")}</td></tr>`).reverse();
+      $("content").innerHTML = pageHeader("Fornecedores", "Contatos de fornecedores de peças.", "Novo Fornecedor", "addSupplier()") +
+        table(["Nome", "Telefone", "CNPJ"], rows);
+    }
+    async function addSupplier() {
+      const r = await modalForm("Novo Fornecedor", [{ id: "name", label: "Nome", required: true }, { id: "phone", label: "Telefone" }]);
+      if (!r.isConfirmed) return;
+      db.suppliers.push({ ...r.value, id: uid() }); saveDB(); toast("Fornecedor salvo!"); render();
+    }
+
+    /* --- FINANCEIRO --- */
+    function renderFinance() {
+      setPageTitle("Financeiro");
+      const income = db.transactions.filter(t => t.type === "Entrada" && t.status === "Concluído").reduce((a, t) => a + t.value, 0);
+      const expense = db.transactions.filter(t => t.type === "Saída" && t.status === "Concluído").reduce((a, t) => a + t.value, 0);
+      const rows = db.transactions.slice().reverse().map(t => `<tr>
+        <td>${dateBR(t.date)}</td><td>${safe(t.description)}</td>
+        <td>${badge(t.type, t.type === "Entrada" ? "bg-success" : "bg-danger")}</td>
+        <td>${money(t.value)}</td><td>${badge(t.status, t.status === "Concluído" ? "bg-success" : "bg-warning text-dark")}</td>
+      </tr>`);
+
+      $("content").innerHTML = pageHeader("Controle Financeiro", "Entradas e despesas.", "Novo Lançamento", "addTransaction()") +
+        `<div class="row g-4 mb-4">
+          <div class="col-md-4">${metricCard("Entradas Realizadas", money(income), "arrow-up-circle", "text-success")}</div>
+          <div class="col-md-4">${metricCard("Saídas / Despesas", money(expense), "arrow-down-circle", "text-danger")}</div>
+          <div class="col-md-4">${metricCard("Saldo em Caixa", money(income - expense), "wallet2", "text-primary")}</div>
+        </div>` + table(["Data", "Descrição", "Tipo", "Valor", "Status"], rows);
+    }
+    async function addTransaction() {
+      const r = await modalForm("Novo Lançamento", [
+        { id: "type", label: "Tipo", type: "select", value: "Saída", options: [{ value: "Entrada", label: "Entrada" }, { value: "Saída", label: "Saída" }] },
+        { id: "description", label: "Descrição", required: true },
+        { id: "value", label: "Valor (R$)", type: "number", value: 0, min: 0.01, step: "0.01", required: true },
+        { id: "date", label: "Data", type: "date", value: todayISO(), required: true },
+        { id: "status", label: "Situação", type: "select", value: "Concluído", options: [{ value: "Concluído", label: "Pago / Recebido" }, { value: "Pendente", label: "Pendente" }] }
+      ]);
+      if (!r.isConfirmed) return;
+      db.transactions.push({ ...r.value, id: uid(), value: Number(r.value.value) });
+      saveDB(); toast("Lançamento salvo!"); render();
+    }
+
+    /* --- RELATÓRIOS --- */
+    function renderReports() {
+      setPageTitle("Relatórios e Estatísticas");
+      $("content").innerHTML = pageHeader("Relatórios", "Análise de desempenho.") +
+        `<div class="card card-custom p-4 mb-4"><h5 class="fw-bold text-white mb-3">Vendas dos Últimos Dias</h5><canvas id="salesChart" height="100"></canvas></div>`;
+      drawChart();
+    }
+    function drawChart() {
+      const canvas = $("salesChart"); if (!canvas) return;
+      if (chartInstance) chartInstance.destroy();
+      const days = [];
+      for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toLocaleDateString("en-CA")); }
+      const values = days.map(day => db.sales.filter(s => s.date === day).reduce((a, s) => a + s.total, 0));
+      chartInstance = new Chart(canvas, {
+        type: "bar",
+        data: { labels: days.map(dateBR), datasets: [{ data: values, backgroundColor: "#3b82f6", borderRadius: 6 }] },
+        options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#94a3b8" }, grid: { display: false } }, y: { ticks: { color: "#94a3b8" }, grid: { color: "#223249" } } } }
+      });
+    }
+
+    /* --- CONFIGURAÇÕES --- */
+    function renderSettings() {
+      setPageTitle("Configurações");
+      $("content").innerHTML = pageHeader("Configurações", "Gerencie os dados e backup.") +
+        `<div class="card card-custom p-4 mb-4">
+          <h5 class="fw-bold text-white mb-3">Identificação da Empresa</h5>
+          <label class="form-label text-muted small">Nome da Oficina / Loja</label>
+          <input id="shopName" class="form-control mb-3" value="${safe(db.settings.shop)}">
+          <button class="btn btn-primary" onclick="saveSettings()">Salvar Alterações</button>
+        </div>
+        <div class="card card-custom p-4">
+          <h5 class="fw-bold text-white mb-3">Backup e Segurança</h5>
+          <button class="btn btn-outline-light me-2" onclick="exportBackup()"><i class="bi bi-download"></i> Baixar Backup JSON</button>
+          <button class="btn btn-outline-danger" onclick="clearData()"><i class="bi bi-trash"></i> Apagar Todos os Dados</button>
+        </div>`;
+    }
+    function saveSettings() {
+      db.settings.shop = $("shopName").value.trim() || "Oficina & Peças";
+      saveDB(); $("shopTitleNav").textContent = db.settings.shop; toast("Configurações salvas!");
+    }
+    function exportBackup() {
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = "backup-sistema-" + todayISO() + ".json"; a.click();
+      toast("Backup exportado!");
+    }
+    async function clearData() {
+      if (!await askConfirm("Apagar tudo?", "Essa ação apagará todos os cadastros permanentemente!")) return;
+      db = emptyDB(); saveDB(); toast("Dados apagados."); render();
+    }
+
+    render();
+  </script>
 </body>
 </html>
