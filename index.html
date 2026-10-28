@@ -147,7 +147,11 @@
 
     let cart = [];
     let currentPage = "inicio";
+    let productSearchFilter = "";
+    let customerSearchFilter = "";
+    let orderSearchFilter = "";
     let historySearchFilter = "";
+    let pdvItemSearchFilter = ""; // Novo filtro de busca rápida no PDV
 
     async function initSystem() {
       if (supabaseClient) {
@@ -212,10 +216,10 @@
       
       let templateStr = tgTemplates[key];
       if (!templateStr) {
-        if (key === 'nova_venda') templateStr = "🛒 *Nova Venda (John Motos)*\n• Total: *{total}*";
-        else if (key === 'nova_os') templateStr = "🔧 *Nova OS ({number})*\n• Veículo: *{vehicle}* ({plate})";
-        else if (key === 'estoque_baixo') templateStr = "⚠️ *Estoque Baixo!*\n• Produto: *{product_name}* ({stock} un)";
-        else if (key === 'relatorio_dia') templateStr = "📊 *Relatório do Dia*\n• Faturamento: *{total_sales}*";
+        if (key === 'nova_venda') templateStr = "📋 *REGISTRO DE VENDA • JOHN MOTOS*\n──────────────────────────\n*Itens / Serviços:*\n{items}\n──────────────────────────\n💳 *Pagamento:* {payment}\n💰 *Valor Total:* *{total}*\n──────────────────────────\n✅ *Transação concluída com sucesso*";
+        else if (key === 'nova_os') templateStr = "🔧 *NOVA OS ABERTA* 📋\n━━━━━━━━━━━━━━━━━━\n🆔 *OS:* #{number}\n👤 *Cliente:* {customer}\n🏍️ *Moto:* {vehicle}\n🏷️ *Placa:* `{plate}`\n🛠️ *Serviço/Defeito:* {problem}\n━━━━━━━━━━━━━━━━━━\n⏳ *Status:* Em andamento na oficina.";
+        else if (key === 'estoque_baixo') templateStr = "⚠️ *ALERTA DE ESTOQUE BAIXO* 🛑\n━━━━━━━━━━━━━━━━━━\n📦 *Peça/Produto:* {product_name}\n📉 *Quantidade Restante:* *{stock} unidades*\n━━━━━━━━━━━━━━━━━━\n💡 *Dica:* Hora de repor no fornecedor!";
+        else if (key === 'relatorio_dia') templateStr = "📊 *RESUMO DO DIÁRIO • JOHN MOTOS* 🌙\n📅 {date}\n━━━━━━━━━━━━━━━━━━\n💰 *Total no Caixa:* *{total_sales}*\n• Pix: {pix_total}\n• Dinheiro: {cash_total}\n• Outros/Cartão: {card_total}\n━━━━━━━━━━━━━━━━━━\n📝 *Movimento:*\n• Vendas: {count_sales}\n• OS Concluídas: {count_orders}\n• Motos na oficina: {pending_orders}\n━━━━━━━━━━━━━━━━━━\n⚠️ *Peças acabando (Repor):*\n{low_stock_items}\n━━━━━━━━━━━━━━━━━━\n👍 *Expediente encerrado por hoje!*";
         else templateStr = "🔔 *Notificação John Motos*";
       }
 
@@ -257,8 +261,13 @@
       await sendTelegramTemplate("relatorio_dia", {
         date: new Date().toLocaleDateString("pt-BR"),
         total_sales: money(totalRevenue),
+        pix_total: "R$ 0,00",
+        cash_total: "R$ 0,00",
+        card_total: "R$ 0,00",
         count_sales: todaySales.length,
-        count_orders: todayOrders.length
+        count_orders: todayOrders.length,
+        pending_orders: db.orders.filter(o => o.status === 'Em andamento').length,
+        low_stock_items: "Nenhum no momento"
       });
     }
 
@@ -325,7 +334,12 @@
     /* --- PRODUTOS & ESTOQUE --- */
     function renderProducts() {
       $("pageTitle").textContent = "Produtos & Estoque";
-      const rows = db.products.map(p => `<tr>
+      const filtered = db.products.filter(p => 
+        p.name.toLowerCase().includes(productSearchFilter.toLowerCase()) || 
+        p.code.toLowerCase().includes(productSearchFilter.toLowerCase())
+      );
+
+      const rows = filtered.map(p => `<tr>
         <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:600;">${p.code || "—"}</code></td>
         <td><b>${p.name}</b></td>
         <td>${money(p.price)}</td>
@@ -337,13 +351,14 @@
       </tr>`).join("");
 
       $("content").innerHTML = `
-        <div style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
           <button class="btn" onclick="openProductModal()"><i class="bi bi-plus-lg"></i> Novo Produto</button>
+          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar produto..." value="${productSearchFilter}" oninput="productSearchFilter=this.value; renderProducts();">
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
             <thead><tr><th>Código</th><th>Produto</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum produto cadastrado.</td></tr>'}</tbody>
+            <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum produto encontrado.</td></tr>'}</tbody>
           </table>
         </div>
       `;
@@ -396,7 +411,7 @@
     }
 
     async function deleteProduct(id) {
-      if (!confirm("Deseja excluir este produto?")) return;
+      if (!confirm("Deseja realmente excluir este produto?")) return;
       db.products = db.products.filter(p => p.id !== id);
       saveCache();
 
@@ -406,10 +421,27 @@
       renderProducts();
     }
 
-    /* --- PDV / CAIXA --- */
-    function renderPDV() {
+    /* --- PDV / CAIXA (Com Barra de Pesquisa Rápida) --- */
+       function renderPDV() {
       $("pageTitle").textContent = "PDV / Frente de Caixa";
-      const options = db.products.map(p => `<option value="${p.id}">${p.name} — ${money(p.price)} (Estoque: ${p.stock})</option>`).join("");
+      
+      // Filtra os produtos com base na digitação rápida
+      const filteredProducts = db.products.filter(p => 
+        p.name.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()) || 
+        (p.code && p.code.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()))
+      );
+
+      // Renderiza em formato de grade de cards clicáveis (em vez do <select>)
+      const produtosGridHtml = filteredProducts.length > 0 ? filteredProducts.map(p => `
+        <div onclick="adicionarDiretoCarrinho('${p.id}')" style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:10px; cursor:pointer; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-weight:600; font-size:13px; color:var(--text);">${p.name}</div>
+          <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px;">
+            <span style="color:var(--success); font-weight:bold;">${money(p.price)}</span>
+            <span style="color:var(--muted);">Estoque: ${p.stock}</span>
+          </div>
+        </div>
+      `).join('') : '<p style="color:var(--muted); text-align:center; grid-column:span 2; padding:15px;">Nenhum produto encontrado</p>';
+
       const cartRows = cart.map((c, i) => `<tr>
         <td><b>${c.name}</b> ${c.isCustom ? '<span class="badge badge-warn">Serviço/Livre</span>' : ''}</td>
         <td>${c.qty}</td>
@@ -424,15 +456,24 @@
           <div style="display:flex; flex-direction:column; gap:20px;">
             <div class="card" style="margin-bottom:0;">
               <h3 style="font-size:16px; margin-bottom:15px;">Adicionar Produto do Estoque</h3>
+              
+              <!-- Barra de Pesquisa Rápida no PDV -->
               <div class="mb-3">
-                <label class="label">Selecionar Produto</label>
-                <select id="pdvProduct" class="field">${options || '<option value="">Cadastre produtos primeiro</option>'}</select>
+                <label class="label">Pesquisa Rápida de Produto</label>
+                <input id="pdvSearchInput" class="field" placeholder="🔍 Digite para filtrar peças..." value="${pdvItemSearchFilter}" oninput="pdvItemSearchFilter=this.value; renderPDV();">
               </div>
+
               <div class="mb-3">
-                <label class="label">Quantidade</label>
+                <label class="label">Clique no produto para adicionar:</label>
+                <div style="max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; border: 1px solid var(--border); padding: 10px; border-radius: 8px; background: #fff;">
+                  ${produtosGridHtml}
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="label">Quantidade Padrão</label>
                 <input id="pdvQty" type="number" class="field" value="1" min="1">
               </div>
-              <button class="btn" onclick="addToCart()"><i class="bi bi-cart-plus"></i> Adicionar Item</button>
             </div>
 
             <div class="card" style="margin-bottom:0; background:#f8fafc;">
@@ -467,20 +508,29 @@
           </table>
         </div>
       `;
+
+      // Mantém o foco no input de busca para você continuar digitando sem perder o cursor
+      const inputEl = $("pdvSearchInput");
+      if (inputEl) {
+        inputEl.focus();
+        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+      }
     }
 
-    function addToCart() {
-      const prodId = $("pdvProduct").value;
+    // Função auxiliar para o clique direto nos cards filtrados
+    function adicionarDiretoCarrinho(idProd) {
+      const prod = db.products.find(p => p.id === idProd);
       const qty = parseInt($("pdvQty").value) || 1;
-      const prod = db.products.find(p => p.id === prodId);
-      if (!prod) return alert("Selecione um produto.");
+      if (!prod) return;
       if (prod.stock < qty) return alert("Estoque insuficiente!");
 
-      const existing = cart.find(c => c.id === prodId && !c.isCustom);
+      const existing = cart.find(c => c.id === idProd && !c.isCustom);
       if (existing) existing.qty += qty;
       else cart.push({ id: prod.id, name: prod.name, price: prod.price, qty, isCustom: false });
+      
       renderPDV();
     }
+
 
     function addCustomItem() {
       const name = $("customName").value.trim();
@@ -526,9 +576,17 @@
         await supabaseClient.from("sales").insert([sale]);
       }
 
-      await sendTelegramTemplate("nova_venda", { total: money(total), payment });
+      // Mapeia os itens do carrinho para o formato profissional do template
+      const itemsFormatted = cart.map(c => `• ${c.qty}x ${c.name} — ${money(c.price * c.qty)}`).join("\n");
+
+      await sendTelegramTemplate("nova_venda", { 
+        items: itemsFormatted,
+        total: money(total), 
+        payment 
+      });
 
       cart = [];
+      pdvItemSearchFilter = "";
       alert("Venda finalizada com sucesso!");
       renderPDV();
     }
@@ -536,7 +594,13 @@
     /* --- OFICINA / OS --- */
     function renderWorkshop() {
       $("pageTitle").textContent = "Oficina / Ordens de Serviço";
-      const rows = db.orders.map(o => `<tr>
+      const filtered = db.orders.filter(o => 
+        o.customer.toLowerCase().includes(orderSearchFilter.toLowerCase()) || 
+        o.plate.toLowerCase().includes(orderSearchFilter.toLowerCase()) ||
+        o.number.toLowerCase().includes(orderSearchFilter.toLowerCase())
+      );
+
+      const rows = filtered.map(o => `<tr>
         <td><b>${o.number}</b></td>
         <td>${o.customer}</td>
         <td>${o.vehicle}</td>
@@ -546,18 +610,20 @@
         <td>${money(o.value)}</td>
         <td>
           <button class="btn btn-warning btn-sm" onclick="openOrderModal('${o.id}')"><i class="bi bi-pencil"></i></button>
-          ${o.status === 'Em andamento' ? `<button class="btn btn-success btn-sm" onclick="finishOrder('${o.id}')"><i class="bi bi-check-lg"></i></button>` : '<span style="color:var(--success); font-weight:600;">Ok</span>'}
+          <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')"><i class="bi bi-trash"></i></button>
+          ${o.status === 'Em andamento' ? `<button class="btn btn-success btn-sm" onclick="finishOrder('${o.id}')" title="Concluir OS"><i class="bi bi-check-lg"></i></button>` : '<span style="color:var(--success); font-weight:600; margin-left:5px;">Ok</span>'}
         </td>
       </tr>`).join("");
 
       $("content").innerHTML = `
-        <div style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
           <button class="btn" onclick="openOrderModal()"><i class="bi bi-plus-lg"></i> Nova OS</button>
+          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar OS, placa ou cliente..." value="${orderSearchFilter}" oninput="orderSearchFilter=this.value; renderWorkshop();">
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
             <thead><tr><th>Nº OS</th><th>Cliente</th><th>Veículo</th><th>Placa</th><th>Defeito</th><th>Status</th><th>Valor</th><th>Ação</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--muted);">Nenhuma OS aberta.</td></tr>'}</tbody>
+            <tbody>${rows || '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--muted);">Nenhuma OS encontrada.</td></tr>'}</tbody>
           </table>
         </div>
       `;
@@ -608,6 +674,17 @@
       renderWorkshop();
     }
 
+    async function deleteOrder(id) {
+      if (!confirm("Deseja realmente excluir esta OS?")) return;
+      db.orders = db.orders.filter(o => o.id !== id);
+      saveCache();
+
+      if (supabaseClient) {
+        await supabaseClient.from("orders").delete().eq("id", id);
+      }
+      renderWorkshop();
+    }
+
     async function finishOrder(id) {
       const order = db.orders.find(o => o.id === id);
       if (!order) return;
@@ -635,7 +712,7 @@
       renderWorkshop();
     }
 
-    /* --- HISTÓRICO DE MANUTENÇÕES --- */
+    /* --- HISTÓRICO DE MANUTENÇÕES (Com Botão de Excluir) --- */
     function renderHistory() {
       $("pageTitle").textContent = "Histórico de Manutenções por Veículo";
 
@@ -667,7 +744,7 @@
         <div class="card" style="margin-bottom: 20px;">
           <div class="mb-3" style="margin-bottom:0;">
             <label class="label">Pesquisar Veículo por Placa, Modelo ou Cliente</label>
-            <input id="historySearchInput" class="field" placeholder="Ex: ABC-1D23 ou Titan" value="${historySearchFilter}" oninput="filterHistory(this.value)">
+            <input id="historySearchInput" class="field" placeholder="Ex: ABC-1D23 ou Titan" value="${historySearchFilter}" oninput="historySearchFilter=this.value; renderHistory();">
           </div>
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
@@ -679,23 +756,22 @@
       `;
     }
 
-    function filterHistory(val) {
-      historySearchFilter = val;
-    }
-
     function openVehicleHistoryModal(plate) {
       const records = db.history.filter(h => h.plate === plate);
       if (!records.length) return;
 
       const vehicleName = records[0].vehicle;
       const itemsHtml = records.map(r => `
-        <div style="border-bottom: 1px solid var(--border); padding: 12px 0;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-            <span style="font-size:12px; font-weight:600; color:var(--muted);">Data: ${r.date} (${r.number})</span>
-            <span style="font-weight:bold; color:var(--success);">${money(r.value)}</span>
+        <div style="border-bottom: 1px solid var(--border); padding: 12px 0; display:flex; justify-content:space-between; align-items:center;" id="hist-row-${r.id}">
+          <div>
+            <div style="display:flex; gap:10px; margin-bottom:4px;">
+              <span style="font-size:12px; font-weight:600; color:var(--muted);">Data: ${r.date} (${r.number})</span>
+              <span style="font-weight:bold; color:var(--success);">${money(r.value)}</span>
+            </div>
+            <p style="font-size:14px;"><b>Serviço:</b> ${r.service}</p>
+            <p style="font-size:12px; color:var(--muted); margin-top:2px;">Cliente responsável: ${r.customer}</p>
           </div>
-          <p style="font-size:14px;"><b>Serviço:</b> ${r.service}</p>
-          <p style="font-size:12px; color:var(--muted); margin-top:2px;">Cliente responsável: ${r.customer}</p>
+          <button class="btn btn-danger btn-sm" onclick="deleteHistoryRecord('${r.id}', '${plate}')" title="Excluir este registro"><i class="bi bi-trash"></i></button>
         </div>
       `).join("");
 
@@ -711,26 +787,54 @@
       `);
     }
 
+    async function deleteHistoryRecord(id, plate) {
+      if (!confirm("Deseja realmente excluir este registro do histórico da moto?")) return;
+
+      db.history = db.history.filter(h => h.id !== id);
+      saveCache();
+
+      if (supabaseClient) {
+        await supabaseClient.from("history").delete().eq("id", id);
+      }
+
+      // Atualiza o modal ou fecha se não houver mais registros para essa placa
+      const remaining = db.history.filter(h => h.plate === plate);
+      if (remaining.length > 0) {
+        openVehicleHistoryModal(plate);
+      } else {
+        closeModal();
+      }
+      renderHistory();
+    }
+
     /* --- CLIENTES --- */
     function renderCustomers() {
       $("pageTitle").textContent = "Clientes";
-      const rows = db.customers.map(c => `<tr>
+      const filtered = db.customers.filter(c => 
+        c.name.toLowerCase().includes(customerSearchFilter.toLowerCase()) || 
+        (c.plate && c.plate.toLowerCase().includes(customerSearchFilter.toLowerCase())) ||
+        (c.phone && c.phone.toLowerCase().includes(customerSearchFilter.toLowerCase()))
+      );
+
+      const rows = filtered.map(c => `<tr>
         <td><b>${c.name}</b></td>
         <td>${c.phone || "—"}</td>
         <td><code style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:700;">${c.plate || "—"}</code></td>
         <td>
           <button class="btn btn-warning btn-sm" onclick="openCustomerModal('${c.id}')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')"><i class="bi bi-trash"></i></button>
         </td>
       </tr>`).join("");
 
       $("content").innerHTML = `
-        <div style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
           <button class="btn" onclick="openCustomerModal()"><i class="bi bi-plus-lg"></i> Novo Cliente</button>
+          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar cliente ou placa..." value="${customerSearchFilter}" oninput="customerSearchFilter=this.value; renderCustomers();">
         </div>
         <div class="card" style="padding:0; overflow:hidden;">
           <table>
-            <thead><tr><th>Nome</th><th>Telefone</th><th>Placa da Moto</th><th>Ação</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente cadastrado.</td></tr>'}</tbody>
+            <thead><tr><th>Nome</th><th>Telefone</th><th>Placa da Moto</th><th>Ações</th></tr></thead>
+            <tbody>${rows || '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente encontrado.</td></tr>'}</tbody>
           </table>
         </div>
       `;
@@ -772,6 +876,17 @@
       }
 
       closeModal();
+      renderCustomers();
+    }
+
+    async function deleteCustomer(id) {
+      if (!confirm("Deseja realmente excluir este cliente?")) return;
+      db.customers = db.customers.filter(c => c.id !== id);
+      saveCache();
+
+      if (supabaseClient) {
+        await supabaseClient.from("customers").delete().eq("id", id);
+      }
       renderCustomers();
     }
 
