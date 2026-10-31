@@ -1,1011 +1,1609 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="h-full bg-slate-50">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>John Motos | Gestão Avançada</title>
-  <!-- Ícones -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-  <!-- Supabase Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Leitor de Código de Barras via Câmara (HTML5-QRCode) -->
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <style>
-    :root {
-      --bg: #f8fafc; --sidebar: #0f172a; --card: #ffffff;
-      --text: #1e293b; --muted: #64748b; --primary: #2563eb;
-      --border: #e2e8f0; --success: #059669; --danger: #dc2626; --warning: #d97706;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
-    
-    /* Sidebar */
-    aside { width: 260px; background: var(--sidebar); color: #cbd5e1; display: flex; flex-direction: column; position: fixed; inset: 0 auto 0 0; height: 100vh; z-index: 50; }
-    .brand { padding: 20px; border-bottom: 1px solid #1e293b; display: flex; align-items: center; gap: 12px; }
-    .brand-icon { background: var(--primary); color: white; padding: 10px; border-radius: 10px; font-size: 18px; }
-    .nav-links { padding: 20px 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex: 1; }
-    .navbtn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 10px; color: #94a3b8; background: transparent; border: none; font-size: 14px; font-weight: 500; cursor: pointer; text-align: left; transition: 0.2s; }
-    .navbtn:hover, .navbtn.active { background: #1e293b; color: white; }
-    .navbtn.active { background: var(--primary); }
-
-    /* Main Content */
-    .main { flex: 1; margin-left: 260px; display: flex; flex-direction: column; }
-    header { height: 70px; background: var(--card); border-bottom: 1px solid var(--border); padding: 0 30px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
-    .content { padding: 30px; max-width: 1200px; width: 100%; margin: 0 auto; flex: 1; }
-    
-    /* Cards & Tabelas */
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
-    .metric { display: flex; justify-content: space-between; align-items: flex-start; }
-    .metric h3 { font-size: 24px; font-weight: 700; color: var(--text); margin-top: 5px; }
-    .metric p { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-    .metric-icon { padding: 10px 12px; border-radius: 10px; background: #eff6ff; color: var(--primary); font-size: 18px; }
-
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
-    th { background: #f8fafc; color: var(--muted); font-weight: 600; }
-    tbody tr:hover { background: #f8fafc; }
-
-    /* Formulários e Botões */
-    .btn { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-    .btn:hover { opacity: 0.9; }
-    .btn-success { background: var(--success); }
-    .btn-danger { background: var(--danger); }
-    .btn-warning { background: var(--warning); color: #fff; }
-    .btn-secondary { background: #64748b; }
-    .btn-sm { padding: 6px 10px; font-size: 12px; }
-    .field { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; background: #fff; margin-top: 5px; }
-    .field:focus { border-color: var(--primary); }
-    .label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
-    .mb-3 { margin-bottom: 15px; }
-    
-    .badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
-    .badge-ok { background: #d1fae5; color: #065f46; }
-    .badge-warn { background: #fef3c7; color: #92400e; }
-
-    /* Modal Flutuante Customizado */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: #fff; border-radius: 12px; width: 100%; max-width: 600px; padding: 25px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .modal-header h3 { font-size: 18px; font-weight: 700; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Integrada: Finanças & Despensa da Casa</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Html5-qrcode Scanner Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .finance-pane { min-width: 0; animation: financePaneIn .18s ease-out; }
+        .finance-pane[hidden] { display: none !important; }
+        @keyframes financePaneIn { from { opacity: .65; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+        #sidebar { transition: width 0.25s ease, transform 0.25s ease; }
+    </style>
 </head>
-<body>
+<body class="h-full flex flex-col md:flex-row text-slate-800 dark:text-slate-100 dark:bg-slate-900 transition-colors duration-200 overflow-x-hidden">
 
-  <!-- SIDEBAR -->
-  <aside id="sidebar">
-    <div class="brand">
-      <div class="brand-icon"><i class="bi bi-bicycle"></i></div>
-      <div>
-        <h4 style="font-size:14px; color:#fff;">JOHN MOTOS</h4>
-        <p style="font-size:11px; color:#f59e0b;" id="syncStatusText">Verificando...</p>
-      </div>
-    </div>
-    <div class="nav-links">
-      <p style="font-size:10px; color:#64748b; font-weight:bold; text-transform:uppercase; padding:0 8px; margin-bottom:5px;">Operacional</p>
-      <button class="navbtn active" data-page="inicio"><i class="bi bi-grid"></i> Visão Geral</button>
-      <button class="navbtn" data-page="produtos"><i class="bi bi-boxes"></i> Produtos & Estoque</button>
-      <button class="navbtn" data-page="pdv"><i class="bi bi-cart-dash"></i> PDV / Caixa</button>
-      <button class="navbtn" data-page="oficina"><i class="bi bi-tools"></i> Oficina / OS</button>
-      <button class="navbtn" data-page="historico"><i class="bi bi-clock-history"></i> Histórico / Veículos</button>
-      <button class="navbtn" data-page="clientes"><i class="bi bi-people"></i> Clientes</button>
-      
-      <p style="font-size:10px; color:#64748b; font-weight:bold; text-transform:uppercase; padding:15px 8px 5px; margin-bottom:5px;">Sistema</p>
-      <button class="navbtn" data-page="config_supabase"><i class="bi bi-cloud-check"></i> Configurar Supabase</button>
-    </div>
-  </aside>
+    <!-- Overlay escura para mobile quando o menu estiver aberto -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-20 hidden md:hidden transition-opacity"></div>
 
-  <!-- CONTEÚDO PRINCIPAL -->
-  <div class="main">
-    <header>
-      <div>
-        <h2 id="pageTitle" style="font-size: 18px; font-weight: 700;">Visão Geral</h2>
-        <p id="todayDate" style="font-size: 12px; color: var(--muted);"></p>
-      </div>
-      <div style="display: flex; gap: 15px; align-items: center;">
-        <span id="headerStatusBadge" class="badge badge-warn" style="font-size: 12px; padding: 6px 12px;">Verificando Conexão...</span>
-        <button class="btn" onclick="navigate('pdv')"><i class="bi bi-plus-lg"></i> Nova Venda</button>
-      </div>
-    </header>
-
-    <div class="content" id="content"></div>
-  </div>
-
-  <!-- MODAL DINÂMICO UNIFICADO -->
-  <div id="appModal" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 id="modalTitle">Cadastrar</h3>
-        <button class="btn btn-secondary btn-sm" onclick="closeModal()">X</button>
-      </div>
-      <div id="modalBody"></div>
-    </div>
-  </div>
-
-  <script>
-    "use strict";
-
-    const $ = id => document.getElementById(id);
-    const money = n => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-    const todayISO = () => new Date().toLocaleDateString("en-CA");
-    const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-
-    let SB_URL = localStorage.getItem("jm_supabase_url") || "";
-    let SB_KEY = localStorage.getItem("jm_supabase_key") || "";
-
-    let supabaseClient = null;
-    let tgTemplates = {};
-    let globalTelegramToken = "";
-    let globalTelegramChatId = "";
-    let html5QrCodeScanner = null;
-
-    function initSupabaseClient() {
-      supabaseClient = null;
-      if (SB_URL && SB_KEY) {
-        try {
-          supabaseClient = window.supabase.createClient(SB_URL.trim(), SB_KEY.trim());
-        } catch(e) { console.error("Erro ao iniciar Supabase:", e); }
-      }
-    }
-
-    let db = {
-      products: [],
-      customers: [],
-      sales: [],
-      orders: [],
-      history: [],
-      settings: { shop: "John Motos" }
-    };
-
-    let cart = [];
-    let currentPage = "inicio";
-    let productSearchFilter = "";
-    let customerSearchFilter = "";
-    let orderSearchFilter = "";
-    let historySearchFilter = "";
-    let pdvItemSearchFilter = "";
-
-    async function initSystem() {
-      initSupabaseClient();
-      if (supabaseClient) {
-        await loadDataFromSupabase();
-      } else {
-        loadLocalFallback("Supabase não configurado. Adicione URL e Key.");
-      }
-      initDailyReportCron();
-      render();
-    }
-
-    function loadLocalFallback(msg = "Modo Local / Cache") {
-      const raw = localStorage.getItem("john_motos_cache");
-      if (raw) {
-        try { db = JSON.parse(raw); } catch(e) {}
-      }
-      $("syncStatusText").textContent = msg;
-      $("syncStatusText").style.color = "#f59e0b";
-      $("headerStatusBadge").className = "badge badge-warn";
-      $("headerStatusBadge").textContent = "⚠️ " + msg;
-    }
-
-    async function loadDataFromSupabase() {
-      try {
-        const [pRes, cRes, oRes, hRes, sRes, setRes, tRes] = await Promise.all([
-          supabaseClient.from("products").select("*"),
-          supabaseClient.from("customers").select("*"),
-          supabaseClient.from("orders").select("*"),
-          supabaseClient.from("history").select("*"),
-          supabaseClient.from("sales").select("*"),
-          supabaseClient.from("settings").select("*").limit(1).single(),
-          supabaseClient.from("telegram_templates").select("*")
-        ]);
-
-        if (pRes.error || cRes.error || oRes.error) {
-          throw new Error("Erro de acesso às tabelas do Supabase.");
-        }
-
-        if (pRes.data) db.products = pRes.data;
-        if (cRes.data) db.customers = cRes.data;
-        if (oRes.data) db.orders = oRes.data;
-        if (hRes.data) db.history = hRes.data;
-        if (sRes.data) db.sales = sRes.data;
-        
-        if (setRes.data) {
-          globalTelegramToken = setRes.data.telegram_token || "";
-          globalTelegramChatId = setRes.data.telegram_chat_id || "";
-        }
-
-        if (tRes.data) {
-          tRes.data.forEach(t => { tgTemplates[t.key] = t.template; });
-        }
-
-        $("syncStatusText").textContent = "Conectado na Nuvem ✅";
-        $("syncStatusText").style.color = "#34d399";
-        $("headerStatusBadge").className = "badge badge-ok";
-        $("headerStatusBadge").innerHTML = '<i class="bi bi-cloud-check-fill"></i> Conectado ao Supabase';
-      } catch (e) {
-        console.error("Erro ao sincronizar com Supabase:", e);
-        loadLocalFallback("Erro na Conexão / RLS");
-      }
-    }
-
-    function saveCache() {
-      localStorage.setItem("john_motos_cache", JSON.stringify(db));
-    }
-
-    async function sendTelegramTemplate(key, dataObj) {
-      if (!globalTelegramToken || !globalTelegramChatId) return;
-      
-      let templateStr = tgTemplates[key];
-      if (!templateStr) {
-        if (key === 'nova_venda') templateStr = "📋 *REGISTRO DE VENDA • JOHN MOTOS*\n──────────────────────────\n*Itens / Serviços:*\n{items}\n──────────────────────────\n💳 *Pagamento:* {payment}\n💰 *Valor Total:* *{total}*\n──────────────────────────\n✅ *Transação concluída com sucesso*";
-        else if (key === 'nova_os') templateStr = "🔧 *NOVA OS ABERTA* 📋\n━━━━━━━━━━━━━━━━━━\n🆔 *OS:* #{number}\n👤 *Cliente:* {customer}\n🏍️ *Moto:* {vehicle}\n🏷️ *Placa:* `{plate}`\n🛠️ *Serviço/Defeito:* {problem}\n━━━━━━━━━━━━━━━━━━\n⏳ *Status:* Em andamento na oficina.";
-        else if (key === 'estoque_baixo') templateStr = "⚠️ *ALERTA DE ESTOQUE BAIXO* 🛑\n━━━━━━━━━━━━━━━━━━\n📦 *Peça/Produto:* {product_name}\n📉 *Quantidade Restante:* *{stock} unidades*\n━━━━━━━━━━━━━━━━━━\n💡 *Dica:* Hora de repor no fornecedor!";
-        else if (key === 'relatorio_dia') templateStr = "📊 *RESUMO DO DIÁRIO • JOHN MOTOS* 🌙\n📅 {date}\n━━━━━━━━━━━━━━━━━━\n💰 *Total no Caixa:* *{total_sales}*\n• Pix: {pix_total}\n• Dinheiro: {cash_total}\n• Outros/Cartão: {card_total}\n━━━━━━━━━━━━━━━━━━\n📝 *Movimento:*\n• Vendas: {count_sales}\n• OS Concluídas: {count_orders}\n• Motos na oficina: {pending_orders}\n━━━━━━━━━━━━━━━━━━\n⚠️ *Peças acabando (Repor):*\n{low_stock_items}\n━━━━━━━━━━━━━━━━━━\n👍 *Expediente encerrado por hoje!*";
-        else templateStr = "🔔 *Notificação John Motos*";
-      }
-
-      for (const [k, v] of Object.entries(dataObj)) {
-        templateStr = templateStr.replaceAll(`{${k}}`, v);
-      }
-
-      try {
-        await fetch(`https://api.telegram.org/bot${globalTelegramToken}/sendMessage`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: globalTelegramChatId, text: templateStr, parse_mode: "Markdown" })
-        });
-      } catch (e) {
-        console.error("Erro ao enviar Telegram:", e);
-      }
-    }
-
-    function initDailyReportCron() {
-      setInterval(() => {
-        const now = new Date();
-        if (now.getHours() === 19 && now.getMinutes() === 0) {
-          const todayStr = todayISO();
-          const lastSentKey = "john_report_sent_" + todayStr;
-          if (!localStorage.getItem(lastSentKey)) {
-            sendDailyReport();
-            localStorage.setItem(lastSentKey, "true");
-          }
-        }
-      }, 30000);
-    }
-
-    async function sendDailyReport() {
-      const today = todayISO();
-      const todaySales = db.sales.filter(s => s.date === today);
-      const todayOrders = db.orders.filter(o => o.date === today);
-      const totalRevenue = todaySales.reduce((a, b) => a + Number(b.total), 0);
-
-      await sendTelegramTemplate("relatorio_dia", {
-        date: new Date().toLocaleDateString("pt-BR"),
-        total_sales: money(totalRevenue),
-        pix_total: "R$ 0,00",
-        cash_total: "R$ 0,00",
-        card_total: "R$ 0,00",
-        count_sales: todaySales.length,
-        count_orders: todayOrders.length,
-        pending_orders: db.orders.filter(o => o.status === 'Em andamento').length,
-        low_stock_items: "Nenhum no momento"
-      });
-    }
-
-    function navigate(page) {
-      currentPage = page;
-      document.querySelectorAll(".navbtn").forEach(b => {
-        b.classList.toggle("active", b.dataset.page === page);
-      });
-      render();
-    }
-
-    document.querySelectorAll(".navbtn").forEach(b => {
-      b.addEventListener("click", () => navigate(b.dataset.page));
-    });
-
-    $("todayDate").textContent = new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" });
-
-    function render() {
-      if (currentPage === "inicio") renderHome();
-      else if (currentPage === "produtos") renderProducts();
-      else if (currentPage === "pdv") renderPDV();
-      else if (currentPage === "oficina") renderWorkshop();
-      else if (currentPage === "historico") renderHistory();
-      else if (currentPage === "clientes") renderCustomers();
-      else if (currentPage === "config_supabase") renderConfigSupabase();
-      else renderHome();
-    }
-
-    function openModal(title, htmlContent) {
-      $("modalTitle").textContent = title;
-      $("modalBody").innerHTML = htmlContent;
-      $("appModal").classList.add("active");
-    }
-    
-    async function closeModal() {
-      if (html5QrCodeScanner) {
-        try { await html5QrCodeScanner.stop(); } catch(e) {}
-        html5QrCodeScanner = null;
-      }
-      $("appModal").classList.remove("active");
-    }
-
-    /* --- CONFIGURAÇÃO MANUAL DO SUPABASE --- */
-    function renderConfigSupabase() {
-      $("pageTitle").textContent = "Configurações de Conexão com o Supabase";
-      $("content").innerHTML = `
-        <div class="card" style="max-width: 600px; margin: 0 auto;">
-          <h3 style="font-size: 18px; margin-bottom: 15px;"><i class="bi bi-cloud-arrow-up"></i> Credenciais do Banco de Dados</h3>
-          <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Insira abaixo a URL do seu projeto Supabase e a sua Chave de Acesso (Key / Anon).</p>
-          
-          <div class="mb-3">
-            <label class="label">Project URL (Supabase)</label>
-            <input id="inputSbUrl" class="field" value="${SB_URL}" placeholder="https://seu-projeto.supabase.co">
-          </div>
-
-          <div class="mb-3">
-            <label class="label">API Key / Anon Public Key</label>
-            <input id="inputSbKey" class="field" value="${SB_KEY}" placeholder="sb_publishable_... ou eyJ...">
-          </div>
-
-          <div style="display: flex; gap: 10px; margin-top: 25px;">
-            <button class="btn" style="flex: 1; justify-content: center;" onclick="salvarCredenciaisSupabase()"><i class="bi bi-check-lg"></i> Salvar e Testar Conexão</button>
-            <button class="btn btn-danger" onclick="limparCredenciaisSupabase()"><i class="bi bi-trash"></i> Desconectar</button>
-          </div>
-        </div>
-      `;
-    }
-
-    function salvarCredenciaisSupabase() {
-      const url = $("inputSbUrl").value.trim();
-      const key = $("inputSbKey").value.trim();
-
-      if (!url || !key) {
-        alert("Preencha tanto a URL quanto a Key do Supabase.");
-        return;
-      }
-
-      localStorage.setItem("jm_supabase_url", url);
-      localStorage.setItem("jm_supabase_key", key);
-
-      SB_URL = url;
-      SB_KEY = key;
-
-      alert("Credenciais salvas! Testando conexão com o Supabase...");
-      initSystem();
-    }
-
-    function limparCredenciaisSupabase() {
-      if (!confirm("Deseja remover as credenciais do Supabase e voltar ao modo local?")) return;
-      localStorage.removeItem("jm_supabase_url");
-      localStorage.removeItem("jm_supabase_key");
-      SB_URL = "";
-      SB_KEY = "";
-      initSystem();
-      alert("Credenciais removidas.");
-    }
-
-    /* --- VISÃO GERAL --- */
-    function renderHome() {
-      $("pageTitle").textContent = "Visão Geral - John Motos";
-      const totalSales = db.sales.reduce((a, b) => a + b.total, 0);
-      const uniquePlacas = [...new Set(db.history.map(h => h.plate))].length;
-      $("content").innerHTML = `
-        <div class="grid-4">
-          <div class="card metric">
-            <div><p>Produtos</p><h3>${db.products.length}</h3></div>
-            <div class="metric-icon"><i class="bi bi-boxes"></i></div>
-          </div>
-          <div class="card metric">
-            <div><p>Faturamento Total</p><h3>${money(totalSales)}</h3></div>
-            <div class="metric-icon" style="background:#ecfdf5; color:#059669;"><i class="bi bi-cash-stack"></i></div>
-          </div>
-          <div class="card metric">
-            <div><p>Ordens de Serviço</p><h3>${db.orders.length}</h3></div>
-            <div class="metric-icon" style="background:#fef3c7; color:#d97706;"><i class="bi bi-tools"></i></div>
-          </div>
-          <div class="card metric">
-            <div><p>Veículos Atendidos</p><h3>${uniquePlacas}</h3></div>
-            <div class="metric-icon" style="background:#e0f2fe; color:#0284c7;"><i class="bi bi-clock-history"></i></div>
-          </div>
-        </div>
-      `;
-    }
-
-    /* --- PRODUTOS & ESTOQUE COM LEITOR DE CÂMARA --- */
-    function renderProducts() {
-      $("pageTitle").textContent = "Produtos & Estoque";
-      const filtered = db.products.filter(p => 
-        p.name.toLowerCase().includes(productSearchFilter.toLowerCase()) || 
-        (p.code && p.code.toLowerCase().includes(productSearchFilter.toLowerCase()))
-      );
-
-      const rows = filtered.map(p => `<tr>
-        <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-size:12px; font-weight:600;">${p.code || "—"}</code></td>
-        <td><b>${p.name}</b></td>
-        <td>${money(p.price)}</td>
-        <td>${p.stock} un</td>
-        <td>
-          <button class="btn btn-warning btn-sm" onclick="openProductModal('${p.id}')"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>`).join("");
-
-      $("content").innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
-          <button class="btn" onclick="openProductModal()"><i class="bi bi-plus-lg"></i> Novo Produto</button>
-          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar produto..." value="${productSearchFilter}" oninput="productSearchFilter=this.value; renderProducts();">
-        </div>
-        <div class="card" style="padding:0; overflow:hidden;">
-          <table>
-            <thead><tr><th>Código</th><th>Produto</th><th>Preço</th><th>Estoque</th><th>Ações</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum produto encontrado.</td></tr>'}</tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function generateProductCode() {
-      const count = db.products.length + 1;
-      return "PEC-" + String(count).padStart(3, '0');
-    }
-
-    function openProductModal(id = null) {
-      const p = id ? db.products.find(x => x.id === id) : null;
-      openModal(p ? "Editar Produto" : "Novo Produto", `
-        <div class="mb-3">
-          <label class="label">Código de Barras / Referência</label>
-          <div style="display:flex; gap:10px;">
-            <input id="pCode" class="field" value="${p ? (p.code || '') : generateProductCode()}" style="margin-top:0;">
-            <button type="button" class="btn btn-secondary" onclick="iniciarLeitorCamara()" title="Escanear com a câmara"><i class="bi bi-camera-fill"></i> Ler</button>
-          </div>
-        </div>
-        
-        <!-- Div onde a câmara vai aparecer ao escanear -->
-        <div id="reader" style="width: 100%; margin-bottom: 15px;"></div>
-
-        <div class="mb-3"><label class="label">Nome do Produto</label><input id="pName" class="field" value="${p ? p.name : ''}" placeholder="Ex: Pastilha de Freio CG 150"></div>
-        <div class="mb-3"><label class="label">Preço de Venda (R$)</label><input id="pPrice" type="number" step="0.01" class="field" value="${p ? p.price : '0.00'}"></div>
-        <div class="mb-3"><label class="label">Quantidade em Estoque</label><input id="pStock" type="number" class="field" value="${p ? p.stock : '10'}"></div>
-        <button class="btn" style="width:100%; justify-content:center;" onclick="saveProduct('${id || ''}')">Salvar Produto</button>
-      `);
-    }
-
-    // Função para ligar a câmara e ler o código de barras
-    function iniciarLeitorCamara() {
-      const readerDiv = $("reader");
-      if (!readerDiv) return;
-      readerDiv.innerHTML = ""; // Limpa anterior
-
-      html5QrCodeScanner = new Html5Qrcode("reader");
-      html5QrCodeScanner.start(
-        { facingMode: "environment" }, // Usa a câmara traseira do telemóvel se disponível
-        { fps: 10, qrbox: { width: 250, height: 100 } },
-        (decodedText, decodedResult) => {
-          // Sucesso na leitura
-          $("pCode").value = decodedText;
-          alert("Código lido com sucesso: " + decodedText);
-          html5QrCodeScanner.stop().catch(err => {});
-          readerDiv.innerHTML = "";
-        },
-        (errorMessage) => {
-          // Erros de leitura quadro a quadro (ignorar para não poluir)
-        }
-      ).catch(err => {
-        alert("Erro ao aceder à câmara: " + err);
-      });
-    }
-
-    async function saveProduct(id) {
-      if (html5QrCodeScanner) {
-        try { await html5QrCodeScanner.stop(); } catch(e) {}
-      }
-      
-      const code = $("pCode").value.trim();
-      const name = $("pName").value.trim();
-      const price = parseFloat($("pPrice").value) || 0;
-      const stock = parseInt($("pStock").value) || 0;
-
-      if (!name) return alert("Digite o nome do produto.");
-
-      if (id) {
-        const prod = db.products.find(x => x.id === id);
-        if (prod) {
-          prod.code = code; prod.name = name; prod.price = price; prod.stock = stock;
-          saveCache();
-          if (supabaseClient) {
-            await supabaseClient.from("products").update({ code, name, price, stock }).eq("id", id);
-          }
-        }
-      } else {
-        const newProd = { id: uid(), code, name, price, stock };
-        db.products.push(newProd);
-        saveCache();
-        if (supabaseClient) {
-          await supabaseClient.from("products").insert([newProd]);
-        }
-      }
-
-      closeModal();
-      renderProducts();
-    }
-
-    async function deleteProduct(id) {
-      if (!confirm("Deseja realmente excluir este produto?")) return;
-      db.products = db.products.filter(p => p.id !== id);
-      saveCache();
-
-      if (supabaseClient) {
-        await supabaseClient.from("products").delete().eq("id", id);
-      }
-      renderProducts();
-    }
-
-    /* --- PDV / CAIXA --- */
-    function renderPDV() {
-      $("pageTitle").textContent = "PDV / Frente de Caixa";
-      
-      const filteredProducts = db.products.filter(p => 
-        p.name.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()) || 
-        (p.code && p.code.toLowerCase().includes(pdvItemSearchFilter.toLowerCase()))
-      );
-
-      const produtosGridHtml = filteredProducts.length > 0 ? filteredProducts.map(p => `
-        <div onclick="adicionarDiretoCarrinho('${p.id}')" style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:10px; cursor:pointer; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'">
-          <div style="font-weight:600; font-size:13px; color:var(--text);">${p.name}</div>
-          <div style="display:flex; justify-content:space-between; margin-top:5px; font-size:12px;">
-            <span style="color:var(--success); font-weight:bold;">${money(p.price)}</span>
-            <span style="color:var(--muted);">Estoque: ${p.stock}</span>
-          </div>
-        </div>
-      `).join('') : '<p style="color:var(--muted); text-align:center; grid-column:span 2; padding:15px;">Nenhum produto encontrado</p>';
-
-      const cartRows = cart.map((c, i) => `<tr>
-        <td><b>${c.name}</b> ${c.isCustom ? '<span class="badge badge-warn">Serviço/Livre</span>' : ''}</td>
-        <td>${c.qty}</td>
-        <td>${money(c.price)}</td>
-        <td>${money(c.qty * c.price)}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="removeCart(${i})">X</button></td>
-      </tr>`).join("");
-      const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
-
-      $("content").innerHTML = `
-        <div class="grid-2">
-          <div style="display:flex; flex-direction:column; gap:20px;">
-            <div class="card" style="margin-bottom:0;">
-              <h3 style="font-size:16px; margin-bottom:15px;">Adicionar Produto do Estoque</h3>
-              
-              <div class="mb-3">
-                <label class="label">Pesquisa Rápida de Produto</label>
-                <input id="pdvSearchInput" class="field" placeholder="🔍 Digite para filtrar peças..." value="${pdvItemSearchFilter}" oninput="pdvItemSearchFilter=this.value; renderPDV();">
-              </div>
-
-              <div class="mb-3">
-                <label class="label">Clique no produto para adicionar:</label>
-                <div style="max-height: 180px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; border: 1px solid var(--border); padding: 10px; border-radius: 8px; background: #fff;">
-                  ${produtosGridHtml}
+    <!-- Sidebar Retrátil / Lateral -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-30 shrink-0 shadow-sm -translate-x-full md:translate-x-0 transition-all duration-300">
+        <div class="h-16 px-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <div class="w-9 h-9 rounded-xl bg-brand-500 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-brand-500/25 shrink-0">
+                    <i class="fa-solid fa-house-chimney-user"></i>
                 </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="label">Quantidade Padrão</label>
-                <input id="pdvQty" type="number" class="field" value="1" min="1">
-              </div>
+                <div class="sidebar-label transition-opacity duration-200 truncate">
+                    <h1 class="font-bold text-sm leading-tight text-slate-900 dark:text-white truncate">Gestão Residencial</h1>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Supabase Conectado</p>
+                </div>
             </div>
-
-            <div class="card" style="margin-bottom:0; background:#f8fafc;">
-              <h3 style="font-size:16px; margin-bottom:15px; color:var(--primary);"><i class="bi bi-pencil-square"></i> Adicionar Serviço / Valor Livre</h3>
-              <div class="mb-3">
-                <label class="label">Descrição do Serviço / Item</label>
-                <input id="customName" class="field" placeholder="Ex: Mão de obra de solda / Instalação">
-              </div>
-              <div class="mb-3">
-                <label class="label">Valor (R$)</label>
-                <input id="customPrice" type="number" step="0.01" class="field" placeholder="0.00">
-              </div>
-              <button class="btn btn-secondary" onclick="addCustomItem()"><i class="bi bi-plus-circle"></i> Adicionar Valor Livre</button>
-            </div>
-          </div>
-
-          <div class="card" style="height: fit-content;">
-            <h3 style="font-size:16px; margin-bottom:15px;">Resumo da Venda</h3>
-            <div class="mb-3">
-              <label class="label">Forma de Pagamento</label>
-              <select id="pdvPayment" class="field"><option>Pix</option><option>Dinheiro</option><option>Débito</option><option>Crédito</option></select>
-            </div>
-            <div style="font-size: 20px; font-weight: bold; margin: 15px 0;">Total: <span style="color: var(--success);">${money(total)}</span></div>
-            <button class="btn btn-success" style="width:100%; justify-content:center;" onclick="finishSale()">Finalizar Venda</button>
-          </div>
+            <button onclick="toggleSidebar()" class="hidden md:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0" title="Recolher/Expandir menu">
+                <i id="sidebarToggleIcon" class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
         </div>
 
-        <div class="card" style="padding:0; overflow:hidden; margin-top:20px;">
-          <table>
-            <thead><tr><th>Item / Descrição</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th></th></tr></thead>
-            <tbody>${cartRows || '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--muted);">Carrinho vazio</td></tr>'}</tbody>
-          </table>
+        <nav class="flex-1 p-3 space-y-1.5 overflow-y-auto" aria-label="Seções do sistema">
+            <button type="button" class="finance-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 font-semibold text-xs transition-all is-active" data-tab="visao" aria-selected="true">
+                <i class="fa-solid fa-chart-line text-base w-5 text-center shrink-0"></i><span class="sidebar-label truncate">Visão Geral</span>
+            </button>
+            <button type="button" class="finance-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 font-semibold text-xs transition-all" data-tab="caixas" aria-selected="false">
+                <i class="fa-solid fa-boxes-stacked text-base w-5 text-center shrink-0"></i><span class="sidebar-label truncate">Caixas Financeiras</span>
+            </button>
+            <button type="button" class="finance-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 font-semibold text-xs transition-all" data-tab="despensa" aria-selected="false">
+                <i class="fa-solid fa-basket-shopping text-base w-5 text-center shrink-0"></i><span class="sidebar-label truncate">Despensa & Mantimentos</span>
+            </button>
+            <button type="button" class="finance-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 font-semibold text-xs transition-all" data-tab="relatorios" aria-selected="false">
+                <i class="fa-solid fa-chart-pie text-base w-5 text-center shrink-0"></i><span class="sidebar-label truncate">Relatórios & Gráficos</span>
+            </button>
+            <button type="button" class="finance-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 font-semibold text-xs transition-all" data-tab="historico" aria-selected="false">
+                <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center shrink-0"></i><span class="sidebar-label truncate">Histórico & Compras</span>
+            </button>
+        </nav>
+
+        <div class="p-3 border-t border-slate-200 dark:border-slate-700 text-[10px] text-slate-400 text-center sidebar-label shrink-0">
+            <span id="dbStatusIndicator" class="text-amber-500 font-bold"><i class="fa-solid fa-circle text-[8px]"></i> Configurar Supabase</span>
         </div>
-      `;
+    </aside>
 
-      const inputEl = $("pdvSearchInput");
-      if (inputEl) {
-        inputEl.focus();
-        inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
-      }
-    }
+    <!-- Conteúdo Principal -->
+    <div class="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+        <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-colors" title="Abrir menu">
+                        <i class="fa-solid fa-bars text-base"></i>
+                    </button>
+                    <span id="currentTitle" class="font-bold text-sm text-slate-800 dark:text-white uppercase tracking-wider">Visão Geral</span>
+                </div>
 
-    function adicionarDiretoCarrinho(idProd) {
-      const prod = db.products.find(p => p.id === idProd);
-      const qty = parseInt($("pdvQty").value) || 1;
-      if (!prod) return;
-      if (prod.stock < qty) return alert("Estoque insuficiente!");
+                <!-- Ações Rápidas & Configurações -->
+                <div class="flex items-center gap-2">
+                    <button onclick="openConfigModal()" title="Configurar Supabase" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-brand-600 dark:text-brand-400 transition-all font-bold flex items-center gap-1.5 text-xs">
+                        <i class="fa-solid fa-gear text-base"></i> <span class="hidden sm:inline">Supabase</span>
+                    </button>
+                    <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 transition-all">
+                        <i class="fa-solid fa-moon dark:hidden"></i>
+                        <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
 
-      const existing = cart.find(c => c.id === idProd && !c.isCustom);
-      if (existing) existing.qty += qty;
-      else cart.push({ id: prod.id, name: prod.name, price: prod.price, qty, isCustom: false });
-      
-      renderPDV();
-    }
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+            <div class="finance-tab-panes space-y-5">
 
-    function addCustomItem() {
-      const name = $("customName").value.trim();
-      const price = parseFloat($("customPrice").value);
+                <!-- PANE 1: VISÃO GERAL (Dashboard Executivo Limpo) -->
+                <section class="finance-pane active space-y-4" data-pane="visao" aria-label="Visão geral">
+                    <!-- Topo Unificado -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div class="bg-gradient-to-br from-brand-600 to-emerald-800 text-white p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between">
+                            <div class="absolute -right-4 -bottom-4 text-white/10 text-8xl font-bold"><i class="fa-solid fa-piggy-bank"></i></div>
+                            <div>
+                                <p class="text-emerald-100 text-[11px] font-semibold uppercase tracking-wider">Saldo Total Acumulado</p>
+                                <h2 id="totalBalance" class="text-3xl font-extrabold mt-1">R$ 0,00</h2>
+                            </div>
+                            <div class="mt-4 flex items-center justify-between text-xs text-emerald-100 bg-white/10 px-3 py-1.5 rounded-xl backdrop-blur-sm">
+                                <span id="boxCountText">0 Caixas ativas</span>
+                                <span id="completedBoxesCountText">0/0 Metas Atingidas</span>
+                            </div>
+                        </div>
 
-      if (!name) return alert("Digite a descrição do serviço/item livre.");
-      if (isNaN(price) || price <= 0) return alert("Digite um valor válido.");
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-semibold uppercase text-slate-400">Alocação de Porcentagem</span>
+                                    <span id="pctStatusBadge" class="px-2 py-0.5 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">100%</span>
+                                </div>
+                                <div class="flex items-baseline gap-2 mt-2">
+                                    <h3 id="totalPercentageText" class="text-2xl font-extrabold text-slate-800 dark:text-white">100%</h3>
+                                    <span class="text-xs text-slate-500">das porcentagens</span>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                    <div id="pctProgressBar" class="bg-brand-500 h-full rounded-full transition-all duration-300" style="width: 100%"></div>
+                                </div>
+                                <p id="pctWarningText" class="text-[11px] text-slate-500 dark:text-slate-400 mt-2 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-check text-emerald-500"></i> Distribuição perfeita (100%)
+                                </p>
+                            </div>
+                        </div>
 
-      cart.push({ id: uid(), name: name, price: price, qty: 1, isCustom: true });
-      renderPDV();
-    }
+                        <!-- Status Despensa Compacto -->
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-basket-shopping text-amber-500"></i> Status da Despensa
+                                </h3>
+                            </div>
+                            <div id="pantryAlertsSummary" class="my-2 space-y-1">
+                                <p class="text-xs text-slate-400 italic">Nenhum item em falta.</p>
+                            </div>
+                            <button onclick="switchTab('despensa')" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl transition-all">
+                                Gerenciar Despensa
+                            </button>
+                        </div>
+                    </div>
 
-    function removeCart(index) {
-      cart.splice(index, 1);
-      renderPDV();
-    }
+                    <!-- Fluxo do Mês Enxuto & Aporte Global -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-3">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i> Aporte Global Inteligente
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Distribui o valor proporcionalmente entre as caixas e envia o excedente para a reserva.</p>
+                            </div>
+                            <form onsubmit="handleGlobalDeposit(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                                <div class="sm:col-span-3 relative">
+                                    <span class="absolute left-3 top-2.5 text-slate-400 text-sm font-bold">R$</span>
+                                    <input type="number" step="0.01" min="0.01" id="globalDepositInput" placeholder="0,00" required
+                                        class="w-full pl-10 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-800 dark:text-white text-xs font-semibold">
+                                </div>
+                                <button type="submit" class="py-2 px-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-filter-circle-dollar"></i> Distribuir
+                                </button>
+                            </form>
+                        </div>
 
-    async function finishSale() {
-      if (!cart.length) return alert("Carrinho vazio!");
-      const total = cart.reduce((a, c) => a + c.qty * c.price, 0);
-      const payment = $("pdvPayment").value;
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">Fluxo do Mês</h3>
+                            <div class="space-y-1.5 text-xs">
+                                <div class="flex justify-between items-center"><span class="text-slate-500">Entradas:</span> <strong id="monthDeposits" class="text-emerald-600 dark:text-emerald-400">R$ 0,00</strong></div>
+                                <div class="flex justify-between items-center"><span class="text-slate-500">Saídas:</span> <strong id="monthWithdrawals" class="text-rose-600 dark:text-rose-400">R$ 0,00</strong></div>
+                                <div class="flex justify-between items-center pt-1.5 border-t border-slate-100 dark:border-slate-700"><span class="text-slate-500">Líquido:</span> <strong id="monthNet" class="text-slate-800 dark:text-white">R$ 0,00</strong></div>
+                            </div>
+                            <span id="monthLabel" class="text-[10px] text-slate-400 mt-2 block text-right">Mês atual</span>
+                        </div>
+                    </div>
+                </section>
 
-      for (let c of cart) {
-        if (!c.isCustom) {
-          const p = db.products.find(x => x.id === c.id);
-          if (p) {
-            p.stock -= c.qty;
-            if (p.stock <= 2) {
-              await sendTelegramTemplate("estoque_baixo", { product_name: p.name, stock: p.stock });
+                <!-- PANE 2: CAIXAS FINANCEIRAS (Layout Compacto com Porcentagem de Fechamento da Meta) -->
+                <section class="finance-pane space-y-4" data-pane="caixas" aria-label="Minhas caixas" hidden>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-boxes-stacked text-brand-500"></i> Minhas 7 Caixas & Metas Financeiras
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Acompanhe a porcentagem de fechamento e o saldo de cada caixa</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="openPresetModal()" class="text-xs px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Modelos
+                            </button>
+                            <button onclick="openBoxModal()" class="py-2 px-3 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white dark:text-slate-900 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Nova Caixa
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Container Compacto em Coluna de Cards Horizontais -->
+                    <div id="boxesContainer" class="space-y-2.5"></div>
+                </section>
+
+                <!-- PANE 3: DESPENSA & MANTIMENTOS -->
+                <section class="finance-pane space-y-4" data-pane="despensa" aria-label="Despensa e Mantimentos" hidden>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div>
+                            <h2 class="text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                <i class="fa-solid fa-basket-shopping text-brand-500"></i> Controle de Despensa & Estoque
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Cards compactos com abas de status e leitor de código de barras</p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="copyShoppingList()" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5" title="Copiar itens em falta">
+                                <i class="fa-solid fa-copy text-brand-500"></i> Copiar Lista
+                            </button>
+                            <button onclick="openPantryModal()" class="py-2 px-3 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i> Novo Item
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ABAS DE STATUS DOS MANTIMENTOS -->
+                    <div class="flex gap-1 overflow-x-auto pb-1 border-b border-slate-200 dark:border-slate-700">
+                        <button onclick="setPantryFilter('all')" id="pFilter_all" class="pantry-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-sm shrink-0">
+                            Todos (<span id="countAll">0</span>)
+                        </button>
+                        <button onclick="setPantryFilter('ok')" id="pFilter_ok" class="pantry-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
+                            Estoque OK (<span id="countOk">0</span>)
+                        </button>
+                        <button onclick="setPantryFilter('low')" id="pFilter_low" class="pantry-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
+                            Estoque Baixo (<span id="countLow">0</span>)
+                        </button>
+                        <button onclick="setPantryFilter('critical')" id="pFilter_critical" class="pantry-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0">
+                            Esgotados (<span id="countCritical">0</span>)
+                        </button>
+                    </div>
+
+                    <!-- GRID COMPACTO DE MANTIMENTOS -->
+                    <div id="pantryContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+                </section>
+
+                <!-- PANE 4: RELATÓRIOS & GRÁFICOS -->
+                <section class="finance-pane space-y-4" data-pane="relatorios" aria-label="Relatórios e Gráficos" hidden>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-400 mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-chart-pie text-brand-500"></i> Distribuição por Caixa
+                            </h3>
+                            <div class="relative flex items-center justify-center h-56">
+                                <canvas id="boxesChart"></canvas>
+                                <div id="noChartData" class="hidden absolute text-center text-slate-400 text-xs">
+                                    <i class="fa-solid fa-chart-area text-3xl mb-1 block opacity-40"></i> Sem saldos para exibir
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wide text-slate-400 mb-3 flex items-center gap-2">
+                                    <i class="fa-solid fa-file-invoice-dollar text-brand-500"></i> Indicadores de Desempenho
+                                </h3>
+                                <div class="space-y-2.5 text-xs" id="financialMetricsList"></div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs text-slate-400">
+                                <span>Atualizado em tempo real</span>
+                                <button onclick="loadFromSupabase()" class="text-brand-600 dark:text-brand-400 font-bold hover:underline">Atualizar</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PANE 5: HISTÓRICO -->
+                <section class="finance-pane space-y-4" data-pane="historico" aria-label="Histórico" hidden>
+                    <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-bold uppercase tracking-wide text-slate-400 flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-brand-500"></i> Histórico de Movimentações
+                            </h3>
+                            <button onclick="clearHistory()" class="text-xs px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 font-medium transition-colors">Limpar</button>
+                        </div>
+                        <div id="historyList" class="space-y-2.5 max-h-[500px] overflow-y-auto pr-1"></div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Configurações Supabase -->
+    <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 dark:text-white text-base flex items-center gap-2">
+                    <i class="fa-solid fa-database text-brand-500"></i> Configurar Supabase
+                </h3>
+                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveConfig(event)" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Supabase URL</label>
+                    <input type="text" id="supabaseUrlInput" required placeholder="https://seu-projeto.supabase.co"
+                        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Supabase Anon Key</label>
+                    <input type="password" id="supabaseKeyInput" required placeholder="eyJhbGciOiJIUzI1NiIsIn..."
+                        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs">
+                </div>
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="closeConfigModal()" class="w-1/2 py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-xs">Cancelar</button>
+                    <button type="submit" class="w-1/2 py-2 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs shadow-md">Salvar & Conectar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Caixa Financeira -->
+    <div id="boxModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <h3 id="boxModalTitle" class="font-bold text-slate-800 dark:text-white text-base">Criar Nova Caixa</h3>
+                <button onclick="closeBoxModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="saveBox(event)" class="p-5 space-y-4">
+                <input type="hidden" id="boxIdInput">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nome da Caixa</label>
+                    <input type="text" id="boxNameInput" required placeholder="Ex: Supermercado, Lazer..."
+                        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Porcentagem (%)</label>
+                        <div class="relative">
+                            <input type="number" step="0.1" min="0" max="100" id="boxPctInput" required placeholder="0"
+                                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs pr-8">
+                            <span class="absolute right-3 top-2 text-slate-400 font-bold text-xs">%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Meta (R$)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400 text-[10px] font-bold">R$</span>
+                            <input type="number" step="0.01" min="0" id="boxTargetInput" placeholder="Sem limite"
+                                class="w-full pl-7 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs">
+                        </div>
+                    </div>
+                </div>
+                <div class="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl flex items-center gap-3">
+                    <input type="checkbox" id="boxIsReserveInput" onchange="toggleReserveCheckboxUI()" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500 border-slate-300">
+                    <label for="boxIsReserveInput" class="text-xs font-medium text-amber-900 dark:text-amber-200 cursor-pointer select-none">
+                        <strong class="block font-bold">Caixa Reserva Especial</strong>
+                        Recebe 100% dos excedentes quando as outras caixas estiverem cheias.
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Ícone e Cor</label>
+                    <div class="grid grid-cols-5 gap-2" id="iconPicker"></div>
+                </div>
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="closeBoxModal()" class="w-1/2 py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-xs">Cancelar</button>
+                    <button type="submit" class="w-1/2 py-2 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs shadow-md">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Transação -->
+    <div id="txModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <div>
+                    <h3 id="txModalTitle" class="font-bold text-slate-800 dark:text-white text-base">Movimentar Caixa</h3>
+                    <p id="txModalSubtitle" class="text-xs text-slate-500">Nome da Caixa</p>
+                </div>
+                <button onclick="closeTxModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleTxSubmit(event)" class="p-5 space-y-4">
+                <input type="hidden" id="txBoxId">
+                <input type="hidden" id="txType" value="deposit">
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl">
+                    <button type="button" id="btnTypeDeposit" onclick="setTxType('deposit')" class="py-2 text-xs font-bold rounded-lg transition-all bg-emerald-500 text-white shadow-sm">
+                        <i class="fa-solid fa-plus-circle mr-1"></i> Entrada
+                    </button>
+                    <button type="button" id="btnTypeWithdraw" onclick="setTxType('withdraw')" class="py-2 text-xs font-bold rounded-lg transition-all text-slate-600 dark:text-slate-400">
+                        <i class="fa-solid fa-minus-circle mr-1"></i> Saída
+                    </button>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Valor (R$)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-slate-400 text-xs font-bold">R$</span>
+                        <input type="number" step="0.01" min="0.01" id="txAmountInput" required placeholder="0,00"
+                            class="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white font-semibold text-xs">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Descrição</label>
+                    <input type="text" id="txDescInput" placeholder="Ex: Compra..."
+                        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs">
+                </div>
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="closeTxModal()" class="w-1/2 py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-xs">Cancelar</button>
+                    <button type="submit" id="txSubmitBtn" class="w-1/2 py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-md">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Mantimento -->
+    <div id="pantryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center shrink-0">
+                <h3 id="pantryModalTitle" class="font-bold text-slate-800 dark:text-white text-base">Adicionar Mantimento</h3>
+                <button onclick="closePantryModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="p-5 space-y-4 overflow-y-auto flex-1">
+                <!-- Scanner de Câmera -->
+                <div class="bg-slate-50 dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700 text-center">
+                    <button type="button" onclick="toggleBarcodeScanner()" class="w-full py-2 px-3 bg-slate-800 dark:bg-slate-700 hover:bg-slate-700 text-white font-bold text-xs rounded-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-barcode text-brand-400 text-sm"></i> Ler Código de Barras com Câmera
+                    </button>
+                    <div id="scannerContainer" class="hidden mt-3 relative overflow-hidden rounded-lg border border-slate-300 dark:border-slate-600">
+                        <div id="reader" style="width: 100%;"></div>
+                        <button type="button" onclick="stopBarcodeScanner()" class="mt-2 text-[11px] text-rose-500 font-bold hover:underline">Fechar Câmera</button>
+                    </div>
+                </div>
+
+                <form id="pantryForm" onsubmit="savePantryItem(event)" class="space-y-4">
+                    <input type="hidden" id="pantryIdInput">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Código de Barras (Opcional)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="pantryBarcodeInput" placeholder="Ex: 7891000100103" onblur="lookupBarcodeAPI(this.value)"
+                                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs">
+                            <button type="button" onclick="lookupBarcodeAPI(document.getElementById('pantryBarcodeInput').value)" class="px-3 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 rounded-xl text-xs font-bold transition-all" title="Buscar na API">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </button>
+                        </div>
+                        <span id="barcodeApiStatus" class="text-[10px] text-slate-400 mt-1 block">Digite ou escaneie o código para buscar online.</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nome do Item</label>
+                        <input type="text" id="pantryNameInput" required placeholder="Ex: Arroz Tipo 1..."
+                            class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Qtd Atual</label>
+                            <input type="number" step="1" min="0" id="pantryQtyInput" required placeholder="0"
+                                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Estoque Ideal</label>
+                            <input type="number" step="1" min="1" id="pantryIdealInput" required placeholder="5"
+                                class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Unidade</label>
+                            <select id="pantryUnitInput" class="w-full px-2 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs font-bold">
+                                <option value="un">unid.</option>
+                                <option value="kg">kg</option>
+                                <option value="L">litros</option>
+                                <option value="pct">pacotes</option>
+                                <option value="lata">latas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Caixa Vinculada (Opcional)</label>
+                        <select id="pantryBoxLinkInput" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-500 text-slate-800 dark:text-white text-xs"></select>
+                    </div>
+                    <div class="pt-2 flex gap-2">
+                        <button type="button" onclick="closePantryModal()" class="w-1/2 py-2 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-xs">Cancelar</button>
+                        <button type="submit" class="w-1/2 py-2 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-medium text-xs shadow-md">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Relatório Spillover -->
+    <div id="spilloverReportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-brand-50 dark:bg-brand-950/30">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-brand-600 dark:text-brand-400 text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-slate-800 dark:text-white text-base leading-tight">Resumo do Aporte Inteligente</h3>
+                        <p id="spilloverTotalText" class="text-xs text-brand-700 dark:text-brand-300">Aporte total: R$ 0,00</p>
+                    </div>
+                </div>
+                <button onclick="closeSpilloverReportModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div id="spilloverNoticeBox" class="p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-600 dark:text-slate-300 space-y-1"></div>
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Detalhamento por Caixa</h4>
+                    <div id="spilloverBreakdownList" class="space-y-2"></div>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+                <button onclick="closeSpilloverReportModal()" class="py-2 px-5 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-xl shadow-md">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Presets -->
+    <div id="presetModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 dark:text-white text-base">Modelos de Regras Financeiras</h3>
+                <button onclick="closePresetModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <p class="text-xs text-slate-500">Escolha uma regra pré-definida. <strong class="text-rose-500">Isto substituirá suas caixas atuais!</strong></p>
+                <div class="space-y-3">
+                    <button onclick="applyPreset('50-30-20')" class="w-full p-4 border border-slate-200 dark:border-slate-700 rounded-xl text-left hover:border-brand-500 hover:bg-brand-50/30 transition-all flex justify-between items-center group">
+                        <div>
+                            <h4 class="font-bold text-xs text-slate-800 dark:text-white group-hover:text-brand-600">Regra 50 / 30 / 20 com Casa & Supermercado</h4>
+                            <p class="text-[11px] text-slate-500 mt-0.5">50% Essenciais • 30% Lazer • 20% Reserva Infinita</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-slate-300 group-hover:text-brand-500 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JavaScript Supabase & App Application Logic -->
+    <script>
+        const ICON_PALETTE = [
+            { icon: 'fa-basket-shopping', color: '#16a34a' },
+            { icon: 'fa-shield-halved', color: '#eab308' },
+            { icon: 'fa-house', color: '#3b82f6' },
+            { icon: 'fa-gamepad', color: '#ec4899' },
+            { icon: 'fa-credit-card', color: '#ef4444' },
+            { icon: 'fa-lightbulb', color: '#f97316' },
+            { icon: 'fa-car', color: '#06b6d4' },
+            { icon: 'fa-graduation-cap', color: '#a855f7' }
+        ];
+
+        let selectedIconIndex = 0;
+        let chartInstance = null;
+        let isSidebarCollapsed = false;
+        let supabaseClient = null;
+        let currentPantryFilter = 'all';
+        let html5QrCodeScanner = null;
+
+        let appState = {
+            boxes: [],
+            pantry: [],
+            history: [],
+            theme: 'light'
+        };
+
+        window.onload = function() {
+            loadConfigAndInit();
+            setupIconPicker();
+            setupTabs();
+            initChart();
+        };
+
+        function loadConfigAndInit() {
+            const savedUrl = localStorage.getItem('sb_url');
+            const savedKey = localStorage.getItem('sb_key');
+
+            if (savedUrl && savedKey) {
+                document.getElementById('supabaseUrlInput').value = savedUrl;
+                document.getElementById('supabaseKeyInput').value = savedKey;
+                initSupabase(savedUrl, savedKey);
+            } else {
+                openConfigModal();
             }
+
+            const savedTheme = localStorage.getItem('app_theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                appState.theme = 'dark';
+            } else {
+                document.documentElement.classList.remove('dark');
+                appState.theme = 'light';
+            }
+        }
+
+        function initSupabase(url, key) {
+            try {
+                supabaseClient = supabase.createClient(url, key);
+                document.getElementById('dbStatusIndicator').innerHTML = `<span class="text-emerald-500 font-bold"><i class="fa-solid fa-circle text-[8px]"></i> Supabase Conectado</span>`;
+                loadFromSupabase();
+            } catch(e) {
+                console.error(e);
+                showToast('Erro ao conectar com Supabase.', 'error');
+            }
+        }
+
+        function openConfigModal() { document.getElementById('configModal').classList.remove('hidden'); }
+        function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
+
+        function saveConfig(e) {
+            e.preventDefault();
+            const url = document.getElementById('supabaseUrlInput').value.trim();
+            const key = document.getElementById('supabaseKeyInput').value.trim();
+
+            localStorage.setItem('sb_url', url);
+            localStorage.setItem('sb_key', key);
+
+            initSupabase(url, key);
+            closeConfigModal();
+            showToast('Conexão configurada com sucesso!', 'success');
+        }
+
+        async function loadFromSupabase() {
+            if (!supabaseClient) return;
+            try {
+                const [boxesRes, pantryRes, historyRes] = await Promise.all([
+                    supabaseClient.from('caixas_financeiras').select('*'),
+                    supabaseClient.from('despensa_mantimentos').select('*'),
+                    supabaseClient.from('historico_movimentacoes').select('*').order('timestamp', { ascending: false })
+                ]);
+
+                if (boxesRes.error) throw boxesRes.error;
+                if (pantryRes.error) throw pantryRes.error;
+                if (historyRes.error) throw historyRes.error;
+
+                appState.boxes = (boxesRes.data || []).map(b => ({
+                    id: b.id, name: b.name, pct: parseFloat(b.pct), balance: parseFloat(b.balance),
+                    target: b.target ? parseFloat(b.target) : null, isReserve: b.is_reserve, icon: b.icon, color: b.color
+                }));
+
+                appState.pantry = (pantryRes.data || []).map(p => ({
+                    id: p.id, name: p.name, qty: p.qty, ideal: p.ideal, unit: p.unit, boxId: p.box_id, barcode: p.barcode || ''
+                }));
+
+                appState.history = (historyRes.data || []).map(h => ({
+                    id: h.id, boxName: h.box_name, type: h.type, amount: parseFloat(h.amount), description: h.description, timestamp: h.timestamp
+                }));
+
+                renderApp();
+            } catch(err) {
+                console.error(err);
+                showToast('Erro ao carregar dados do Supabase.', 'error');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const labels = document.querySelectorAll('.sidebar-label');
+            const toggleIcon = document.getElementById('sidebarToggleIcon');
+
+            if (window.innerWidth < 768) {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+                return;
+            }
+
+            isSidebarCollapsed = !isSidebarCollapsed;
+            if (isSidebarCollapsed) {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-20');
+                labels.forEach(el => el.classList.add('hidden'));
+                if (toggleIcon) toggleIcon.className = 'fa-solid fa-chevron-right text-xs';
+            } else {
+                sidebar.classList.remove('w-20');
+                sidebar.classList.add('w-64');
+                labels.forEach(el => el.classList.remove('hidden'));
+                if (toggleIcon) toggleIcon.className = 'fa-solid fa-chevron-left text-xs';
+            }
+        }
+
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.finance-tab');
+            const panes = document.querySelectorAll('.finance-pane');
+            const titleEl = document.getElementById('currentTitle');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.dataset.tab;
+                    tabs.forEach(t => {
+                        const active = t === tab;
+                        t.classList.toggle('is-active', active);
+                        t.setAttribute('aria-selected', String(active));
+                        if (active) {
+                            const spanText = t.querySelector('span:not(.sidebar-label)') || t.querySelector('span');
+                            if (titleEl && spanText) titleEl.innerText = spanText.innerText;
+                        }
+                    });
+                    panes.forEach(p => {
+                        const active = p.dataset.pane === target;
+                        p.hidden = !active;
+                        p.classList.toggle('active', active);
+                    });
+
+                    if (window.innerWidth < 768) {
+                        document.getElementById('sidebar').classList.add('-translate-x-full');
+                        document.getElementById('sidebarOverlay').classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        function switchTab(tabName) {
+            const btn = document.querySelector(`[data-tab="${tabName}"]`);
+            if (btn) btn.click();
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                appState.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                appState.theme = 'dark';
+            }
+            localStorage.setItem('app_theme', appState.theme);
+            if (chartInstance) chartInstance.destroy();
+            initChart();
+        }
+
+        function formatBRL(val) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+        }
+
+        function setupIconPicker() {
+            const container = document.getElementById('iconPicker');
+            container.innerHTML = ICON_PALETTE.map((item, idx) => `
+                <button type="button" onclick="selectIcon(${idx})" id="iconOpt_${idx}"
+                    class="h-10 rounded-xl flex items-center justify-center border-2 transition-all ${idx === 0 ? 'border-brand-500 scale-105 bg-slate-100 dark:bg-slate-700' : 'border-transparent hover:bg-slate-100 dark:hover:bg-slate-700'}">
+                    <i class="fa-solid ${item.icon} text-base" style="color: ${item.color}"></i>
+                </button>
+            `).join('');
+        }
+
+        function selectIcon(idx) {
+            selectedIconIndex = idx;
+            ICON_PALETTE.forEach((_, i) => {
+                const btn = document.getElementById(`iconOpt_${i}`);
+                if (btn) {
+                    btn.className = (i === idx) ? 'h-10 rounded-xl flex items-center justify-center border-2 border-brand-500 scale-105 bg-slate-100 dark:bg-slate-700 transition-all' : 'h-10 rounded-xl flex items-center justify-center border-2 border-transparent hover:bg-slate-100 dark:hover:bg-slate-700 transition-all';
+                }
+            });
+        }
+
+        function renderApp() {
+            renderSummary();
+            renderBoxes();
+            renderPantry();
+            renderHistory();
+            renderMetrics();
+            updateChart();
+        }
+
+        function renderSummary() {
+            const totalBalance = appState.boxes.reduce((acc, b) => acc + (b.balance || 0), 0);
+            const totalPct = appState.boxes.reduce((acc, b) => acc + (parseFloat(b.pct) || 0), 0);
+
+            let completedBoxes = 0;
+            let targetableBoxesCount = 0;
+            appState.boxes.forEach(b => {
+                if (!b.isReserve && b.target && b.target > 0) {
+                    targetableBoxesCount++;
+                    if (b.balance >= b.target) completedBoxes++;
+                }
+            });
+
+            document.getElementById('totalBalance').innerText = formatBRL(totalBalance);
+            document.getElementById('boxCountText').innerText = `${appState.boxes.length} Caixa(s) ativa(s)`;
+            document.getElementById('completedBoxesCountText').innerText = targetableBoxesCount > 0 ? `${completedBoxes}/${targetableBoxesCount} Metas` : 'Caixas Infinitas';
+
+            const now = new Date();
+            let monthDeposits = 0;
+            let monthWithdrawals = 0;
+            (appState.history || []).forEach(item => {
+                const date = new Date(item.timestamp);
+                if (Number.isNaN(date.getTime()) || date.getFullYear() !== now.getFullYear() || date.getMonth() !== now.getMonth()) return;
+                const amount = Number(item.amount) || 0;
+                if (item.type === 'deposit') monthDeposits += amount;
+                else if (item.type === 'withdraw') monthWithdrawals += amount;
+            });
+            document.getElementById('monthDeposits').innerText = formatBRL(monthDeposits);
+            document.getElementById('monthWithdrawals').innerText = formatBRL(monthWithdrawals);
+            const monthNet = monthDeposits - monthWithdrawals;
+            const netEl = document.getElementById('monthNet');
+            netEl.innerText = `${monthNet < 0 ? '−' : ''}${formatBRL(Math.abs(monthNet))}`;
+            netEl.className = `font-extrabold ${monthNet < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-800 dark:text-white'}`;
+            document.getElementById('monthLabel').innerText = now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+            const pctText = document.getElementById('totalPercentageText');
+            const pctBadge = document.getElementById('pctStatusBadge');
+            const progressBar = document.getElementById('pctProgressBar');
+            const warningText = document.getElementById('pctWarningText');
+
+            const roundedPct = Math.round(totalPct * 10) / 10;
+            pctText.innerText = `${roundedPct}%`;
+            progressBar.style.width = `${Math.min(roundedPct, 100)}%`;
+
+            if (Math.abs(roundedPct - 100) < 0.1) {
+                pctBadge.className = 'px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300';
+                pctBadge.innerText = '100% OK';
+                progressBar.className = 'bg-brand-500 h-full rounded-full transition-all duration-300';
+                warningText.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> Distribuição perfeita (100%)`;
+            } else if (roundedPct < 100) {
+                const diff = (100 - roundedPct).toFixed(1);
+                pctBadge.className = 'px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300';
+                pctBadge.innerText = `Falta ${diff}%`;
+                progressBar.className = 'bg-amber-500 h-full rounded-full transition-all duration-300';
+                warningText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Faltam ${diff}%`;
+            } else {
+                const diff = (roundedPct - 100).toFixed(1);
+                pctBadge.className = 'px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300';
+                pctBadge.innerText = `Excesso +${diff}%`;
+                progressBar.className = 'bg-rose-500 h-full rounded-full transition-all duration-300';
+                warningText.innerHTML = `<i class="fa-solid fa-circle-exclamation text-rose-500"></i> Excede 100%!`;
+            }
+
+            const criticalItems = appState.pantry.filter(p => p.qty <= 0);
+            const lowItems = appState.pantry.filter(p => p.qty > 0 && p.qty < p.ideal);
+            const summaryAlerts = document.getElementById('pantryAlertsSummary');
+            
+            let alertHtml = '';
+            if (criticalItems.length > 0) alertHtml += `<div class="text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> ${criticalItems.length} item(ns) esgotado(s)</div>`;
+            if (lowItems.length > 0) alertHtml += `<div class="text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1"><i class="fa-solid fa-clock"></i> ${lowItems.length} item(ns) abaixo do ideal</div>`;
+            if (criticalItems.length === 0 && lowItems.length === 0) alertHtml = `<p class="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Estoque 100% abastecido</p>`;
+            summaryAlerts.innerHTML = alertHtml;
+        }
+
+        // RENDERIZAÇÃO COMPACTA DAS 7 CAIXAS COM PORCENTAGEM DE FECHAMENTO DA META
+        function renderBoxes() {
+            const container = document.getElementById('boxesContainer');
+            if (appState.boxes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+                        <i class="fa-solid fa-box-open text-3xl text-slate-300 dark:text-slate-600 mb-2"></i>
+                        <p class="text-slate-500 text-xs font-medium">Nenhuma caixa cadastrada</p>
+                        <button onclick="openBoxModal()" class="mt-2 text-xs text-brand-600 font-bold hover:underline">+ Criar primeira caixa</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = appState.boxes.map(box => {
+                const isFull = !box.isReserve && box.target && box.balance >= box.target;
+                const progressPct = (!box.target || box.target <= 0) ? 100 : Math.min(100, (box.balance / box.target) * 100);
+                const formattedProgressPct = Math.round(progressPct * 10) / 10;
+
+                return `
+                <div class="bg-white dark:bg-slate-800 p-3.5 rounded-xl border ${isFull ? 'border-amber-400 dark:border-amber-500/50' : 'border-slate-200 dark:border-slate-700'} shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all relative overflow-hidden">
+                    <!-- Informações Principais da Caixa -->
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0" style="background-color: ${box.color}">
+                            <i class="fa-solid ${box.icon} text-sm"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-slate-800 dark:text-white text-xs truncate">${escapeHtml(box.name)}</h3>
+                                <span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">Alocação: ${box.pct}%</span>
+                                ${isFull ? `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 shrink-0">Meta Atingida</span>` : ''}
+                                ${box.isReserve ? `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300 shrink-0">Reserva</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-3 mt-1.5">
+                                <div class="w-32 bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden hidden sm:block">
+                                    <div class="h-full rounded-full transition-all duration-300 ${isFull ? 'bg-amber-500' : 'bg-brand-500'}" style="width: ${progressPct}%"></div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-600 dark:text-slate-300">${box.target && box.target > 0 ? `${formattedProgressPct}% da meta (${formatBRL(box.target)})` : 'Sem limite'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Saldo & Botões de Ação Rápida -->
+                    <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-700">
+                        <div class="text-right">
+                            <span class="text-sm font-extrabold text-slate-900 dark:text-white">${formatBRL(box.balance)}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="openTxModal('${box.id}', 'deposit')" class="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-plus text-[9px]"></i> Aporte
+                            </button>
+                            <button onclick="openTxModal('${box.id}', 'withdraw')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-[11px] font-bold rounded-lg transition-all flex items-center gap-1">
+                                <i class="fa-solid fa-minus text-[9px]"></i> Gasto
+                            </button>
+                            <div class="flex items-center border-l border-slate-200 dark:border-slate-700 pl-1.5 ml-1 gap-0.5">
+                                <button onclick="editBox('${box.id}')" title="Editar" class="p-1 text-slate-400 hover:text-slate-600 text-xs rounded"><i class="fa-solid fa-pen"></i></button>
+                                <button onclick="deleteBox('${box.id}')" title="Excluir" class="p-1 text-slate-400 hover:text-rose-500 text-xs rounded"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function setPantryFilter(status) {
+            currentPantryFilter = status;
+            ['all', 'ok', 'low', 'critical'].forEach(s => {
+                const btn = document.getElementById(`pFilter_${s}`);
+                if (!btn) return;
+                if (s === status) {
+                    btn.className = 'pantry-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-sm shrink-0';
+                } else {
+                    btn.className = 'pantry-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0';
+                }
+            });
+            renderPantry();
+        }
+
+        function renderPantry() {
+            const container = document.getElementById('pantryContainer');
+            
+            const totalCount = appState.pantry.length;
+            const okCount = appState.pantry.filter(p => p.qty >= p.ideal).length;
+            const lowCount = appState.pantry.filter(p => p.qty > 0 && p.qty < p.ideal).length;
+            const criticalCount = appState.pantry.filter(p => p.qty <= 0).length;
+
+            document.getElementById('countAll').innerText = totalCount;
+            document.getElementById('countOk').innerText = okCount;
+            document.getElementById('countLow').innerText = lowCount;
+            document.getElementById('countCritical').innerText = criticalCount;
+
+            let filteredItems = appState.pantry;
+            if (currentPantryFilter === 'ok') filteredItems = appState.pantry.filter(p => p.qty >= p.ideal);
+            else if (currentPantryFilter === 'low') filteredItems = appState.pantry.filter(p => p.qty > 0 && p.qty < p.ideal);
+            else if (currentPantryFilter === 'critical') filteredItems = appState.pantry.filter(p => p.qty <= 0);
+
+            if (filteredItems.length === 0) {
+                container.innerHTML = `
+                    <div class="sm:col-span-3 text-center py-8 bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700">
+                        <i class="fa-solid fa-box-open text-3xl text-slate-300 dark:text-slate-600 mb-1"></i>
+                        <p class="text-slate-500 text-xs font-medium">Nenhum mantimento nesta categoria</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredItems.map(item => {
+                const isCritical = item.qty <= 0;
+                const isLow = item.qty > 0 && item.qty < item.ideal;
+                const linkedBox = appState.boxes.find(b => b.id === item.boxId);
+
+                let badgeClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300';
+                let badgeText = 'Estoque OK';
+                if (isCritical) {
+                    badgeClass = 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-300';
+                    badgeText = 'Esgotado';
+                } else if (isLow) {
+                    badgeClass = 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300';
+                    badgeText = 'Baixo';
+                }
+
+                return `
+                <div class="bg-white dark:bg-slate-800 p-3.5 rounded-xl border ${isCritical ? 'border-rose-400 dark:border-rose-500/50' : (isLow ? 'border-amber-300' : 'border-slate-200 dark:border-slate-700')} shadow-sm flex items-center justify-between gap-3 transition-all">
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="px-1.5 py-0.5 text-[9px] font-bold rounded ${badgeClass}">${badgeText}</span>
+                            ${item.barcode ? `<span class="text-[9px] text-slate-400 font-mono"><i class="fa-solid fa-barcode"></i> ${item.barcode}</span>` : ''}
+                        </div>
+                        <h4 class="font-bold text-slate-800 dark:text-white text-xs truncate mt-0.5">${escapeHtml(item.name)}</h4>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5">
+                            <span>Ideal: <strong>${item.ideal} ${item.unit}</strong></span>
+                            ${linkedBox ? `<span>• Caixa: ${escapeHtml(linkedBox.name)}</span>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 shrink-0">
+                        <div class="text-right">
+                            <span class="text-sm font-extrabold text-slate-800 dark:text-white">${item.qty}</span>
+                            <span class="text-[10px] text-slate-500">${item.unit}</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="updatePantryQty('${item.id}', -1)" title="Diminuir" class="w-6 h-6 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 font-bold text-xs flex items-center justify-center transition-all"><i class="fa-solid fa-minus text-[9px]"></i></button>
+                            <button onclick="updatePantryQty('${item.id}', 1)" title="Aumentar" class="w-6 h-6 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 font-bold text-xs flex items-center justify-center transition-all"><i class="fa-solid fa-plus text-[9px]"></i></button>
+                        </div>
+                        <div class="flex items-center border-l border-slate-200 dark:border-slate-700 pl-1.5 ml-0.5 gap-0.5">
+                            <button onclick="editPantryItem('${item.id}')" title="Editar" class="p-1 text-slate-400 hover:text-slate-600 text-xs rounded"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deletePantryItem('${item.id}')" title="Excluir" class="p-1 text-slate-400 hover:text-rose-500 text-xs rounded"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function copyShoppingList() {
+            const criticalItems = appState.pantry.filter(p => p.qty < p.ideal);
+            if (criticalItems.length === 0) {
+                showToast('Nenhum item em falta para copiar!', 'info');
+                return;
+            }
+
+            let text = "🛒 *Lista de Compras - Despensa*:\n\n";
+            criticalItems.forEach(item => {
+                const missing = item.ideal - item.qty;
+                text += `[ ] ${missing}x ${item.name} (${item.unit})\n`;
+            });
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Lista de compras copiada para a área de transferência!', 'success');
+            }).catch(() => {
+                showToast('Erro ao copiar lista.', 'error');
+            });
+        }
+
+        async function updatePantryQty(id, delta) {
+            const item = appState.pantry.find(p => p.id === id);
+            if (!item) return;
+            item.qty = Math.max(0, item.qty + delta);
             if (supabaseClient) {
-              await supabaseClient.from("products").update({ stock: p.stock }).eq("id", c.id);
+                await supabaseClient.from('despensa_mantimentos').update({ qty: item.qty }).eq('id', item.id);
             }
-          }
+            renderApp();
         }
-      }
 
-      const sale = { id: uid(), date: todayISO(), total, payment, items: [...cart] };
-      db.sales.push(sale);
-      saveCache();
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (!appState.history || appState.history.length === 0) {
+                list.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">Nenhuma movimentação registrada.</div>`;
+                return;
+            }
 
-      if (supabaseClient) {
-        await supabaseClient.from("sales").insert([sale]);
-      }
-
-      const itemsFormatted = cart.map(c => `• ${c.qty}x ${c.name} — ${money(c.price * c.qty)}`).join("\n");
-
-      await sendTelegramTemplate("nova_venda", { 
-        items: itemsFormatted,
-        total: money(total), 
-        payment 
-      });
-
-      cart = [];
-      pdvItemSearchFilter = "";
-      alert("Venda finalizada com sucesso!");
-      renderPDV();
-    }
-
-    /* --- OFICINA / OS --- */
-    function renderWorkshop() {
-      $("pageTitle").textContent = "Oficina / Ordens de Serviço";
-      const filtered = db.orders.filter(o => 
-        o.customer.toLowerCase().includes(orderSearchFilter.toLowerCase()) || 
-        o.plate.toLowerCase().includes(orderSearchFilter.toLowerCase()) ||
-        o.number.toLowerCase().includes(orderSearchFilter.toLowerCase())
-      );
-
-      const rows = filtered.map(o => `<tr>
-        <td><b>${o.number}</b></td>
-        <td>${o.customer}</td>
-        <td>${o.vehicle}</td>
-        <td><code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700;">${o.plate}</code></td>
-        <td>${o.problem}</td>
-        <td><span class="badge badge-warn">${o.status}</span></td>
-        <td>${money(o.value)}</td>
-        <td>
-          <button class="btn btn-warning btn-sm" onclick="openOrderModal('${o.id}')"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')"><i class="bi bi-trash"></i></button>
-          ${o.status === 'Em andamento' ? `<button class="btn btn-success btn-sm" onclick="finishOrder('${o.id}')" title="Concluir OS"><i class="bi bi-check-lg"></i></button>` : '<span style="color:var(--success); font-weight:600; margin-left:5px;">Ok</span>'}
-        </td>
-      </tr>`).join("");
-
-      $("content").innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
-          <button class="btn" onclick="openOrderModal()"><i class="bi bi-plus-lg"></i> Nova OS</button>
-          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar OS, placa ou cliente..." value="${orderSearchFilter}" oninput="orderSearchFilter=this.value; renderWorkshop();">
-        </div>
-        <div class="card" style="padding:0; overflow:hidden;">
-          <table>
-            <thead><tr><th>Nº OS</th><th>Cliente</th><th>Veículo</th><th>Placa</th><th>Defeito</th><th>Status</th><th>Valor</th><th>Ação</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--muted);">Nenhuma OS encontrada.</td></tr>'}</tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function openOrderModal(id = null) {
-      const o = id ? db.orders.find(x => x.id === id) : null;
-      openModal(o ? "Editar OS" : "Nova Ordem de Serviço", `
-        <div class="mb-3"><label class="label">Nome do Cliente</label><input id="osCustomer" class="field" value="${o ? o.customer : ''}" placeholder="Ex: João Silva"></div>
-        <div class="mb-3"><label class="label">Modelo da Moto</label><input id="osVehicle" class="field" value="${o ? o.vehicle : ''}" placeholder="Ex: Honda Titan 160"></div>
-        <div class="mb-3"><label class="label">Placa da Moto</label><input id="osPlate" class="field" value="${o ? o.plate : ''}" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
-        <div class="mb-3"><label class="label">Defeito Relatado / Serviço</label><input id="osProblem" class="field" value="${o ? o.problem : ''}" placeholder="Ex: Troca de óleo e relação"></div>
-        <div class="mb-3"><label class="label">Valor Estimado (R$)</label><input id="osValue" type="number" step="0.01" class="field" value="${o ? o.value : '0.00'}"></div>
-        <button class="btn" style="width:100%; justify-content:center;" onclick="saveOrder('${id || ''}')">${o ? 'Salvar Alterações' : 'Abrir OS'}</button>
-      `);
-    }
-
-    async function saveOrder(id) {
-      const customer = $("osCustomer").value.trim();
-      const vehicle = $("osVehicle").value.trim();
-      const plate = $("osPlate").value.trim().toUpperCase();
-      const problem = $("osProblem").value.trim();
-      const value = parseFloat($("osValue").value) || 0;
-
-      if (!customer || !vehicle || !plate) return alert("Preencha o cliente, a moto e a placa.");
-
-      if (id) {
-        const order = db.orders.find(x => x.id === id);
-        if (order) {
-          order.customer = customer; order.vehicle = vehicle; order.plate = plate; order.problem = problem; order.value = value;
-          saveCache();
-          if (supabaseClient) {
-            await supabaseClient.from("orders").update({ customer, vehicle, plate, problem, value }).eq("id", id);
-          }
+            list.innerHTML = appState.history.map(item => {
+                const isDeposit = item.type === 'deposit';
+                const dateStr = new Date(item.timestamp).toLocaleDateString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+                
+                return `
+                    <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] ${isDeposit ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}">
+                                    <i class="fa-solid ${isDeposit ? 'fa-arrow-down' : 'fa-arrow-up'}"></i>
+                                </div>
+                                <p class="font-bold text-slate-800 dark:text-slate-200">${escapeHtml(item.boxName)}</p>
+                            </div>
+                            <span class="font-extrabold ${isDeposit ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">
+                                ${item.amount > 0 ? (isDeposit ? '+' : '-') + formatBRL(item.amount) : 'Registro'}
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center text-[10px] text-slate-400">
+                            <span>${escapeHtml(item.description || (isDeposit ? 'Aporte' : 'Gasto'))}</span>
+                            <span>${dateStr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
-      } else {
-        const number = "OS-" + Math.floor(1000 + Math.random() * 9000);
-        const newOrder = { id: uid(), number, customer, vehicle, plate, problem, value, status: "Em andamento", date: todayISO() };
-        db.orders.push(newOrder);
-        saveCache();
-        if (supabaseClient) {
-          await supabaseClient.from("orders").insert([newOrder]);
+
+        function renderMetrics() {
+            const container = document.getElementById('financialMetricsList');
+            const totalBalance = appState.boxes.reduce((acc, b) => acc + (b.balance || 0), 0);
+            const totalTarget = appState.boxes.reduce((acc, b) => acc + (b.target || 0), 0);
+
+            container.innerHTML = `
+                <div class="flex justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500">Total Acumulado:</span>
+                    <strong class="text-slate-800 dark:text-white">${formatBRL(totalBalance)}</strong>
+                </div>
+                <div class="flex justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500">Soma das Metas:</span>
+                    <strong class="text-slate-800 dark:text-white">${formatBRL(totalTarget)}</strong>
+                </div>
+                <div class="flex justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500">Total na Despensa:</span>
+                    <strong class="text-slate-800 dark:text-white">${appState.pantry.reduce((a,b)=>a+b.qty,0)} unidades</strong>
+                </div>
+                <div class="flex justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-700">
+                    <span class="text-slate-500">Itens em Falta:</span>
+                    <strong class="text-rose-600 dark:text-rose-400">${appState.pantry.filter(p=>p.qty < p.ideal).length} itens</strong>
+                </div>
+            `;
         }
-        await sendTelegramTemplate("nova_os", { number, customer, vehicle, plate, problem });
-      }
 
-      closeModal();
-      renderWorkshop();
-    }
+        async function handleGlobalDeposit(e) {
+            e.preventDefault();
+            const input = document.getElementById('globalDepositInput');
+            const totalDeposit = parseFloat(input.value);
 
-    async function deleteOrder(id) {
-      if (!confirm("Deseja realmente excluir esta OS?")) return;
-      db.orders = db.orders.filter(o => o.id !== id);
-      saveCache();
+            if (!totalDeposit || totalDeposit <= 0) return;
+            if (appState.boxes.length === 0) {
+                showToast('Crie ao menos uma caixa primeiro!', 'error');
+                return;
+            }
 
-      if (supabaseClient) {
-        await supabaseClient.from("orders").delete().eq("id", id);
-      }
-      renderWorkshop();
-    }
+            let remainingDeposit = totalDeposit;
+            let allocations = {};
+            appState.boxes.forEach(b => allocations[b.id] = 0);
+            let overflowOccurred = false;
 
-    async function finishOrder(id) {
-      const order = db.orders.find(o => o.id === id);
-      if (!order) return;
-      order.status = "Concluída";
+            let maxIterations = 50; 
+            while (remainingDeposit > 0.001 && maxIterations > 0) {
+                maxIterations--;
+                let eligibleBoxes = appState.boxes.filter(b => {
+                    if (b.isReserve) return true;
+                    if (!b.target || b.target <= 0) return true;
+                    return (b.balance + allocations[b.id]) < b.target - 0.0001;
+                });
 
-      const historyItem = {
-        id: uid(),
-        date: todayISO(),
-        number: order.number,
-        customer: order.customer,
-        vehicle: order.vehicle,
-        plate: order.plate,
-        service: order.problem,
-        value: order.value
-      };
+                if (eligibleBoxes.length === 0) {
+                    let reserveBox = appState.boxes.find(b => b.isReserve) || appState.boxes[appState.boxes.length - 1];
+                    allocations[reserveBox.id] += remainingDeposit;
+                    remainingDeposit = 0;
+                    break;
+                }
 
-      db.history.push(historyItem);
-      saveCache();
+                const sumEligiblePct = eligibleBoxes.reduce((acc, b) => acc + (parseFloat(b.pct) || 0), 0);
+                const effectiveSumPct = sumEligiblePct > 0 ? sumEligiblePct : eligibleBoxes.length;
 
-      if (supabaseClient) {
-        await supabaseClient.from("orders").update({ status: "Concluída" }).eq("id", id);
-        await supabaseClient.from("history").insert([historyItem]);
-      }
+                let roundAllocated = 0;
+                let newlyFilledInThisRound = false;
 
-      renderWorkshop();
-    }
+                for (let box of eligibleBoxes) {
+                    const boxPct = parseFloat(box.pct) || (100 / eligibleBoxes.length);
+                    let share = remainingDeposit * (boxPct / effectiveSumPct);
 
-    /* --- HISTÓRICO DE MANUTENÇÕES --- */
-    function renderHistory() {
-      $("pageTitle").textContent = "Histórico de Manutenções por Veículo";
+                    if (!box.isReserve && box.target && box.target > 0) {
+                        const currentVal = box.balance + allocations[box.id];
+                        const spaceLeft = Math.max(0, box.target - currentVal);
+                        if (share >= spaceLeft) {
+                            allocations[box.id] += spaceLeft;
+                            roundAllocated += spaceLeft;
+                            newlyFilledInThisRound = true;
+                            overflowOccurred = true;
+                        } else {
+                            allocations[box.id] += share;
+                            roundAllocated += share;
+                        }
+                    } else {
+                        allocations[box.id] += share;
+                        roundAllocated += share;
+                    }
+                }
+                remainingDeposit -= roundAllocated;
+                if (!newlyFilledInThisRound) { remainingDeposit = 0; break; }
+            }
 
-      const platesMap = {};
-      db.history.forEach(h => {
-        const p = h.plate || "SEM-PLACA";
-        if (!platesMap[p]) {
-          platesMap[p] = { plate: p, vehicle: h.vehicle, customer: h.customer, visits: [] };
+            for (let box of appState.boxes) {
+                const addedAmount = allocations[box.id] || 0;
+                if (addedAmount > 0) {
+                    box.balance = (box.balance || 0) + addedAmount;
+                    if (supabaseClient) {
+                        await supabaseClient.from('caixas_financeiras').update({ balance: box.balance }).eq('id', box.id);
+                    }
+                }
+            }
+
+            if (supabaseClient) {
+                await supabaseClient.from('historico_movimentacoes').insert([{
+                    id: 'h_' + Date.now(), box_name: 'Aporte Global Inteligente', type: 'deposit', amount: totalDeposit,
+                    description: overflowOccurred ? 'Com transbordamento automático' : 'Proporcional por porcentagem', timestamp: new Date().toISOString()
+                }]);
+            }
+
+            loadFromSupabase();
+            input.value = '';
+            showSpilloverReport(totalDeposit, allocations, overflowOccurred);
         }
-        platesMap[p].visits.push(h);
-      });
 
-      const vehiclesList = Object.values(platesMap);
-      const filtered = vehiclesList.filter(v => 
-        v.plate.toLowerCase().includes(historySearchFilter.toLowerCase()) || 
-        v.vehicle.toLowerCase().includes(historySearchFilter.toLowerCase()) ||
-        v.customer.toLowerCase().includes(historySearchFilter.toLowerCase())
-      );
+        function showSpilloverReport(total, allocations, overflowOccurred) {
+            document.getElementById('spilloverTotalText').innerText = `Aporte Total: ${formatBRL(total)}`;
+            document.getElementById('spilloverNoticeBox').innerHTML = overflowOccurred ? 
+                `<div class="font-bold text-amber-600 dark:text-amber-400"><i class="fa-solid fa-bolt"></i> Transbordamento ativado!</div><p>Excedente enviado para a Reserva.</p>` :
+                `<div class="font-bold text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Distribuição completa</div><p>Valores alocados proporcionalmente.</p>`;
 
-      const rows = filtered.map(v => `<tr>
-        <td><code style="background:#e0f2fe; color:#0369a1; padding:4px 8px; border-radius:6px; font-weight:700;">${v.plate}</code></td>
-        <td><b>${v.vehicle}</b></td>
-        <td>${v.customer}</td>
-        <td><span class="badge badge-ok">${v.visits.length} visita(s)</span></td>
-        <td><button class="btn btn-sm" onclick="openVehicleHistoryModal('${v.plate}')"><i class="bi bi-eye"></i> Ver Prontuário</button></td>
-      </tr>`).join("");
-
-      $("content").innerHTML = `
-        <div class="card" style="margin-bottom: 20px;">
-          <div class="mb-3" style="margin-bottom:0;">
-            <label class="label">Pesquisar Veículo por Placa, Modelo ou Cliente</label>
-            <input id="historySearchInput" class="field" placeholder="Ex: ABC-1D23 ou Titan" value="${historySearchFilter}" oninput="historySearchFilter=this.value; renderHistory();">
-          </div>
-        </div>
-        <div class="card" style="padding:0; overflow:hidden;">
-          <table>
-            <thead><tr><th>Placa</th><th>Veículo</th><th>Último Cliente</th><th>Total de Passagens</th><th>Ação</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--muted);">Nenhum veículo encontrado no histórico.</td></tr>'}</tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function openVehicleHistoryModal(plate) {
-      const records = db.history.filter(h => h.plate === plate);
-      if (!records.length) return;
-
-      const vehicleName = records[0].vehicle;
-      const itemsHtml = records.map(r => `
-        <div style="border-bottom: 1px solid var(--border); padding: 12px 0; display:flex; justify-content:space-between; align-items:center;" id="hist-row-${r.id}">
-          <div>
-            <div style="display:flex; gap:10px; margin-bottom:4px;">
-              <span style="font-size:12px; font-weight:600; color:var(--muted);">Data: ${r.date} (${r.number})</span>
-              <span style="font-weight:bold; color:var(--success);">${money(r.value)}</span>
-            </div>
-            <p style="font-size:14px;"><b>Serviço:</b> ${r.service}</p>
-            <p style="font-size:12px; color:var(--muted); margin-top:2px;">Cliente responsável: ${r.customer}</p>
-          </div>
-          <button class="btn btn-danger btn-sm" onclick="deleteHistoryRecord('${r.id}', '${plate}')" title="Excluir este registro"><i class="bi bi-trash"></i></button>
-        </div>
-      `).join("");
-
-      openModal(`Prontuário da Placa: ${plate}`, `
-        <div style="margin-bottom: 15px;">
-          <p style="font-size: 14px;"><b>Veículo:</b> ${vehicleName}</p>
-          <p style="font-size: 13px; color: var(--muted);">Total de OS executadas: ${records.length}</p>
-        </div>
-        <div style="max-height: 350px; overflow-y: auto;">
-          ${itemsHtml}
-        </div>
-        <button class="btn btn-secondary" style="width:100%; justify-content:center; margin-top:20px;" onclick="closeModal()">Fechar</button>
-      `);
-    }
-
-    async function deleteHistoryRecord(id, plate) {
-      if (!confirm("Deseja realmente excluir este registro do histórico da moto?")) return;
-
-      db.history = db.history.filter(h => h.id !== id);
-      saveCache();
-
-      if (supabaseClient) {
-        await supabaseClient.from("history").delete().eq("id", id);
-      }
-
-      const remaining = db.history.filter(h => h.plate === plate);
-      if (remaining.length > 0) {
-        openVehicleHistoryModal(plate);
-      } else {
-        closeModal();
-      }
-      renderHistory();
-    }
-
-    /* --- CLIENTES --- */
-    function renderCustomers() {
-      $("pageTitle").textContent = "Clientes";
-      const filtered = db.customers.filter(c => 
-        c.name.toLowerCase().includes(customerSearchFilter.toLowerCase()) || 
-        (c.plate && c.plate.toLowerCase().includes(customerSearchFilter.toLowerCase())) ||
-        (c.phone && c.phone.toLowerCase().includes(customerSearchFilter.toLowerCase()))
-      );
-
-      const rows = filtered.map(c => `<tr>
-        <td><b>${c.name}</b></td>
-        <td>${c.phone || "—"}</td>
-        <td><code style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:700;">${c.plate || "—"}</code></td>
-        <td>
-          <button class="btn btn-warning btn-sm" onclick="openCustomerModal('${c.id}')"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>`).join("");
-
-      $("content").innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; gap:15px; flex-wrap:wrap;">
-          <button class="btn" onclick="openCustomerModal()"><i class="bi bi-plus-lg"></i> Novo Cliente</button>
-          <input class="field" style="max-width:300px; margin-top:0;" placeholder="🔍 Buscar cliente ou placa..." value="${customerSearchFilter}" oninput="customerSearchFilter=this.value; renderCustomers();">
-        </div>
-        <div class="card" style="padding:0; overflow:hidden;">
-          <table>
-            <thead><tr><th>Nome</th><th>Telefone</th><th>Placa da Moto</th><th>Ações</th></tr></thead>
-            <tbody>${rows || '<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--muted);">Nenhum cliente encontrado.</td></tr>'}</tbody>
-          </table>
-        </div>
-      `;
-    }
-
-    function openCustomerModal(id = null) {
-      const c = id ? db.customers.find(x => x.id === id) : null;
-      openModal(c ? "Editar Cliente" : "Novo Cliente", `
-        <div class="mb-3"><label class="label">Nome Completo</label><input id="cName" class="field" value="${c ? c.name : ''}" placeholder="Ex: Maria Souza"></div>
-        <div class="mb-3"><label class="label">Telefone / WhatsApp</label><input id="cPhone" class="field" value="${c ? c.phone || '' : ''}" placeholder="(88) 99999-9999"></div>
-        <div class="mb-3"><label class="label">Placa da Moto</label><input id="cPlate" class="field" value="${c ? c.plate || '' : ''}" placeholder="Ex: ABC-1D23" style="text-transform:uppercase;"></div>
-        <button class="btn" style="width:100%; justify-content:center;" onclick="saveCustomer('${id || ''}')">${c ? 'Salvar Alterações' : 'Salvar Cliente'}</button>
-      `);
-    }
-
-    async function saveCustomer(id) {
-      const name = $("cName").value.trim();
-      const phone = $("cPhone").value.trim();
-      const plate = $("cPlate").value.trim().toUpperCase();
-
-      if (!name) return alert("Digite o nome do cliente.");
-
-      if (id) {
-        const cust = db.customers.find(x => x.id === id);
-        if (cust) {
-          cust.name = name; cust.phone = phone; cust.plate = plate;
-          saveCache();
-          if (supabaseClient) {
-            await supabaseClient.from("customers").update({ name, phone, plate }).eq("id", id);
-          }
+            document.getElementById('spilloverBreakdownList').innerHTML = appState.boxes.map(box => {
+                const rec = allocations[box.id] || 0;
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold" style="background-color: ${box.color}"><i class="fa-solid ${box.icon}"></i></div>
+                            <div>
+                                <h5 class="font-bold text-xs text-slate-800 dark:text-white">${escapeHtml(box.name)}</h5>
+                                <span class="text-[10px] text-slate-400">Novo saldo: ${formatBRL(box.balance)}</span>
+                            </div>
+                        </div>
+                        <span class="font-extrabold text-xs text-emerald-600 dark:text-emerald-400">+ ${formatBRL(rec)}</span>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('spilloverReportModal').classList.remove('hidden');
         }
-      } else {
-        const newCust = { id: uid(), name, phone, plate };
-        db.customers.push(newCust);
-        saveCache();
-        if (supabaseClient) {
-          await supabaseClient.from("customers", {id}).insert([newCust]);
+
+        function closeSpilloverReportModal() { document.getElementById('spilloverReportModal').classList.add('hidden'); }
+
+        function openTxModal(boxId, type) {
+            const box = appState.boxes.find(b => b.id === boxId);
+            if (!box) return;
+            document.getElementById('txBoxId').value = box.id;
+            document.getElementById('txModalSubtitle').innerText = box.name;
+            document.getElementById('txAmountInput').value = '';
+            document.getElementById('txDescInput').value = '';
+            setTxType(type);
+            document.getElementById('txModal').classList.remove('hidden');
         }
-      }
 
-      closeModal();
-      renderCustomers();
-    }
+        function closeTxModal() { document.getElementById('txModal').classList.add('hidden'); }
 
-    async function deleteCustomer(id) {
-      if (!confirm("Deseja realmente excluir este cliente?")) return;
-      db.customers = db.customers.filter(c => c.id !== id);
-      saveCache();
+        function setTxType(type) {
+            document.getElementById('txType').value = type;
+            const btnDep = document.getElementById('btnTypeDeposit');
+            const btnWit = document.getElementById('btnTypeWithdraw');
+            const submitBtn = document.getElementById('txSubmitBtn');
 
-      if (supabaseClient) {
-        await supabaseClient.from("customers").delete().eq("id", id);
-      }
-      renderCustomers();
-    }
+            if (type === 'deposit') {
+                btnDep.className = 'py-2 text-xs font-bold rounded-lg transition-all bg-emerald-500 text-white shadow-sm';
+                btnWit.className = 'py-2 text-xs font-bold rounded-lg transition-all text-slate-600 dark:text-slate-400';
+                submitBtn.className = 'w-1/2 py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-md';
+                submitBtn.innerText = 'Confirmar Entrada';
+            } else {
+                btnWit.className = 'py-2 text-xs font-bold rounded-lg transition-all bg-rose-500 text-white shadow-sm';
+                btnDep.className = 'py-2 text-xs font-bold rounded-lg transition-all text-slate-600 dark:text-slate-400';
+                submitBtn.className = 'w-1/2 py-2 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-medium text-xs shadow-md';
+                submitBtn.innerText = 'Confirmar Saída';
+            }
+        }
 
-    initSystem();
-  </script>
+        async function handleTxSubmit(e) {
+            e.preventDefault();
+            const boxId = document.getElementById('txBoxId').value;
+            const type = document.getElementById('txType').value;
+            const amount = parseFloat(document.getElementById('txAmountInput').value);
+            const desc = document.getElementById('txDescInput').value.trim();
+
+            const box = appState.boxes.find(b => b.id === boxId);
+            if (!box || !amount || amount <= 0) return;
+
+            if (type === 'withdraw' && amount > box.balance) {
+                showToast(`Saldo insuficiente. Disponível: ${formatBRL(box.balance)}.`, 'error');
+                return;
+            }
+
+            box.balance = type === 'deposit' ? box.balance + amount : box.balance - amount;
+
+            if (supabaseClient) {
+                await supabaseClient.from('caixas_financeiras').update({ balance: box.balance }).eq('id', box.id);
+                await supabaseClient.from('historico_movimentacoes').insert([{
+                    id: 'h_' + Date.now(), box_name: box.name, type: type, amount: amount, description: desc, timestamp: new Date().toISOString()
+                }]);
+            }
+
+            loadFromSupabase();
+            closeTxModal();
+            showToast(`${type === 'deposit' ? 'Aporte' : 'Gasto'} registrado!`, 'success');
+        }
+
+        function openBoxModal(boxId = null) {
+            document.getElementById('boxIdInput').value = boxId || '';
+            const modalTitle = document.getElementById('boxModalTitle');
+            if (boxId) {
+                const box = appState.boxes.find(b => b.id === boxId);
+                if (!box) return;
+                modalTitle.innerText = 'Editar Caixa';
+                document.getElementById('boxNameInput').value = box.name;
+                document.getElementById('boxPctInput').value = box.pct;
+                document.getElementById('boxTargetInput').value = box.target || '';
+                document.getElementById('boxIsReserveInput').checked = !!box.isReserve;
+                const iconIdx = ICON_PALETTE.findIndex(p => p.icon === box.icon);
+                selectIcon(iconIdx >= 0 ? iconIdx : 0);
+            } else {
+                modalTitle.innerText = 'Criar Nova Caixa';
+                document.getElementById('boxNameInput').value = '';
+                document.getElementById('boxPctInput').value = '';
+                document.getElementById('boxTargetInput').value = '';
+                document.getElementById('boxIsReserveInput').checked = false;
+                selectIcon(0);
+            }
+            toggleReserveCheckboxUI();
+            document.getElementById('boxModal').classList.remove('hidden');
+        }
+
+        function toggleReserveCheckboxUI() {
+            const isReserve = document.getElementById('boxIsReserveInput').checked;
+            const targetInput = document.getElementById('boxTargetInput');
+            if (isReserve) { targetInput.value = ''; targetInput.disabled = true; targetInput.placeholder = 'Sem limite (Reserva)'; }
+            else { targetInput.disabled = false; targetInput.placeholder = 'Sem limite'; }
+        }
+
+        function closeBoxModal() { document.getElementById('boxModal').classList.add('hidden'); }
+
+        async function saveBox(e) {
+            e.preventDefault();
+            const id = document.getElementById('boxIdInput').value;
+            const name = document.getElementById('boxNameInput').value.trim();
+            const pct = parseFloat(document.getElementById('boxPctInput').value) || 0;
+            const targetVal = parseFloat(document.getElementById('boxTargetInput').value);
+            const isReserve = document.getElementById('boxIsReserveInput').checked;
+            const iconObj = ICON_PALETTE[selectedIconIndex];
+
+            if (!name) return;
+
+            const boxData = {
+                name: name,
+                pct: pct,
+                target: isReserve ? null : (targetVal > 0 ? targetVal : null),
+                is_reserve: isReserve,
+                icon: iconObj.icon,
+                color: iconObj.color
+            };
+
+            if (supabaseClient) {
+                if (id) {
+                    await supabaseClient.from('caixas_financeiras').update(boxData).eq('id', id);
+                } else {
+                    boxData.id = 'b_' + Date.now();
+                    boxData.balance = 0;
+                    await supabaseClient.from('caixas_financeiras').insert([boxData]);
+                }
+            }
+
+            loadFromSupabase();
+            closeBoxModal();
+            showToast('Caixa salva com sucesso!', 'success');
+        }
+
+        function editBox(id) { openBoxModal(id); }
+
+        async function deleteBox(id) {
+            const box = appState.boxes.find(b => b.id === id);
+            if (!box) return;
+            if (confirm(`Excluir a caixa "${box.name}"?`)) {
+                if (supabaseClient) {
+                    await supabaseClient.from('caixas_financeiras').delete().eq('id', id);
+                }
+                loadFromSupabase();
+                showToast('Caixa removida.', 'info');
+            }
+        }
+
+        function updateBoxLinkDropdown() {
+            const select = document.getElementById('pantryBoxLinkInput');
+            select.innerHTML = `<option value="">Nenhuma (Independente)</option>` + appState.boxes.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
+        }
+
+        function openPantryModal(itemId = null) {
+            updateBoxLinkDropdown();
+            stopBarcodeScanner();
+            document.getElementById('pantryIdInput').value = itemId || '';
+            document.getElementById('barcodeApiStatus').innerText = 'Digite ou escaneie o código para buscar online.';
+            const modalTitle = document.getElementById('pantryModalTitle');
+
+            if (itemId) {
+                const item = appState.pantry.find(p => p.id === itemId);
+                if (!item) return;
+                modalTitle.innerText = 'Editar Mantimento';
+                document.getElementById('pantryNameInput').value = item.name;
+                document.getElementById('pantryBarcodeInput').value = item.barcode || '';
+                document.getElementById('pantryQtyInput').value = item.qty;
+                document.getElementById('pantryIdealInput').value = item.ideal;
+                document.getElementById('pantryUnitInput').value = item.unit;
+                document.getElementById('pantryBoxLinkInput').value = item.boxId || '';
+            } else {
+                modalTitle.innerText = 'Adicionar Mantimento';
+                document.getElementById('pantryNameInput').value = '';
+                document.getElementById('pantryBarcodeInput').value = '';
+                document.getElementById('pantryQtyInput').value = '1';
+                document.getElementById('pantryIdealInput').value = '3';
+                document.getElementById('pantryUnitInput').value = 'un';
+                document.getElementById('pantryBoxLinkInput').value = '';
+            }
+            document.getElementById('pantryModal').classList.remove('hidden');
+        }
+
+        function closePantryModal() {
+            stopBarcodeScanner();
+            document.getElementById('pantryModal').classList.add('hidden');
+        }
+
+        async function lookupBarcodeAPI(barcode) {
+            const cleanCode = (barcode || '').trim();
+            if (!cleanCode) return;
+
+            const statusEl = document.getElementById('barcodeApiStatus');
+            statusEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-brand-500"></i> Consultando base global...`;
+
+            const localMatch = appState.pantry.find(p => p.barcode === cleanCode);
+            if (localMatch && !document.getElementById('pantryNameInput').value) {
+                document.getElementById('pantryNameInput').value = localMatch.name;
+                document.getElementById('pantryIdealInput').value = localMatch.ideal;
+                document.getElementById('pantryUnitInput').value = localMatch.unit;
+                statusEl.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check"></i> Encontrado nos registros locais!</span>`;
+                showToast(`Item carregado: ${localMatch.name}`, 'success');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${cleanCode}.json`);
+                const data = await response.json();
+
+                if (data.status === 1 && data.product) {
+                    const productName = data.product.product_name || data.product.product_name_pt || data.product.brands || '';
+                    if (productName) {
+                        document.getElementById('pantryNameInput').value = productName;
+                        statusEl.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check"></i> Produto encontrado online!</span>`;
+                        showToast(`Produto: ${productName}`, 'success');
+                    } else {
+                        statusEl.innerHTML = `<span class="text-amber-500">Produto sem nome cadastrado na base.</span>`;
+                    }
+                } else {
+                    statusEl.innerHTML = `<span class="text-slate-400">Código não encontrado. Preencha o nome manualmente.</span>`;
+                }
+            } catch (err) {
+                console.error(err);
+                statusEl.innerHTML = `<span class="text-rose-500">Erro ao consultar API.</span>`;
+            }
+        }
+
+        function toggleBarcodeScanner() {
+            const container = document.getElementById('scannerContainer');
+            if (!container.classList.contains('hidden')) {
+                stopBarcodeScanner();
+                return;
+            }
+            container.classList.remove('hidden');
+            
+            try {
+                html5QrCodeScanner = new Html5Qrcode("reader");
+                html5QrCodeScanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 100 } },
+                    (decodedText, decodedResult) => {
+                        document.getElementById('pantryBarcodeInput').value = decodedText;
+                        stopBarcodeScanner();
+                        lookupBarcodeAPI(decodedText);
+                    },
+                    (errorMessage) => {}
+                ).catch(err => {
+                    console.error(err);
+                    showToast('Não foi possível acessar a câmera.', 'error');
+                    container.classList.add('hidden');
+                });
+            } catch(e) {
+                console.error(e);
+                showToast('Erro ao iniciar leitor.', 'error');
+            }
+        }
+
+        function stopBarcodeScanner() {
+            const container = document.getElementById('scannerContainer');
+            if (html5QrCodeScanner) {
+                html5QrCodeScanner.stop().then(() => {
+                    html5QrCodeScanner.clear();
+                    html5QrCodeScanner = null;
+                }).catch(err => { console.error(err); });
+            }
+            if (container) container.classList.add('hidden');
+        }
+
+        async function savePantryItem(e) {
+            e.preventDefault();
+            const id = document.getElementById('pantryIdInput').value;
+            const name = document.getElementById('pantryNameInput').value.trim();
+            const barcode = document.getElementById('pantryBarcodeInput').value.trim();
+            const qty = parseInt(document.getElementById('pantryQtyInput').value) || 0;
+            const ideal = parseInt(document.getElementById('pantryIdealInput').value) || 1;
+            const unit = document.getElementById('pantryUnitInput').value;
+            const boxId = document.getElementById('pantryBoxLinkInput').value || null;
+
+            if (!name) return;
+
+            const itemData = { name, barcode, qty, ideal, unit, box_id: boxId };
+
+            if (supabaseClient) {
+                if (id) {
+                    await supabaseClient.from('despensa_mantimentos').update(itemData).eq('id', id);
+                } else {
+                    itemData.id = 'p_' + Date.now();
+                    await supabaseClient.from('despensa_mantimentos').insert([itemData]);
+                }
+            }
+
+            loadFromSupabase();
+            closePantryModal();
+            showToast('Mantimento salvo!', 'success');
+        }
+
+        function editPantryItem(id) { openPantryModal(id); }
+
+        async function deletePantryItem(id) {
+            const item = appState.pantry.find(p => p.id === id);
+            if (!item) return;
+            if (confirm(`Remover "${item.name}" da despensa?`)) {
+                if (supabaseClient) {
+                    await supabaseClient.from('despensa_mantimentos').delete().eq('id', id);
+                }
+                loadFromSupabase();
+                showToast('Mantimento removido.', 'info');
+            }
+        }
+
+        function openPresetModal() { document.getElementById('presetModal').classList.remove('hidden'); }
+        function closePresetModal() { document.getElementById('presetModal').classList.add('hidden'); }
+
+        async function applyPreset(key) {
+            if (!confirm('Deseja aplicar este modelo? Suas caixas atuais serão substituídas.')) return;
+            if (key === '50-30-20') {
+                if (supabaseClient) {
+                    await supabaseClient.from('caixas_financeiras').delete().neq('id', 'abc');
+                    const presets = [
+                        { id: 'p1', name: 'Supermercado & Despensa', pct: 50, balance: 0, target: 1500, is_reserve: false, icon: 'fa-basket-shopping', color: '#16a34a' },
+                        { id: 'p2', name: 'Lazer e Estilo de Vida', pct: 30, balance: 0, target: 1000, is_reserve: false, icon: 'fa-gamepad', color: '#ec4899' },
+                        { id: 'p3', name: 'Caixa Reserva Infinita', pct: 20, balance: 0, target: null, is_reserve: true, icon: 'fa-shield-halved', color: '#eab308' }
+                    ];
+                    await supabaseClient.from('caixas_financeiras').insert(presets);
+                }
+            }
+            loadFromSupabase();
+            closePresetModal();
+            showToast('Modelo aplicado com sucesso!', 'success');
+        }
+
+        async function clearHistory() {
+            if (confirm('Deseja limpar todo o histórico?')) {
+                if (supabaseClient) {
+                    await supabaseClient.from('historico_movimentacoes').delete().neq('id', 'abc');
+                }
+                loadFromSupabase();
+                showToast('Histórico limpo.', 'info');
+            }
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('boxesChart').getContext('2d');
+            const isDark = document.documentElement.classList.contains('dark');
+
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{ data: [], backgroundColor: [], borderWidth: 2, borderColor: isDark ? '#1e293b' : '#ffffff' }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 11, family: 'Inter' }, color: isDark ? '#cbd5e1' : '#475569' } },
+                        tooltip: { callbacks: { label: function(context) { return ` ${context.label}: ${formatBRL(context.raw)}`; } } }
+                    },
+                    cutout: '70%'
+                }
+            });
+            updateChart();
+        }
+
+        function updateChart() {
+            if (!chartInstance) return;
+            const boxesWithBalance = appState.boxes.filter(b => (b.balance || 0) > 0);
+            const noDataEl = document.getElementById('noChartData');
+
+            if (boxesWithBalance.length === 0) {
+                chartInstance.data.labels = [];
+                chartInstance.data.datasets[0].data = [];
+                chartInstance.update();
+                noDataEl.classList.remove('hidden');
+                return;
+            }
+
+            noDataEl.classList.add('hidden');
+            chartInstance.data.labels = boxesWithBalance.map(b => b.name);
+            chartInstance.data.datasets[0].data = boxesWithBalance.map(b => b.balance);
+            chartInstance.data.datasets[0].backgroundColor = boxesWithBalance.map(b => b.color);
+            chartInstance.data.datasets[0].borderColor = document.documentElement.classList.contains('dark') ? '#1e293b' : '#ffffff';
+            chartInstance.update();
+        }
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            let bgClass = 'bg-slate-800 text-white', icon = 'fa-circle-info';
+            if (type === 'success') { bgClass = 'bg-emerald-600 text-white'; icon = 'fa-circle-check'; }
+            else if (type === 'error') { bgClass = 'bg-rose-600 text-white'; icon = 'fa-triangle-exclamation'; }
+
+            toast.className = `px-4 py-2.5 rounded-xl text-xs font-semibold shadow-lg flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${escapeHtml(msg)}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
 </body>
 </html>
