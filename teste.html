@@ -114,9 +114,8 @@
         <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
             <div class="finance-tab-panes space-y-5">
 
-                <!-- PANE 1: VISÃO GERAL (Dashboard Executivo Limpo) -->
+                <!-- PANE 1: VISÃO GERAL -->
                 <section class="finance-pane active space-y-4" data-pane="visao" aria-label="Visão geral">
-                    <!-- Topo Unificado -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div class="bg-gradient-to-br from-brand-600 to-emerald-800 text-white p-5 rounded-2xl shadow-md relative overflow-hidden flex flex-col justify-between">
                             <div class="absolute -right-4 -bottom-4 text-white/10 text-8xl font-bold"><i class="fa-solid fa-piggy-bank"></i></div>
@@ -167,7 +166,7 @@
                         </div>
                     </div>
 
-                    <!-- Fluxo do Mês Enxuto & Aporte Global -->
+                    <!-- Fluxo do Mês & Aporte Global -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between">
                             <div>
@@ -200,7 +199,7 @@
                     </div>
                 </section>
 
-                <!-- PANE 2: CAIXAS FINANCEIRAS (Layout Compacto com Porcentagem de Fechamento da Meta) -->
+                <!-- PANE 2: CAIXAS FINANCEIRAS -->
                 <section class="finance-pane space-y-4" data-pane="caixas" aria-label="Minhas caixas" hidden>
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                         <div>
@@ -218,7 +217,6 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Container Compacto em Coluna de Cards Horizontais -->
                     <div id="boxesContainer" class="space-y-2.5"></div>
                 </section>
 
@@ -241,7 +239,7 @@
                         </div>
                     </div>
 
-                    <!-- ABAS DE STATUS DOS MANTIMENTOS -->
+                    <!-- ABAS DE STATUS -->
                     <div class="flex gap-1 overflow-x-auto pb-1 border-b border-slate-200 dark:border-slate-700">
                         <button onclick="setPantryFilter('all')" id="pFilter_all" class="pantry-filter-btn px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-sm shrink-0">
                             Todos (<span id="countAll">0</span>)
@@ -257,7 +255,6 @@
                         </button>
                     </div>
 
-                    <!-- GRID COMPACTO DE MANTIMENTOS -->
                     <div id="pantryContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
                 </section>
 
@@ -850,7 +847,6 @@
             summaryAlerts.innerHTML = alertHtml;
         }
 
-        // RENDERIZAÇÃO COMPACTA DAS 7 CAIXAS COM PORCENTAGEM DE FECHAMENTO DA META
         function renderBoxes() {
             const container = document.getElementById('boxesContainer');
             if (appState.boxes.length === 0) {
@@ -871,7 +867,6 @@
 
                 return `
                 <div class="bg-white dark:bg-slate-800 p-3.5 rounded-xl border ${isFull ? 'border-amber-400 dark:border-amber-500/50' : 'border-slate-200 dark:border-slate-700'} shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all relative overflow-hidden">
-                    <!-- Informações Principais da Caixa -->
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                         <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0" style="background-color: ${box.color}">
                             <i class="fa-solid ${box.icon} text-sm"></i>
@@ -892,7 +887,6 @@
                         </div>
                     </div>
 
-                    <!-- Saldo & Botões de Ação Rápida -->
                     <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-700">
                         <div class="text-right">
                             <span class="text-sm font-extrabold text-slate-900 dark:text-white">${formatBRL(box.balance)}</span>
@@ -972,6 +966,9 @@
                     badgeText = 'Baixo';
                 }
 
+                // Correção robusta passando o id corretamente (suportando string ou número)
+                const itemIdStr = typeof item.id === 'string' ? `'${item.id}'` : item.id;
+
                 return `
                 <div class="bg-white dark:bg-slate-800 p-3.5 rounded-xl border ${isCritical ? 'border-rose-400 dark:border-rose-500/50' : (isLow ? 'border-amber-300' : 'border-slate-200 dark:border-slate-700')} shadow-sm flex items-center justify-between gap-3 transition-all">
                     <div class="min-w-0 flex-1">
@@ -992,12 +989,12 @@
                             <span class="text-[10px] text-slate-500">${item.unit}</span>
                         </div>
                         <div class="flex items-center gap-1">
-                            <button onclick="updatePantryQty('${item.id}', -1)" title="Diminuir" class="w-6 h-6 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 font-bold text-xs flex items-center justify-center transition-all"><i class="fa-solid fa-minus text-[9px]"></i></button>
-                            <button onclick="updatePantryQty('${item.id}', 1)" title="Aumentar" class="w-6 h-6 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 font-bold text-xs flex items-center justify-center transition-all"><i class="fa-solid fa-plus text-[9px]"></i></button>
+                            <button onclick="updatePantryQty(${itemIdStr}, -1)" title="Diminuir" class="w-6 h-6 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-600 font-bold text-xs flex items-center justify-center transition-all"><i class="fa-solid fa-minus text-[9px]"></i></button>
+                            <button onclick="updatePantryQty(${itemIdStr}, 1)" title="Aumentar" class="w-6 h-6 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 font-bold text-xs flex items-center justify-center transition-all"><i class="fa-solid fa-plus text-[9px]"></i></button>
                         </div>
                         <div class="flex items-center border-l border-slate-200 dark:border-slate-700 pl-1.5 ml-0.5 gap-0.5">
-                            <button onclick="editPantryItem('${item.id}')" title="Editar" class="p-1 text-slate-400 hover:text-slate-600 text-xs rounded"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deletePantryItem('${item.id}')" title="Excluir" class="p-1 text-slate-400 hover:text-rose-500 text-xs rounded"><i class="fa-solid fa-trash-can"></i></button>
+                            <button onclick="editPantryItem(${itemIdStr})" title="Editar" class="p-1 text-slate-400 hover:text-slate-600 text-xs rounded"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deletePantryItem(${itemIdStr})" title="Excluir" class="p-1 text-slate-400 hover:text-rose-500 text-xs rounded"><i class="fa-solid fa-trash-can"></i></button>
                         </div>
                     </div>
                 </div>
@@ -1026,11 +1023,11 @@
         }
 
         async function updatePantryQty(id, delta) {
-            const item = appState.pantry.find(p => p.id === id);
+            const item = appState.pantry.find(p => p.id == id);
             if (!item) return;
             item.qty = Math.max(0, item.qty + delta);
             if (supabaseClient) {
-                await supabaseClient.from('despensa_mantimentos').update({ qty: item.qty }).eq('id', item.id);
+                await supabaseClient.from('despensa_mantimentos').update({ qty: item.qty }).eq('id', id);
             }
             renderApp();
         }
@@ -1205,7 +1202,7 @@
         function closeSpilloverReportModal() { document.getElementById('spilloverReportModal').classList.add('hidden'); }
 
         function openTxModal(boxId, type) {
-            const box = appState.boxes.find(b => b.id === boxId);
+            const box = appState.boxes.find(b => b.id == boxId);
             if (!box) return;
             document.getElementById('txBoxId').value = box.id;
             document.getElementById('txModalSubtitle').innerText = box.name;
@@ -1243,7 +1240,7 @@
             const amount = parseFloat(document.getElementById('txAmountInput').value);
             const desc = document.getElementById('txDescInput').value.trim();
 
-            const box = appState.boxes.find(b => b.id === boxId);
+            const box = appState.boxes.find(b => b.id == boxId);
             if (!box || !amount || amount <= 0) return;
 
             if (type === 'withdraw' && amount > box.balance) {
@@ -1269,7 +1266,7 @@
             document.getElementById('boxIdInput').value = boxId || '';
             const modalTitle = document.getElementById('boxModalTitle');
             if (boxId) {
-                const box = appState.boxes.find(b => b.id === boxId);
+                const box = appState.boxes.find(b => b.id == boxId);
                 if (!box) return;
                 modalTitle.innerText = 'Editar Caixa';
                 document.getElementById('boxNameInput').value = box.name;
@@ -1337,7 +1334,7 @@
         function editBox(id) { openBoxModal(id); }
 
         async function deleteBox(id) {
-            const box = appState.boxes.find(b => b.id === id);
+            const box = appState.boxes.find(b => b.id == id);
             if (!box) return;
             if (confirm(`Excluir a caixa "${box.name}"?`)) {
                 if (supabaseClient) {
@@ -1361,7 +1358,7 @@
             const modalTitle = document.getElementById('pantryModalTitle');
 
             if (itemId) {
-                const item = appState.pantry.find(p => p.id === itemId);
+                const item = appState.pantry.find(p => p.id == itemId);
                 if (!item) return;
                 modalTitle.innerText = 'Editar Mantimento';
                 document.getElementById('pantryNameInput').value = item.name;
@@ -1498,7 +1495,7 @@
         function editPantryItem(id) { openPantryModal(id); }
 
         async function deletePantryItem(id) {
-            const item = appState.pantry.find(p => p.id === id);
+            const item = appState.pantry.find(p => p.id == id);
             if (!item) return;
             if (confirm(`Remover "${item.name}" da despensa?`)) {
                 if (supabaseClient) {
